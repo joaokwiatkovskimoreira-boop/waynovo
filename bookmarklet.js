@@ -71,7 +71,8 @@
 
   source.value = selectedText();
 
-  const instructions = {\n    lesson: 'Transforme o material em uma lição didática completa em português. Inclua título, objetivo de aprendizagem, pré-requisitos, explicação em etapas, exemplos originais, conceitos-chave, 5 perguntas inéditas de prática com respostas comentadas ao final e uma revisão final. Organize do básico ao avançado e não invente fatos ausentes.',
+  const instructions = {
+    lesson: 'Transforme o material em uma lição didática completa em português. Inclua título, objetivo de aprendizagem, pré-requisitos, explicação em etapas, exemplos originais, conceitos-chave, 5 perguntas inéditas de prática com respostas comentadas ao final e uma revisão final. Organize do básico ao avançado e não invente fatos ausentes.',
     explain: 'Explique o conteúdo passo a passo em português claro. Defina os termos importantes, mostre como as ideias se conectam e dê exemplos originais.',
     summary: 'Crie um resumo estruturado com título, conceitos centrais, definições, relações importantes e uma seção final de revisão.',
     cards: 'Crie flashcards de estudo. Cada cartão deve ter uma pergunta objetiva na frente e uma explicação curta no verso. Priorize compreensão, não memorização cega.',
