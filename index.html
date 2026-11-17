@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090b14">
-  <meta name="description" content="Waynovo — central de automação e produtividade para fluxos de estudo autorizados.">
-  <title>Waynovo — Automação inteligente</title>
+  <meta name="description" content="Waynovo — workspace e bookmarklet de estudo para fluxos autorizados.">
+  <title>Waynovo — Workspace inteligente</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -15,50 +15,72 @@
   <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
   <header class="topbar">
     <a class="brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a>
-    <nav><a class="nav-link active" href="#workspace">Workspace</a><a class="nav-link" href="#features">Recursos</a></nav>
-    <div class="top-actions"><span class="status"><i></i> Sistema pronto</span><button class="icon-btn" id="themeBtn" aria-label="Alternar tema">◐</button><button class="avatar">W</button></div>
+    <nav><a class="nav-link active" href="#workspace">Workspace</a><a class="nav-link" href="#bookmarklet">Bookmarklet</a><a class="nav-link" href="#features">Recursos</a></nav>
+    <div class="top-actions"><span class="status"><i></i> Sistema pronto</span><button class="icon-btn" id="themeBtn" aria-label="Alternar tema">◐</button><span class="avatar">W</span></div>
   </header>
   <main>
     <section class="hero">
-      <div class="eyebrow"><span class="spark">✦</span> CENTRAL DE AUTOMAÇÃO INTELIGENTE</div>
+      <div class="eyebrow"><span class="spark">✦</span> CENTRAL DE ESTUDO E PRODUTIVIDADE</div>
       <h1>Menos tarefas repetitivas.<br><span>Mais fluxo.</span></h1>
-      <p class="hero-copy">Organize materiais, monte processos e acompanhe suas tarefas em um só lugar.</p>
-      <div class="hero-meta"><span class="meta-pill">✦ Interface universal</span><span class="meta-pill">⌁ Responsivo</span><span class="meta-pill">◈ Privacidade em primeiro lugar</span></div>
+      <p class="hero-copy">Organize materiais, prepare revisões e acompanhe seus processos em um só lugar.</p>
+      <div class="hero-meta"><span class="meta-pill">✦ Bookmarklet portátil</span><span class="meta-pill">⌁ Responsivo</span><span class="meta-pill">◈ Dados locais</span></div>
     </section>
     <section class="workspace" id="workspace">
       <div class="section-heading"><div><div class="eyebrow muted">SEU AMBIENTE</div><h2>Workspace</h2></div><span class="date-label" id="today"></span></div>
       <div class="dashboard-grid">
         <aside class="side-card">
           <div class="side-title">Visão geral <span>•••</span></div>
-          <div class="metric"><div class="metric-icon violet">↗</div><div><strong id="taskCount">0</strong><small>Tarefas na fila</small></div></div>
-          <div class="metric"><div class="metric-icon mint">✓</div><div><strong id="doneCount">0</strong><small>Concluídas nesta sessão</small></div></div>
+          <div class="metric"><div class="metric-icon violet">↗</div><div><strong id="taskCount">0</strong><small>Tarefas em aberto</small></div></div>
+          <div class="metric"><div class="metric-icon mint">✓</div><div><strong id="doneCount">0</strong><small>Tarefas concluídas</small></div></div>
           <div class="side-divider"></div>
           <div class="side-title">Atalhos</div>
           <button class="shortcut active" data-focus="material"><span>＋</span> Novo fluxo</button>
           <button class="shortcut" data-mode="summary"><span>▤</span> Organizar conteúdo</button>
           <button class="shortcut" data-mode="flashcards"><span>▧</span> Criar flashcards</button>
-          <div class="privacy-note"><span>◈</span><div><b>Seus dados, suas regras</b><small>O conteúdo fica neste navegador. Nada é enviado sem uma integração que você configurar.</small></div></div>
+          <div class="privacy-note"><span>◈</span><div><b>Seus dados, suas regras</b><small>A fila fica salva neste navegador. O bookmarklet só usa o trecho que você selecionar ou colar.</small></div></div>
         </aside>
         <section class="main-card">
-          <div class="card-head"><div><h3>Novo fluxo de trabalho</h3><p>Adicione um conteúdo e escolha o que deseja fazer.</p></div><span class="live-tag"><i></i> PRONTO</span></div>
+          <div class="card-head"><div><h3>Novo fluxo de trabalho</h3><p>Adicione um material e escolha o que deseja preparar.</p></div><span class="live-tag"><i></i> PRONTO</span></div>
           <label for="material">Conteúdo ou instruções</label>
-          <textarea id="material" placeholder="Cole um texto, uma lista de questões de prática ou as etapas de uma tarefa autorizada..."></textarea>
+          <textarea id="material" placeholder="Cole um texto, material de estudo ou as etapas de uma tarefa autorizada..."></textarea>
           <div class="input-foot"><span id="charCount">0 caracteres</span><button id="clearBtn" class="text-btn">Limpar</button></div>
           <div class="form-row"><div class="field"><label for="mode">Tipo de fluxo</label><select id="mode"><option value="organize">Organizar conteúdo</option><option value="summary">Resumo estruturado</option><option value="flashcards">Gerar flashcards</option><option value="practice">Montar simulado de prática</option><option value="checklist">Criar checklist de tarefas</option><option value="review">Revisar respostas de prática</option></select></div><div class="field"><label for="priority">Prioridade</label><select id="priority"><option>Normal</option><option>Alta</option><option>Baixa</option></select></div></div>
-          <div class="form-actions"><span class="hint">⌘ O fluxo será adicionado à sua fila local.</span><button id="addBtn" class="primary-btn">Adicionar à fila <span>↗</span></button></div>
+          <div class="form-actions"><span class="hint">O fluxo será salvo na sua fila local.</span><button id="addBtn" class="primary-btn">Adicionar à fila <span>↗</span></button></div>
         </section>
       </div>
       <section class="queue-card">
-        <div class="queue-head"><div><h3>Fila de automação</h3><p>Acompanhe e gerencie seus fluxos nesta sessão.</p></div><button id="clearQueue" class="text-btn">Limpar fila</button></div>
+        <div class="queue-head"><div><h3>Fila de automação</h3><p>Pesquise, conclua e exporte seus fluxos.</p></div><div class="queue-tools"><input id="queueSearch" class="queue-search" type="search" placeholder="Buscar tarefa..." aria-label="Buscar tarefa"><button id="exportQueue" class="text-btn">Exportar</button><button id="clearQueue" class="text-btn">Limpar fila</button></div></div>
         <div id="queueList" class="queue-list"><div class="empty-state"><div class="empty-icon">⌁</div><b>Sua fila está vazia</b><span>Adicione um fluxo acima para começar.</span></div></div>
       </section>
     </section>
+
+    <section class="install-section" id="bookmarklet">
+      <div class="install-copy">
+        <div class="eyebrow muted">LEVE O WAYNOVO COM VOCÊ</div>
+        <h2>Seu painel, direto na página.</h2>
+        <p>Instale o bookmarklet uma vez. Depois, selecione um trecho em uma página e clique no favorito Waynovo para abrir um painel flutuante, preparar instruções de estudo e copiar ou salvar o material.</p>
+        <div class="install-steps">
+          <div><span>01</span><p><b>Arraste o favorito</b><small>Arraste o botão Waynovo para a barra de favoritos.</small></p></div>
+          <div><span>02</span><p><b>Selecione seu material</b><small>Em uma página autorizada, selecione ou copie o trecho que deseja estudar.</small></p></div>
+          <div><span>03</span><p><b>Abra o painel</b><small>Clique no favorito, escolha uma ferramenta e copie o prompt gerado.</small></p></div>
+        </div>
+      </div>
+      <div class="install-card">
+        <div class="install-card-head"><span class="install-icon">W</span><div><b>Waynovo Study Panel</b><small>Bookmarklet · versão 1.0</small></div><span class="install-ready">PRONTO</span></div>
+        <a id="bookmarkletLink" class="bookmarklet-drag" href="#" title="Arraste este botão para sua barra de favoritos">✦ Waynovo · abrir painel</a>
+        <p class="drag-hint">↖ Arraste o botão acima para a barra de favoritos.</p>
+        <div class="code-head"><span>CÓDIGO DE INSTALAÇÃO</span><button id="copyBookmarklet" class="text-btn">Copiar código</button></div>
+        <pre class="bookmarklet-code"><code id="bookmarkletCode"></code></pre>
+        <p class="install-warning">O bookmarklet é acionado por você. Ele não varre a página, não responde nem envia formulários. Algumas páginas restringem scripts externos por política de segurança (CSP), então a execução pode ser bloqueada nesses sites.</p>
+      </div>
+    </section>
+
     <section class="features" id="features"><div class="eyebrow muted">FEITO PARA SEU RITMO</div><h2>Um espaço. Várias possibilidades.</h2><div class="feature-grid">
-      <article class="feature"><div class="feature-icon purple">⌁</div><h3>Fluxos organizados</h3><p>Transforme conteúdos e instruções em tarefas claras, priorizadas e fáceis de acompanhar.</p></article>
-      <article class="feature"><div class="feature-icon green">▤</div><h3>Processamento em lote</h3><p>Prepare vários materiais de uma vez e mantenha tudo organizado na mesma fila.</p></article>
-      <article class="feature"><div class="feature-icon blue">◈</div><h3>Pronto para integrações</h3><p>Estrutura preparada para conectar provedores de IA e ferramentas autorizadas com segurança.</p></article>
+      <article class="feature"><div class="feature-icon purple">⌁</div><h3>Fluxos organizados</h3><p>Transforme materiais em tarefas claras, priorizadas e fáceis de acompanhar.</p></article>
+      <article class="feature"><div class="feature-icon green">▤</div><h3>Ferramentas de estudo</h3><p>Prepare resumos, flashcards, questões inéditas e planos de revisão.</p></article>
+      <article class="feature"><div class="feature-icon blue">◈</div><h3>Pronto para evoluir</h3><p>Estrutura modular para futuramente receber integrações autorizadas e um aplicativo independente.</p></article>
     </div></section>
-    <footer><a class="brand footer-brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a><span>Automação útil, controle transparente.</span><span>v4.0 · <span id="year"></span></span></footer>
+    <footer><a class="brand footer-brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a><span>Automação útil, controle transparente.</span><span>v4.1 · <span id="year"></span></span></footer>
   </main>
   <div id="toast" class="toast" role="status"></div>
   <script src="app.js"></script>
