@@ -9,6 +9,7 @@
   const queueList = $('#queueList');
   const labels = {
     organize: 'Organizar conteúdo',
+    lesson: 'Lição automática',
     summary: 'Resumo estruturado',
     flashcards: 'Flashcards',
     practice: 'Simulado de prática',
@@ -153,6 +154,76 @@
     material.value = '';
     material.dispatchEvent(new Event('input'));
     material.focus();
+  });
+
+  function buildLesson(raw) {
+    const clean = raw.replace(/\\r/g, '').trim();
+    const paragraphs = clean.split(/\\n{2,}/).map(s => s.trim()).filter(Boolean);
+    const sentences = clean.split(/(?<=[.!?])\\s+/).map(s => s.trim()).filter(s => s.length > 24);
+    const title = (paragraphs[0] || clean).replace(/\\s+/g, ' ').slice(0, 76);
+    const chunks = (paragraphs.length > 1 ? paragraphs : sentences).slice(0, 6);
+    const concepts = [...new Set((clean.match(/\\b[A-ZÁÉÍÓÚÂÊÔÃÕÇ][\\wÀ-ÿ-]{4,}\\b/g) || []))].slice(0, 8);
+    const lines = [
+      'LIÇÃO: ' + title,
+      '',
+      'OBJETIVO',
+      'Compreender as ideias centrais do material e conseguir explicá-las com suas próprias palavras.',
+      '',
+      'AQUECIMENTO',
+      'Leia o material uma vez e anote o que já sabe sobre o assunto.',
+      '',
+      'CONTEÚDO EM ETAPAS',
+      ...chunks.map((part, i) => (i + 1) + '. ' + part),
+      '',
+      'CONCEITOS PARA DOMINAR',
+      ...(concepts.length ? concepts.map(x => '• ' + x) : ['• Identifique os termos e definições mais importantes do texto.']),
+      '',
+      'PRATIQUE',
+      '1. Qual é a ideia principal deste material?',
+      '2. Como você explicaria o conceito mais importante sem consultar o texto?',
+      '3. Que exemplo próprio demonstra que você entendeu o assunto?',
+      '',
+      'REVISÃO FINAL',
+      'Resuma o que aprendeu em 3 frases e marque os pontos que ainda precisam de revisão.',
+      '',
+      'Nota: lição estruturada automaticamente a partir do texto fornecido; confira os conceitos e complemente quando necessário.'
+    ];
+    return { title, text: lines.join('\\n') };
+  }
+
+  let currentLesson = '';
+  $('#lessonBtn').addEventListener('click', () => {
+    const raw = material.value.trim();
+    if (!raw) { notify('Cole um material para montar a lição.'); material.focus(); return; }
+    const lesson = buildLesson(raw);
+    currentLesson = lesson.text;
+    $('#lessonTitle').textContent = lesson.title;
+    const body = $('#lessonBody');
+    body.replaceChildren();
+    lesson.text.split('\\n').forEach(line => {
+      const p = document.createElement('p');
+      p.textContent = line || ' ';
+      if (/^(OBJETIVO|AQUECIMENTO|CONTEÚDO EM ETAPAS|CONCEITOS PARA DOMINAR|PRATIQUE|REVISÃO FINAL)$/.test(line)) p.className = 'lesson-heading';
+      body.append(p);
+    });
+    $('#lessonResult').hidden = false;
+    mode.value = 'lesson';
+    notify('Lição automática criada. Revise e ajuste se necessário.');
+  });
+
+  async function copyLesson() {
+    if (!currentLesson) return;
+    try {
+      await navigator.clipboard.writeText(currentLesson);
+      notify('Lição copiada.');
+    } catch (_) { notify('Cópia indisponível neste contexto; use Salvar .txt.'); }
+  }
+  $('#copyLesson').addEventListener('click', copyLesson);
+  $('#downloadLesson').addEventListener('click', () => {
+    if (!currentLesson) return;
+    const url = URL.createObjectURL(new Blob([currentLesson], {type:'text/plain;charset=utf-8'}));
+    const a = document.createElement('a'); a.href = url; a.download = 'waynovo-licao.txt'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
   $('#addBtn').addEventListener('click', () => {
