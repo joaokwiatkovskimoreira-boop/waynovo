@@ -43,13 +43,22 @@
           <div class="card-head"><div><h3>Novo fluxo de trabalho</h3><p>Adicione um material e escolha o que deseja preparar.</p></div><span class="live-tag"><i></i> PRONTO</span></div>
           <label for="material">Conteúdo ou instruções</label>
           <textarea id="material" placeholder="Cole um texto, material de estudo ou as etapas de uma tarefa autorizada..."></textarea>
-          <div class="input-foot"><span id="charCount">0 caracteres</span><button id="clearBtn" class="text-btn">Limpar</button></div>
+          <div class="input-foot"><span id="charCount">0 caracteres</span><span id="readingMeta">Leitura: —</span><button id="clearBtn" class="text-btn">Limpar</button></div>
           <div class="form-row"><div class="field"><label for="mode">Tipo de fluxo</label><select id="mode"><option value="organize">Organizar conteúdo</option><option value="lesson">Lição automática</option><option value="summary">Resumo estruturado</option><option value="flashcards">Gerar flashcards</option><option value="practice">Montar simulado de prática</option><option value="checklist">Criar checklist de tarefas</option><option value="review">Revisar respostas de prática</option></select></div><div class="field"><label for="priority">Prioridade</label><select id="priority"><option>Normal</option><option>Alta</option><option>Baixa</option></select></div></div>
-          <div class="form-actions"><span class="hint">O fluxo será salvo na sua fila local.</span><div class="action-group"><button id="lessonBtn" class="secondary-btn" type="button">Criar lição automática</button><button id="addBtn" class="primary-btn">Adicionar à fila <span>↗</span></button></div></div><section id="lessonResult" class="lesson-result" hidden aria-live="polite"><div class="lesson-result-head"><div><b id="lessonTitle">Sua lição</b><small>Gerada a partir do material informado</small></div><div class="lesson-result-actions"><button id="copyLesson" class="text-btn" type="button">Copiar lição</button><button id="downloadLesson" class="text-btn" type="button">Salvar .txt</button></div></div><div id="lessonBody" class="lesson-body"></div></section>
+          <div class="form-actions"><span class="hint">O fluxo será salvo na sua fila local.</span><div class="action-group"><button id="lessonBtn" class="secondary-btn" type="button">Lição offline</button><button id="aiGenerateBtn" class="ai-btn" type="button">Gerar com IA</button><button id="addBtn" class="primary-btn">Adicionar à fila <span>↗</span></button></div></div>
+          <details class="ai-settings" id="aiSettings">
+            <summary>Configurar IA (opcional)</summary>
+            <div class="ai-settings-grid">
+              <label for="aiEndpoint">Endpoint do gateway</label><input id="aiEndpoint" type="url" placeholder="https://seu-worker.workers.dev/generate">
+              <label for="aiToken">Token do gateway (não é a chave do provedor)</label><input id="aiToken" type="password" autocomplete="off" placeholder="Token de acesso">
+              <div class="ai-settings-actions"><button id="saveAiConfig" class="secondary-btn" type="button">Guardar nesta sessão</button><span id="aiConfigStatus">A chave do provedor fica no servidor.</span></div>
+            </div>
+          </details>
+          <div class="ai-task-row"><label for="aiTask">Tipo de geração</label><select id="aiTask"><option value="lesson">Lição completa</option><option value="explain">Explicação passo a passo</option><option value="summary">Resumo estruturado</option><option value="flashcards">Flashcards</option><option value="practice">Perguntas inéditas de prática</option><option value="plan">Plano de estudo</option><option value="checklist">Checklist</option><option value="translate">Tradução comentada</option></select></div><section id="lessonResult" class="lesson-result" hidden aria-live="polite"><div class="lesson-result-head"><div><b id="lessonTitle">Sua lição</b><small>Gerada a partir do material informado</small></div><div class="lesson-result-actions"><button id="copyLesson" class="text-btn" type="button">Copiar resultado</button><button id="downloadLesson" class="text-btn" type="button">Salvar .txt</button><button id="saveLesson" class="text-btn" type="button">Guardar na fila</button></div></div><div id="lessonBody" class="lesson-body"></div></section>
         </section>
       </div>
       <section class="queue-card">
-        <div class="queue-head"><div><h3>Fila de automação</h3><p>Pesquise, conclua e exporte seus fluxos.</p></div><div class="queue-tools"><input id="queueSearch" class="queue-search" type="search" placeholder="Buscar tarefa..." aria-label="Buscar tarefa"><button id="exportQueue" class="text-btn">Exportar</button><button id="clearQueue" class="text-btn">Limpar fila</button></div></div>
+        <div class="queue-head"><div><h3>Fila de automação</h3><p>Pesquise, conclua e exporte seus fluxos.</p></div><div class="queue-tools"><input id="queueSearch" class="queue-search" type="search" placeholder="Buscar tarefa..." aria-label="Buscar tarefa"><button id="exportQueue" class="text-btn">Exportar</button><button id="importQueue" class="text-btn">Importar</button><input id="importFile" type="file" accept="application/json,.json" hidden><button id="clearQueue" class="text-btn">Limpar fila</button></div></div>
         <div id="queueList" class="queue-list"><div class="empty-state"><div class="empty-icon">⌁</div><b>Sua fila está vazia</b><span>Adicione um fluxo acima para começar.</span></div></div>
       </section>
     </section>
@@ -58,7 +67,7 @@
       <div class="install-copy">
         <div class="eyebrow muted">LEVE O WAYNOVO COM VOCÊ</div>
         <h2>Seu painel, direto na página.</h2>
-        <p>Instale o bookmarklet uma vez. Depois, selecione um trecho em uma página e clique no favorito Waynovo para abrir um painel flutuante, preparar instruções de estudo e copiar ou salvar o material.</p>
+        <p>O favorito funciona sem carregar bibliotecas externas. Use em páginas de cursos como a Alura, artigos e documentação: selecione o texto visível, abra o painel e gere lições offline ou use seu gateway de IA configurado.</p>
         <div class="install-steps">
           <div><span>01</span><p><b>Arraste o favorito</b><small>Arraste o botão Waynovo para a barra de favoritos.</small></p></div>
           <div><span>02</span><p><b>Selecione seu material</b><small>Em uma página autorizada, selecione ou copie o trecho que deseja estudar.</small></p></div>
@@ -66,12 +75,12 @@
         </div>
       </div>
       <div class="install-card">
-        <div class="install-card-head"><span class="install-icon">W</span><div><b>Waynovo Study Panel</b><small>Bookmarklet · versão 1.0</small></div><span class="install-ready">PRONTO</span></div>
+        <div class="install-card-head"><span class="install-icon">W</span><div><b>Waynovo Study Panel</b><small>Standalone · versão 2.0</small></div><span class="install-ready">PRONTO</span></div>
         <a id="bookmarkletLink" class="bookmarklet-drag" href="#" title="Arraste este botão para sua barra de favoritos">✦ Waynovo · abrir painel</a>
         <p class="drag-hint">↖ Arraste o botão acima para a barra de favoritos.</p>
         <div class="code-head"><span>CÓDIGO DE INSTALAÇÃO</span><button id="copyBookmarklet" class="text-btn">Copiar código</button></div>
         <pre class="bookmarklet-code"><code id="bookmarkletCode"></code></pre>
-        <p class="install-warning">O bookmarklet é acionado por você. Ele não varre a página, não responde nem envia formulários. Algumas páginas restringem scripts externos por política de segurança (CSP), então a execução pode ser bloqueada nesses sites.</p>
+        <p class="install-warning">O código do favorito é independente de CDN e usa apenas o texto que você selecionar ou colar. Alguns sites e navegadores bloqueiam bookmarklets por segurança; textos dentro de iframes isolados podem exigir cópia manual. Não lê conteúdo oculto nem envia respostas ou formulários.</p>
       </div>
     </section>
 
@@ -80,9 +89,10 @@
       <article class="feature"><div class="feature-icon green">▤</div><h3>Ferramentas de estudo</h3><p>Prepare resumos, flashcards, questões inéditas e planos de revisão.</p></article>
       <article class="feature"><div class="feature-icon blue">◈</div><h3>Pronto para evoluir</h3><p>Estrutura modular para futuramente receber integrações autorizadas e um aplicativo independente.</p></article>
     </div></section>
-    <footer><a class="brand footer-brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a><span>Automação útil, controle transparente.</span><span>v4.1 · <span id="year"></span></span></footer>
+    <footer><a class="brand footer-brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a><span>Automação útil, controle transparente.</span><span>v5.0 · <span id="year"></span></span></footer>
   </main>
   <div id="toast" class="toast" role="status"></div>
   <script src="app.js"></script>
+  <script src="features.js"></script>
 </body>
 </html>
