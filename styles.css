@@ -97,3 +97,6 @@ body.light .ai-settings-grid input,body.light .ai-task-row select{background:#ff
 body.light .timer-head b{color:#25283a}
 body.light .timer-controls button,body.light .task-open{background:#f1efff;color:#5143a8;border-color:#d8d2fa}
 @media(max-width:560px){.ai-task-row{grid-template-columns:1fr;gap:7px}.ai-btn{width:100%}.timer-display{font-size:27px}}
+
+.task-open{border:1px solid #39435c;background:#1b2436;color:#c9c2ff;border-radius:7px;padding:6px 8px;font:600 9px 'DM Sans';cursor:pointer}
+body.light .task-open{background:#f1efff;color:#5143a8;border-color:#d8d2fa}
