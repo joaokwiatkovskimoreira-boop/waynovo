@@ -44,7 +44,7 @@
     '<textarea id="source" placeholder="Selecione um trecho antes de abrir o bookmarklet ou cole seu material aqui..."></textarea>',
     '<label for="mode">O que deseja preparar?</label>',
     '<select id="mode">',
-    '<option value="explain">Explicar o conteúdo passo a passo</option>',
+    '<option value="lesson">Criar uma lição completa automaticamente</option>\n    <option value="explain">Explicar o conteúdo passo a passo</option>',
     '<option value="summary">Resumo estruturado</option>',
     '<option value="cards">Flashcards para revisão</option>',
     '<option value="practice">Questões novas de prática</option>',
@@ -71,7 +71,7 @@
 
   source.value = selectedText();
 
-  const instructions = {
+  const instructions = {\n    lesson: 'Transforme o material em uma lição didática completa em português. Inclua título, objetivo de aprendizagem, pré-requisitos, explicação em etapas, exemplos originais, conceitos-chave, 5 perguntas inéditas de prática com respostas comentadas ao final e uma revisão final. Organize do básico ao avançado e não invente fatos ausentes.',
     explain: 'Explique o conteúdo passo a passo em português claro. Defina os termos importantes, mostre como as ideias se conectam e dê exemplos originais.',
     summary: 'Crie um resumo estruturado com título, conceitos centrais, definições, relações importantes e uma seção final de revisão.',
     cards: 'Crie flashcards de estudo. Cada cartão deve ter uma pergunta objetiva na frente e uma explicação curta no verso. Priorize compreensão, não memorização cega.',
