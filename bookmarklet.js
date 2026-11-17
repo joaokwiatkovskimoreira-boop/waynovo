@@ -23,16 +23,16 @@
     '<label for="source">Material</label><textarea id="source" placeholder="Texto selecionado ou colado..."></textarea><div class="count" id="count">0 palavras</div>',
     '<label for="mode">Ferramenta</label><select id="mode"><option value="lesson">Lição offline</option><option value="summary">Resumo offline</option><option value="flashcards">Flashcards offline</option><option value="practice">Perguntas de prática</option><option value="checklist">Checklist</option><option value="explain">Explicação por IA</option><option value="plan">Plano de estudo por IA</option><option value="translate">Tradução por IA</option></select>',
     '<div class="row"><button id="make" class="primary">Gerar localmente</button><button id="refresh" class="secondary">Atualizar seleção</button></div><div class="row"><button id="ai" class="ai">Gerar com IA</button></div>',
-    '<details id="settings"><summary>Configurar gateway de IA</summary><label for="endpoint">Endpoint /generate</label><input id="endpoint" type="url" placeholder="https://seu-worker.workers.dev/generate"><label for="token">Token do gateway (não a chave do provedor)</label><input id="token" type="password" autocomplete="off"><div class="row"><button id="save" class="secondary">Guardar nesta sessão</button></div><p class="note">A chave do provedor fica no servidor como secret. Nunca cole a chave da API aqui.</p></details>',
+    '<details id="settings"><summary>Configurar gateway de IA</summary><label for="endpoint">Endpoint /generate</label><input id="endpoint" type="url" placeholder="https://seu-worker.workers.dev/generate"><label for="token">Token temporário do gateway (não a chave do provedor)</label><input id="token" type="password" autocomplete="off"><div class="row"><button id="save" class="secondary">Guardar nesta sessão</button></div><p class="note">A chave do provedor fica no servidor como secret. O token não é armazenado. Nunca cole a chave da API aqui.</p></details>',
     '<label for="output">Resultado</label><textarea id="output" placeholder="Sua lição ou resultado aparecerá aqui."></textarea><div class="row"><button id="copy" class="primary">Copiar</button><button id="download" class="secondary">Salvar TXT</button></div><div class="status" id="status" role="status"></div>',
     '<p class="note">O painel usa somente seleção ou texto colado. Não percorre a página, não lê conteúdo oculto e não envia formulários. Alguns sites bloqueiam bookmarklets; conteúdo em iframe isolado pode exigir cópia manual.</p></section>'
   ].join('');
   const $=(id)=>root.getElementById(id);
   const source=$('source'),output=$('output'),status=$('status');
-  const ENDPOINT_KEY='waynovo.gateway.endpoint',TOKEN_KEY='waynovo.gateway.token';
+  const ENDPOINT_KEY='waynovo.gateway.endpoint';
   const selection=()=>{try{return String(window.getSelection?window.getSelection():'').trim();}catch(_){return '';}};
   source.value=selection();$('pageMeta').textContent=(document.title||'Página')+' · '+location.hostname;
-  try{$('endpoint').value=sessionStorage.getItem(ENDPOINT_KEY)||'';$('token').value=sessionStorage.getItem(TOKEN_KEY)||'';}catch(_){}
+  try{$('endpoint').value=sessionStorage.getItem(ENDPOINT_KEY)||'';}catch(_){}
   function updateCount(){const n=source.value.trim()?source.value.trim().split(/\s+/).length:0;$('count').textContent=n+' palavras · leitura '+(n?Math.max(1,Math.ceil(n/200)):0)+' min';}
   source.addEventListener('input',updateCount);updateCount();
   function chunks(text){const p=text.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);const s=text.split(/(?<=[.!?])\s+/).map(x=>x.trim()).filter(x=>x.length>25);return (p.length>1?p:s).slice(0,9);}
@@ -48,7 +48,7 @@
   function generateLocal(){const text=source.value.trim();if(!text){status.textContent='Selecione ou cole material primeiro.';return;}output.value=offline($('mode').value,text);status.textContent='Material pronto localmente. Revise, copie ou salve.';}
   $('make').addEventListener('click',generateLocal);
   $('refresh').addEventListener('click',()=>{const text=selection();if(text){source.value=text;updateCount();status.textContent='Seleção atualizada.';}else status.textContent='Nenhum texto selecionado; cole o material.';});
-  $('save').addEventListener('click',()=>{try{sessionStorage.setItem(ENDPOINT_KEY,$('endpoint').value.trim());sessionStorage.setItem(TOKEN_KEY,$('token').value.trim());status.textContent='Gateway guardado nesta sessão.';}catch(_){status.textContent='Não foi possível guardar.';}});
+  $('save').addEventListener('click',()=>{try{sessionStorage.setItem(ENDPOINT_KEY,$('endpoint').value.trim());status.textContent='Endpoint guardado. Token não armazenado.';}catch(_){status.textContent='Não foi possível guardar.';}});
   $('ai').addEventListener('click',async()=>{
     const text=source.value.trim(),endpoint=$('endpoint').value.trim(),token=$('token').value.trim();
     if(!text){status.textContent='Selecione ou cole material.';return;}if(!endpoint||!token){$('settings').open=true;status.textContent='Configure endpoint e token do gateway.';return;}
