@@ -1,6 +1,6 @@
 # Gateway de IA do Waynovo
 
-A chave do provedor fica em um secret do servidor. O navegador recebe apenas um token de acesso separado para chamar este gateway.
+A chave do provedor fica em um secret do servidor. O navegador recebe apenas um token de acesso separado para chamar este gateway. A interface mantém esse token apenas no campo enquanto aberta e não o grava em localStorage ou sessionStorage.
 
 ## Cloudflare Workers
 
