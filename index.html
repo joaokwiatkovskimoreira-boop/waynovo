@@ -35,6 +35,7 @@
           <div class="side-title">Visão geral <span>•••</span></div>
           <div class="metric"><div class="metric-icon violet">↗</div><div><strong id="taskCount">0</strong><small>Tarefas em aberto</small></div></div>
           <div class="metric"><div class="metric-icon mint">✓</div><div><strong id="doneCount">0</strong><small>Tarefas concluídas</small></div></div>
+          <div class="metric"><div class="metric-icon blue">▤</div><div><strong id="cardsDueCount">0</strong><small>Cartões para revisar</small></div></div>
           <div class="side-divider"></div>
           <div class="side-title">Atalhos</div>
           <button class="shortcut active" data-focus="material"><span>＋</span> Novo fluxo</button>
@@ -49,7 +50,7 @@
           <textarea id="material" placeholder="Cole um texto, material de estudo ou as etapas de uma tarefa autorizada..."></textarea>
           <div class="input-foot"><span id="charCount">0 caracteres</span><span id="readingMeta">Leitura: —</span><button id="clearBtn" class="text-btn">Limpar</button></div>
           <div class="form-row"><div class="field"><label for="mode">Tipo de fluxo</label><select id="mode"><option value="organize">Organizar conteúdo</option><option value="lesson">Lição automática</option><option value="summary">Resumo estruturado</option><option value="flashcards">Gerar flashcards</option><option value="practice">Montar simulado de prática</option><option value="checklist">Criar checklist de tarefas</option><option value="review">Revisar respostas de prática</option></select></div><div class="field"><label for="priority">Prioridade</label><select id="priority"><option>Normal</option><option>Alta</option><option>Baixa</option></select></div></div>
-          <div class="form-actions"><span class="hint">O fluxo será salvo na sua fila local.</span><div class="action-group"><button id="lessonBtn" class="secondary-btn" type="button">Lição offline</button><button id="aiGenerateBtn" class="ai-btn" type="button">Gerar com IA</button><button id="addBtn" class="primary-btn">Adicionar à fila <span>↗</span></button></div></div>
+          <div class="form-actions"><span class="hint">O fluxo será salvo na sua fila local.</span><div class="action-group"><button id="lessonBtn" class="secondary-btn" type="button">Lição offline</button><button id="createDeckBtn" class="secondary-btn" type="button">Criar baralho</button><button id="aiGenerateBtn" class="ai-btn" type="button">Gerar com IA</button><button id="addBtn" class="primary-btn">Adicionar à fila <span>↗</span></button></div></div>
           <details class="ai-settings" id="aiSettings">
             <summary>Configurar IA (opcional)</summary>
             <div class="ai-settings-grid">
@@ -65,6 +66,36 @@
         <div class="queue-head"><div><h3>Fila de automação</h3><p>Pesquise, conclua e exporte seus fluxos.</p></div><div class="queue-tools"><input id="queueSearch" class="queue-search" type="search" placeholder="Buscar tarefa..." aria-label="Buscar tarefa"><button id="exportQueue" class="text-btn">Exportar</button><button id="importQueue" class="text-btn">Importar</button><input id="importFile" type="file" accept="application/json,.json" hidden><button id="clearQueue" class="text-btn">Limpar fila</button></div></div>
         <div id="queueList" class="queue-list"><div class="empty-state"><div class="empty-icon">⌁</div><b>Sua fila está vazia</b><span>Adicione um fluxo acima para começar.</span></div></div>
       </section>
+    </section>
+
+    <section class="study-lab" id="studyLab">
+      <div class="study-lab-head">
+        <div><div class="eyebrow muted">REVISÃO INTELIGENTE</div><h2>Memorize de verdade.</h2><p>Revise seus cartões no momento certo. As próximas revisões são agendadas localmente.</p></div>
+        <span class="study-shortcut">Ctrl + Shift + F</span>
+      </div>
+      <div class="review-stats">
+        <div class="review-stat"><strong id="flashcardTotal">0</strong><span>Cartões criados</span></div>
+        <div class="review-stat"><strong id="flashcardDue">0</strong><span>Pendentes agora</span></div>
+        <div class="review-stat"><strong id="flashcardToday">0</strong><span>Revisados hoje</span></div>
+      </div>
+      <div class="review-stage">
+        <article class="review-card" id="reviewCard" aria-live="polite">
+          <div class="review-card-top"><span class="card-status" id="reviewStatus">WAYNOVO REVIEW</span><span id="reviewPosition">—</span></div>
+          <h3 id="reviewFront">Crie um baralho a partir do material para começar.</h3>
+          <p id="reviewBack" hidden></p>
+          <small id="reviewSource">Seus cartões ficam salvos neste navegador.</small>
+        </article>
+        <div class="review-controls">
+          <button id="revealCard" class="primary-btn" type="button">Mostrar resposta</button>
+          <div class="rating-controls" id="ratingControls" hidden>
+            <button type="button" data-grade="again">Difícil</button>
+            <button type="button" data-grade="good">Bom</button>
+            <button type="button" data-grade="easy">Fácil</button>
+          </div>
+          <button id="shuffleDue" class="text-btn" type="button">Embaralhar pendentes</button>
+        </div>
+      </div>
+      <p class="review-message" id="reviewMessage" role="status">Dica: tente responder antes de revelar o verso.</p>
     </section>
 
     <section class="install-section" id="bookmarklet">
