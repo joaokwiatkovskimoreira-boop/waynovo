@@ -81,6 +81,31 @@
   try{theme(localStorage.getItem(THEME_KEY)==='light');}catch(_){}
   $('#themeBtn').addEventListener('click',()=>{const light=!document.body.classList.contains('light');theme(light);notify(light?'Tema claro ativado.':'Tema escuro ativado.');});
 
+  let deferredInstallPrompt = null;
+  const installAppButton = $('#installAppBtn');
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    installAppButton.hidden = false;
+  });
+  installAppButton.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) {
+      notify('No menu do navegador, escolha “Instalar Waynovo” ou “Adicionar à tela inicial”.');
+      return;
+    }
+    deferredInstallPrompt.prompt();
+    try {
+      const choice = await deferredInstallPrompt.userChoice;
+      notify(choice && choice.outcome === 'accepted' ? 'Instalação iniciada.' : 'Instalação não confirmada.');
+    } catch (_) { notify('Não foi possível abrir a instalação neste navegador.'); }
+    deferredInstallPrompt = null;
+    installAppButton.hidden = true;
+  });
+  window.addEventListener('appinstalled', () => {
+    installAppButton.hidden = true;
+    notify('Waynovo instalado.');
+  });
+
   let seconds=25*60, interval=null;
   function drawTimer(){$('#timerDisplay').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');}
   function resetTimer(){if(interval)clearInterval(interval);interval=null;seconds=Number($('#timerDuration').value)*60;$('#timerToggle').textContent='Iniciar';$('#timerStatus').textContent='Pronto para começar';drawTimer();}
