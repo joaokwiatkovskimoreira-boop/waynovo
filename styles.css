@@ -135,3 +135,9 @@ body.light .review-card p{color:#505b73}
 body.light .rating-controls button{background:#f7f8fc;color:#30364a}
 @media(max-width:760px){.study-lab{padding:0 18px}.study-lab-head{align-items:flex-start;flex-direction:column}.study-lab-head h2{font-size:25px}.review-stage{grid-template-columns:1fr}.review-card{min-height:220px}.review-controls{padding:12px}.rating-controls{grid-template-columns:repeat(3,1fr)}.rating-controls button{padding:11px 4px}}
 @media(max-width:420px){.review-stats{gap:7px}.review-stat{padding:12px 10px}.review-stat strong{font-size:19px}.review-stat span{font-size:9px}}
+
+.install-app-btn{border:1px solid #51477e;background:#211d38;color:#d9d1ff;border-radius:9px;padding:8px 10px;font:600 10px 'DM Sans';cursor:pointer}
+.install-app-btn[hidden]{display:none}
+.install-app-btn:hover{border-color:#9b8cff;background:#2c2550}
+body.light .install-app-btn{background:#f1efff;color:#5143a8;border-color:#d8d2fa}
+@media(max-width:760px){.install-app-btn{font-size:9px;padding:7px 8px}.top-actions{gap:8px}}
