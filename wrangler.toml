@@ -1,0 +1,9 @@
+name = "waynovo-ai-gateway"
+main = "worker.js"
+compatibility_date = "2026-11-17"
+
+[vars]
+AI_PROVIDER = "openai-compatible"
+AI_MODEL = "COLOQUE_O_MODELO"
+AI_API_BASE_URL = "https://api.openai.com/v1"
+CORS_ORIGINS = "*"
