@@ -93,7 +93,7 @@
   }
   function renderStats() {
     const today = localDateKey();
-    const reviewedToday = cards.filter((card) => card.lastReviewed && localDateKey(card.lastReviewed) === today).length;
+    const reviewedToday = Number(stats[today] || 0);
     const due = cards.filter((card) => card.dueAt <= Date.now()).length;
     $('flashcardTotal').textContent = cards.length;
     $('flashcardDue').textContent = due;
@@ -163,7 +163,7 @@
     card.lastReviewed = now;
     const today = localDateKey();
     stats[today] = (stats[today] || 0) + 1;
-    sessionReviewed.add(card.id);
+    if (level !== 'again') sessionReviewed.add(card.id);
     save();
     advance();
     message(level === 'again' ? 'Cartão marcado como difícil e agendado para nova tentativa em 10 minutos.' :
@@ -196,4 +196,5 @@
   });
   renderStats();
   advance();
+  window.setInterval(() => { renderStats(); if (!currentId) advance(); }, 60_000);
 })();
