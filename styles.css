@@ -26,3 +26,21 @@ body.light .install-steps b{color:#25283a}
 body.light .bookmarklet-code,body.light .queue-search{background:#f7f8fc;color:#202438;border-color:#dfe3ef}
 @media(max-width:820px){.install-section{grid-template-columns:1fr;gap:22px;margin-top:65px}.install-copy>p{max-width:680px}}
 @media(max-width:560px){.install-section{padding-left:18px;padding-right:18px}.install-card{padding:16px}.queue-head{align-items:flex-start;flex-direction:column}.queue-tools{width:100%;flex-wrap:wrap;gap:8px}.queue-search{flex:1;width:100%}}
+
+.action-group{display:flex;gap:9px;flex-wrap:wrap}
+.secondary-btn{background:#222a3e;border:1px solid #39435c;color:#c9c2ff;padding:12px 15px;border-radius:10px;font:600 11px 'DM Sans';cursor:pointer}
+.secondary-btn:hover{border-color:#9b8cff}
+.lesson-result{margin-top:18px;padding:18px;border:1px solid #3b4260;border-radius:13px;background:#0c1220}
+.lesson-result[hidden]{display:none}
+.lesson-result-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+.lesson-result-head b,.lesson-result-head small{display:block}
+.lesson-result-head b{font:600 14px 'Space Grotesk';color:#e7e3ff}
+.lesson-result-head small{font-size:10px;color:#8f9ab1;margin-top:4px}
+.lesson-result-actions{display:flex;gap:10px}
+.lesson-body{max-height:420px;overflow:auto}
+.lesson-body p{font-size:11px;line-height:1.65;color:#b8c1d5;margin:5px 0;white-space:pre-wrap}
+.lesson-body p.lesson-heading{font-weight:700;color:#a99aff;margin-top:15px}
+body.light .lesson-result{background:#f7f8fc}
+body.light .lesson-body p{color:#515d75}
+body.light .secondary-btn{background:#f1efff;color:#5143a8}
+@media(max-width:560px){.action-group{width:100%;flex-direction:column}.action-group button{width:100%}.lesson-result-head{align-items:flex-start;flex-direction:column}}
