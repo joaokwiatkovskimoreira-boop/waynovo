@@ -157,12 +157,12 @@
   });
 
   function buildLesson(raw) {
-    const clean = raw.replace(/\\r/g, '').trim();
-    const paragraphs = clean.split(/\\n{2,}/).map(s => s.trim()).filter(Boolean);
-    const sentences = clean.split(/(?<=[.!?])\\s+/).map(s => s.trim()).filter(s => s.length > 24);
-    const title = (paragraphs[0] || clean).replace(/\\s+/g, ' ').slice(0, 76);
+    const clean = raw.replace(/\r/g, '').trim();
+    const paragraphs = clean.split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
+    const sentences = clean.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(s => s.length > 24);
+    const title = (paragraphs[0] || clean).replace(/\s+/g, ' ').slice(0, 76);
     const chunks = (paragraphs.length > 1 ? paragraphs : sentences).slice(0, 6);
-    const concepts = [...new Set((clean.match(/\\b[A-ZÁÉÍÓÚÂÊÔÃÕÇ][\\wÀ-ÿ-]{4,}\\b/g) || []))].slice(0, 8);
+    const concepts = [...new Set((clean.match(/\b[A-ZÁÉÍÓÚÂÊÔÃÕÇ][\wÀ-ÿ-]{4,}\b/g) || []))].slice(0, 8);
     const lines = [
       'LIÇÃO: ' + title,
       '',
@@ -188,7 +188,7 @@
       '',
       'Nota: lição estruturada automaticamente a partir do texto fornecido; confira os conceitos e complemente quando necessário.'
     ];
-    return { title, text: lines.join('\\n') };
+    return { title, text: lines.join('\n') };
   }
 
   let currentLesson = '';
@@ -200,7 +200,7 @@
     $('#lessonTitle').textContent = lesson.title;
     const body = $('#lessonBody');
     body.replaceChildren();
-    lesson.text.split('\\n').forEach(line => {
+    lesson.text.split('\n').forEach(line => {
       const p = document.createElement('p');
       p.textContent = line || ' ';
       if (/^(OBJETIVO|AQUECIMENTO|CONTEÚDO EM ETAPAS|CONCEITOS PARA DOMINAR|PRATIQUE|REVISÃO FINAL)$/.test(line)) p.className = 'lesson-heading';
