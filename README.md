@@ -1,35 +1,39 @@
-# Waynovo
+# Waynovo 5.1
 
-Workspace responsivo e bookmarklet para organizar materiais e preparar atividades de estudo.
+Workspace de estudo com bookmarklet portátil, revisão espaçada local e integração opcional com um gateway de IA.
 
-## Executar localmente
+## Usar o Waynovo
 
-Abra \`index.html\` no navegador. Não há etapa de build nem dependências de JavaScript.
+Abra a página publicada pelo GitHub Pages. O app funciona como site e pode ser instalado como PWA em navegadores compatíveis. Após a primeira visita, o shell da interface e o módulo de revisão ficam disponíveis offline.
 
-## Bookmarklet
+## Bookmarklet portátil
 
-1. Publique o repositório pelo GitHub Pages (Settings → Pages → Deploy from a branch → main → /(root)).
-2. Abra a página publicada do Waynovo.
-3. Arraste o botão **Waynovo · abrir painel** para a barra de favoritos. Como alternativa, use **Copiar código** e crie um favorito colando o código no campo URL.
-4. Em uma página que você tem autorização para usar, selecione um trecho de texto e clique no favorito.
-5. Escolha uma ferramenta, prepare a instrução e copie ou salve o resultado.
+1. Abra a seção Bookmarklet na página do Waynovo.
+2. Arraste **Waynovo · abrir painel** para a barra de favoritos ou copie o código para a URL de um novo favorito.
+3. Em uma página de curso, artigo ou documentação, selecione o texto visível e clique no favorito.
+4. Escolha uma ferramenta local ou use seu gateway de IA configurado. Se a página bloquear bookmarklets ou o texto estiver dentro de um iframe isolado, copie o trecho para o painel manualmente.
 
-O bookmarklet carrega \`bookmarklet.js\` pelo CDN jsDelivr. Políticas de segurança (CSP), navegadores ou páginas específicas podem impedir a execução. Ele é acionado manualmente e usa apenas a seleção atual ou o texto que você colar. Não faz varredura do DOM, não lê respostas ocultas, não clica em alternativas e não envia formulários.
+O bookmarklet é autônomo: não carrega bibliotecas por CDN. Usa somente a seleção visível ou texto colado. Não percorre a página, não lê conteúdo oculto nem envia formulários.
 
-## Recursos atuais
+## Ferramentas
 
-- Layout responsivo para desktop e celular.
-- Tema claro/escuro com preferência salva localmente.
-- Fila de tarefas persistente no navegador.
-- Pesquisa e exportação da fila em JSON.
-- Bookmarklet flutuante com Shadow DOM para isolamento visual.
-- Preparação de instruções para explicações, resumos, flashcards, questões inéditas, planos e traduções.
-- Cópia e exportação local em TXT.
+- Lição offline, resumo, flashcards, perguntas de prática e checklist.
+- Baralhos interativos com cartões Difícil/Bom/Fácil e agendamento de revisão espaçada.
+- Cartões difíceis voltam após 10 minutos; os intervalos de cartões conhecidos aumentam progressivamente.
+- Contadores de cartões criados, pendentes e revisados no dia.
+- Temporizador de foco, tema claro/escuro e layout responsivo.
+- Rascunho automático, estimativa de leitura e fila local de tarefas.
+- Importação/exportação JSON com tarefas, cartões e progresso.
+- Cópia e exportação de material de estudo para TXT.
 
-## Privacidade e limites
+Atalho: **Ctrl + Shift + F** leva diretamente ao laboratório de revisão. Na sessão de cartões, a tecla Espaço revela a resposta quando o foco não está em um campo ou botão.
 
-A fila usa o armazenamento local do navegador. O bookmarklet não envia os trechos selecionados para servidores. O texto só sai do navegador quando você decide copiá-lo para outra ferramenta. Não há chave de API no front-end. Integrações futuras devem usar endpoints autorizados e manter credenciais no servidor, nunca em código público do navegador.
+## Integração de IA
 
-## Recursos atuais\n\n- Interface responsiva, tema claro/escuro e temporizador de foco.\n- Bookmarklet autônomo sem CDN, com ferramentas offline e integração opcional com gateway de IA.\n- Lições, resumos, flashcards, perguntas de prática e checklists.\n- Rascunho automático, estimativa de leitura e fila local.\n- Importação/exportação JSON com cartões de estudo incluídos, cópia/download TXT e reabertura de tarefas.
-- Flashcards interativos com botões Difícil/Bom/Fácil, revisão espaçada e progresso local.
-- Atalho Ctrl + Shift + F para abrir a central de revisão.\n- Instalação como PWA e interface disponível offline depois da primeira visita.\n\n## IA e credenciais\n\nConsulte `AI_GATEWAY.md`. A chave do provedor fica como secret no servidor. O navegador usa um token separado do gateway, mantido apenas no campo enquanto o painel está aberto. O Waynovo não grava esse token em localStorage ou sessionStorage. O texto selecionado/colado é enviado ao provedor somente quando você aciona a geração.\n\n## Compatibilidade\n\nO bookmarklet usa apenas texto selecionado ou colado e não depende de bibliotecas remotas. Alguns sites e navegadores bloqueiam favoritos JavaScript; conteúdos em iframes isolados podem exigir cópia manual.\n
+A IA é opcional. Publique o Worker descrito em [AI_GATEWAY.md](AI_GATEWAY.md), configure a chave do provedor como secret do servidor e informe no app apenas o endpoint e o token de acesso do gateway. O token fica no campo enquanto o painel está aberto; não é gravado em localStorage ou sessionStorage. A chave OpenAI/Gemini nunca deve ser colocada no código público.
+
+O texto selecionado/colado é enviado ao provedor somente quando você aciona a geração. APIs podem ter custos e limites próprios.
+
+## Privacidade e compatibilidade
+
+Tarefas e cartões ficam no armazenamento local do navegador e não são sincronizados entre dispositivos automaticamente. Faça backups regulares. Alguns sites ou navegadores bloqueiam bookmarklets por política de segurança; não há garantia de execução em todos os domínios. Nesses casos, cole o conteúdo no app.
