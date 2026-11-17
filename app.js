@@ -1,339 +1,96 @@
 (() => {
   'use strict';
-
-  const $ = (selector) => document.querySelector(selector);
-  const STORAGE_KEY = 'waynovo.tasks.v2';
-  const THEME_KEY = 'waynovo.theme.v1';
-  const material = $('#material');
-  const mode = $('#mode');
-  const queueList = $('#queueList');
-  const labels = {
-    organize: 'Organizar conteúdo',
-    lesson: 'Lição automática',
-    summary: 'Resumo estruturado',
-    flashcards: 'Flashcards',
-    practice: 'Simulado de prática',
-    checklist: 'Checklist',
-    review: 'Revisão de prática'
-  };
-  let toastTimer;
-
-  function loadTasks() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      if (!Array.isArray(saved)) return [];
-      return saved.filter((task) =>
-        task && typeof task.id === 'string' &&
-        typeof task.title === 'string' &&
-        typeof task.content === 'string' &&
-        typeof task.mode === 'string'
-      ).map((task) => ({
-        id: task.id,
-        title: task.title.slice(0, 120),
-        content: task.content,
-        mode: labels[task.mode] ? task.mode : 'organize',
-        priority: ['Alta', 'Normal', 'Baixa'].includes(task.priority) ? task.priority : 'Normal',
-        done: Boolean(task.done),
-        date: typeof task.date === 'string' ? task.date : ''
-      }));
-    } catch (error) {
-      console.warn('Waynovo: não foi possível ler a fila salva.', error);
-      return [];
-    }
-  }
-
-  let tasks = loadTasks();
-
-  function persist() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-    } catch (error) {
-      notify('Não foi possível salvar. O armazenamento pode estar cheio ou bloqueado.');
-      console.warn('Waynovo: falha ao salvar a fila.', error);
-    }
-  }
-
-  function notify(message) {
-    const el = $('#toast');
-    el.textContent = message;
-    el.classList.add('show');
-    window.clearTimeout(toastTimer);
-    toastTimer = window.setTimeout(() => el.classList.remove('show'), 2600);
-  }
-
-  function updateStats() {
-    $('#taskCount').textContent = tasks.filter((task) => !task.done).length;
-    $('#doneCount').textContent = tasks.filter((task) => task.done).length;
-  }
-
-  function emptyState(title, description) {
-    const box = document.createElement('div');
-    box.className = 'empty-state';
-    const icon = document.createElement('div');
-    icon.className = 'empty-icon';
-    icon.textContent = '⌁';
-    const heading = document.createElement('b');
-    heading.textContent = title;
-    const hint = document.createElement('span');
-    hint.textContent = description;
-    box.append(icon, heading, hint);
-    return box;
-  }
-
-  function render() {
-    const query = ($('#queueSearch').value || '').trim().toLocaleLowerCase('pt-BR');
-    const visibleTasks = tasks.filter((task) =>
-      !query || (task.title + ' ' + task.content + ' ' + labels[task.mode]).toLocaleLowerCase('pt-BR').includes(query)
-    );
-
-    queueList.replaceChildren();
-    if (!visibleTasks.length) {
-      queueList.append(emptyState(
-        tasks.length ? 'Nenhum resultado encontrado' : 'Sua fila está vazia',
-        tasks.length ? 'Tente outro termo de busca.' : 'Adicione um fluxo acima para começar.'
-      ));
-      updateStats();
-      return;
-    }
-
-    visibleTasks.forEach((task) => {
-      const row = document.createElement('div');
-      row.className = 'task' + (task.done ? ' done' : '');
-
-      const check = document.createElement('button');
-      check.className = 'task-check';
-      check.textContent = task.done ? '✓' : '○';
-      check.setAttribute('aria-label', task.done ? 'Reabrir tarefa' : 'Concluir tarefa');
-      check.addEventListener('click', () => {
-        task.done = !task.done;
-        persist();
-        render();
-      });
-
-      const info = document.createElement('div');
-      info.className = 'task-info';
-      const name = document.createElement('div');
-      name.className = 'task-name';
-      name.textContent = task.title;
-      const sub = document.createElement('div');
-      sub.className = 'task-sub';
-      sub.textContent = task.priority + ' · ' + task.date;
-      info.append(name, sub);
-
-      const tag = document.createElement('span');
-      tag.className = 'task-tag';
-      tag.textContent = labels[task.mode] || labels.organize;
-
-      const remove = document.createElement('button');
-      remove.className = 'task-remove';
-      remove.textContent = '×';
-      remove.setAttribute('aria-label', 'Remover tarefa');
-      remove.addEventListener('click', () => {
-        tasks = tasks.filter((item) => item.id !== task.id);
-        persist();
-        render();
-        notify('Tarefa removida.');
-      });
-
-      row.append(check, info, tag, remove);
-      queueList.append(row);
+  const $ = (q) => document.querySelector(q);
+  const TASKS_KEY='waynovo.tasks.v2', DRAFT_KEY='waynovo.draft.v1', THEME_KEY='waynovo.theme.v1';
+  const ENDPOINT_KEY='waynovo.ai.endpoint.session', TOKEN_KEY='waynovo.ai.token.session';
+  const material=$('#material'), mode=$('#mode'), queue=$('#queueList');
+  const labels={organize:'Organizar conteúdo',lesson:'Lição automática',summary:'Resumo estruturado',flashcards:'Flashcards',practice:'Prática inédita',checklist:'Checklist',review:'Revisão'};
+  let tasks=[], toastTimer=null, currentResult='';
+  function id(){return crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2);}
+  function notify(message){const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3000);}
+  function readTasks(){try{const arr=JSON.parse(localStorage.getItem(TASKS_KEY)||'[]');return Array.isArray(arr)?arr.filter(t=>t&&typeof t.id==='string'&&typeof t.title==='string'&&typeof t.content==='string').slice(0,500):[];}catch(_){return [];}}
+  tasks=readTasks();
+  function save(){try{localStorage.setItem(TASKS_KEY,JSON.stringify(tasks));}catch(_){notify('Armazenamento cheio ou bloqueado. Exporte o backup.');}}
+  try{const draft=localStorage.getItem(DRAFT_KEY);if(draft)material.value=draft;}catch(_){}
+  function updateCounters(){const text=material.value,words=text.trim()?text.trim().split(/\s+/).length:0;$('#charCount').textContent=text.length.toLocaleString('pt-BR')+' caracteres';$('#readingMeta').textContent=words?'Leitura: '+Math.max(1,Math.ceil(words/200))+' min · '+words+' palavras':'Leitura: —';try{localStorage.setItem(DRAFT_KEY,text);}catch(_){}}
+  material.addEventListener('input',updateCounters);updateCounters();
+  $('#clearBtn').addEventListener('click',()=>{material.value='';updateCounters();material.focus();});
+  function render(){
+    const query=($('#queueSearch').value||'').trim().toLocaleLowerCase('pt-BR');
+    const visible=tasks.filter(t=>!query||(t.title+' '+t.content+' '+(labels[t.mode]||'')).toLocaleLowerCase('pt-BR').includes(query));
+    queue.replaceChildren();
+    if(!visible.length){const e=document.createElement('div');e.className='empty-state';const b=document.createElement('b');b.textContent=tasks.length?'Nenhum resultado':'Sua fila está vazia';const p=document.createElement('span');p.textContent=tasks.length?'Tente outro termo.':'Adicione um fluxo para começar.';e.append(b,p);queue.append(e);}
+    visible.forEach(task=>{
+      const row=document.createElement('div');row.className='task'+(task.done?' done':'');
+      const check=document.createElement('button');check.className='task-check';check.textContent=task.done?'✓':'○';check.setAttribute('aria-label',task.done?'Reabrir tarefa':'Concluir tarefa');check.addEventListener('click',()=>{task.done=!task.done;save();render();});
+      const info=document.createElement('div');info.className='task-info';const title=document.createElement('div');title.className='task-name';title.textContent=task.title;const meta=document.createElement('div');meta.className='task-sub';meta.textContent=(task.priority||'Normal')+' · '+(task.date||'');info.append(title,meta);
+      const open=document.createElement('button');open.className='task-open';open.type='button';open.textContent='Abrir';open.addEventListener('click',()=>{material.value=task.content;updateCounters();mode.value=task.mode||'organize';$('#workspace').scrollIntoView({behavior:'smooth'});material.focus();});
+      const tag=document.createElement('span');tag.className='task-tag';tag.textContent=labels[task.mode]||labels.organize;
+      const remove=document.createElement('button');remove.className='task-remove';remove.textContent='×';remove.setAttribute('aria-label','Remover tarefa');remove.addEventListener('click',()=>{tasks=tasks.filter(t=>t.id!==task.id);save();render();notify('Tarefa removida.');});
+      row.append(check,info,open,tag,remove);queue.append(row);
     });
-    updateStats();
+    $('#taskCount').textContent=tasks.filter(t=>!t.done).length;$('#doneCount').textContent=tasks.filter(t=>t.done).length;
   }
-
-  function createId() {
-    if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
-    return String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+  function addTask(title,content,taskMode,priority){tasks.unshift({id:id(),title:title.slice(0,120),content,mode:labels[taskMode]?taskMode:'organize',priority:priority||'Normal',done:false,date:new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})});tasks=tasks.slice(0,500);save();render();}
+  function termsOf(text){const stop=new Set('sobre entre quando como para pela pelo pelos pelas uma umas uns dos das esse essa isso isto também então muito mais menos cada onde porque seus suas ser ter está são foi foram pode podem deve devem'.split(' '));const map=new Map();(text.toLocaleLowerCase('pt-BR').match(/[a-zÀ-ÿ]{5,}/g)||[]).forEach(w=>{if(!stop.has(w))map.set(w,(map.get(w)||0)+1);});return [...map.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10).map(x=>x[0]);}
+  function pieces(text){const paragraphs=text.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);const sentences=text.split(/(?<=[.!?])\s+/).map(x=>x.trim()).filter(x=>x.length>25);return (paragraphs.length>1?paragraphs:sentences).slice(0,9);}
+  function offline(kind,text){
+    const blocks=pieces(text),terms=termsOf(text),title=(blocks[0]||'Material de estudo').replace(/\s+/g,' ').slice(0,90);
+    if(kind==='summary')return ['RESUMO — '+title,'',...blocks.map((x,i)=>(i+1)+'. '+x),'','TERMOS-CHAVE',...(terms.length?terms:['Identifique os termos técnicos.']).map(x=>'• '+x),'','Confira a fidelidade à fonte original.'].join('\n');
+    if(kind==='flashcards')return ['FLASHCARDS — '+title,'',...blocks.slice(0,12).map((x,i)=>'CARTÃO '+(i+1)+'\nPergunta: Qual é a ideia principal deste trecho?\nPista de resposta: '+x),'','Responda antes de olhar a pista.'].join('\n');
+    if(kind==='practice')return ['PRÁTICA — '+title,'','1. Qual é a ideia principal do material?','2. Explique um conceito com suas palavras.','3. Como dois tópicos se relacionam?','4. Crie um exemplo próprio.','5. O que ainda precisa de revisão?','','TRECHOS PARA APOIO',...blocks].join('\n');
+    if(kind==='checklist')return ['CHECKLIST — '+title,'',...blocks.map((x,i)=>'[ ] Estudar etapa '+(i+1)+': '+x),'[ ] Explicar o tema sem consultar.','[ ] Revisar em 1, 3 e 7 dias.'].join('\n');
+    return ['LIÇÃO — '+title,'','OBJETIVO','Compreender os conceitos centrais e explicar as ideias com as próprias palavras.','','AQUECIMENTO','Anote o que já sabe e uma dúvida que deseja responder.','','CONTEÚDO EM ETAPAS',...blocks.map((x,i)=>(i+1)+'. '+x),'','TERMOS-CHAVE',...(terms.length?terms:['Identifique os termos técnicos do material.']).map(x=>'• '+x),'','RECUPERAÇÃO ATIVA','• Explique a ideia principal sem consultar.','• Compare dois conceitos importantes.','• Crie um exemplo próprio.','','REVISÃO ESPAÇADA','Revise hoje, amanhã, em 3 dias e em 7 dias.','','Estrutura offline; confira o contexto das palavras-chave.'].join('\n');
   }
+  function showResult(title,text){currentResult=text;$('#lessonTitle').textContent=title;const body=$('#lessonBody');body.replaceChildren();text.split('\n').forEach(line=>{const p=document.createElement('p');p.textContent=line||' ';if(/^(OBJETIVO|AQUECIMENTO|CONTEÚDO EM ETAPAS|TERMOS-CHAVE|TERMOS PARA REVISAR|RECUPERAÇÃO ATIVA|REVISÃO ESPAÇADA|TRECHOS PARA APOIO)$/i.test(line))p.className='lesson-heading';body.append(p);});$('#lessonResult').hidden=false;}
+  $('#lessonBtn').addEventListener('click',()=>{const text=material.value.trim();if(!text){notify('Cole ou selecione material primeiro.');return;}showResult('Lição offline',offline('lesson',text));mode.value='lesson';$('#lessonResult').scrollIntoView({behavior:'smooth',block:'nearest'});notify('Lição criada localmente.');});
+  async function copyText(text){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return true;}}catch(_){}const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';document.body.append(area);area.select();let ok=false;try{ok=document.execCommand('copy');}catch(_){}area.remove();return ok;}
+  $('#copyLesson').addEventListener('click',async()=>{if(currentResult)notify(await copyText(currentResult)?'Resultado copiado.':'Cópia indisponível; use Salvar TXT.');});
+  $('#downloadLesson').addEventListener('click',()=>{if(!currentResult)return;const url=URL.createObjectURL(new Blob([currentResult],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='waynovo-estudo.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+  $('#saveLesson').addEventListener('click',()=>{if(!currentResult)return;addTask('Estudo: '+($('#lessonTitle').textContent||'Material'),currentResult,mode.value,'Normal');notify('Resultado guardado na fila.');});
 
-  material.addEventListener('input', () => {
-    $('#charCount').textContent = material.value.length.toLocaleString('pt-BR') + ' caracteres';
+  try{$('#aiEndpoint').value=sessionStorage.getItem(ENDPOINT_KEY)||'';$('#aiToken').value=sessionStorage.getItem(TOKEN_KEY)||'';}catch(_){}
+  $('#saveAiConfig').addEventListener('click',()=>{try{const endpoint=$('#aiEndpoint').value.trim(),token=$('#aiToken').value.trim();if(endpoint)sessionStorage.setItem(ENDPOINT_KEY,endpoint);else sessionStorage.removeItem(ENDPOINT_KEY);if(token)sessionStorage.setItem(TOKEN_KEY,token);else sessionStorage.removeItem(TOKEN_KEY);$('#aiConfigStatus').textContent='Salvo apenas nesta sessão.';notify('Gateway configurado.');}catch(_){$('#aiConfigStatus').textContent='Armazenamento de sessão indisponível.';}});
+  $('#aiGenerateBtn').addEventListener('click',async()=>{
+    const content=material.value.trim(),endpoint=$('#aiEndpoint').value.trim(),token=$('#aiToken').value.trim();
+    if(!content){notify('Adicione material antes de gerar.');return;}
+    if(!endpoint||!token){$('#aiSettings').open=true;notify('Configure endpoint e token do gateway.');return;}
+    let u;try{u=new URL(endpoint);}catch(_){notify('Endpoint inválido.');return;}
+    if(u.protocol!=='https:'&&u.hostname!=='localhost'&&u.hostname!=='127.0.0.1'){notify('Use um endpoint HTTPS.');return;}
+    const button=$('#aiGenerateBtn'),old=button.textContent,controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),60000);
+    button.disabled=true;button.textContent='Gerando…';
+    try{
+      const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:$('#aiTask').value,content,pageTitle:document.title}),signal:controller.signal});
+      const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Gateway HTTP '+response.status);
+      if(typeof data.text!=='string'||!data.text.trim())throw new Error('A IA retornou uma resposta vazia.');
+      showResult('Waynovo IA · '+($('#aiTask').selectedOptions[0]?.textContent||'Resultado'),data.text.trim());$('#lessonResult').scrollIntoView({behavior:'smooth',block:'nearest'});notify('Resultado da IA pronto. Revise antes de usar.');
+    }catch(error){notify(error.name==='AbortError'?'Tempo limite excedido.':(error.message||'Falha de conexão.'));}
+    finally{clearTimeout(timeout);button.disabled=false;button.textContent=old;}
   });
 
-  $('#clearBtn').addEventListener('click', () => {
-    material.value = '';
-    material.dispatchEvent(new Event('input'));
-    material.focus();
-  });
+  $('#addBtn').addEventListener('click',()=>{const text=material.value.trim();if(!text){notify('Adicione um conteúdo primeiro.');return;}addTask(text.replace(/\s+/g,' ').slice(0,82)+(text.length>82?'…':''),text,mode.value,$('#priority').value);material.value='';updateCounters();notify('Fluxo salvo.');});
+  $('#queueSearch').addEventListener('input',render);
+  $('#clearQueue').addEventListener('click',()=>{if(!tasks.length||!confirm('Limpar a fila salva neste navegador?'))return;tasks=[];save();render();notify('Fila limpa.');});
+  $('#exportQueue').addEventListener('click',()=>{const data={app:'Waynovo',formatVersion:2,exportedAt:new Date().toISOString(),tasks};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='waynovo-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Backup exportado.');});
+  $('#importQueue').addEventListener('click',()=>$('#importFile').click());
+  $('#importFile').addEventListener('change',async(event)=>{const file=event.target.files&&event.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!data||data.app!=='Waynovo'||!Array.isArray(data.tasks))throw new Error('invalid');const known=new Set(tasks.map(t=>t.id));const incoming=data.tasks.filter(t=>t&&typeof t.title==='string'&&typeof t.content==='string').map(t=>({id:typeof t.id==='string'&&!known.has(t.id)?t.id:id(),title:t.title.slice(0,120),content:t.content,mode:labels[t.mode]?t.mode:'organize',priority:['Alta','Normal','Baixa'].includes(t.priority)?t.priority:'Normal',done:Boolean(t.done),date:typeof t.date==='string'?t.date:''}));tasks=[...incoming,...tasks].slice(0,500);save();render();notify(incoming.length+' item(ns) importado(s).');}catch(_){notify('Backup inválido.');}event.target.value='';});
+  document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{mode.value=button.dataset.mode;$('#workspace').scrollIntoView({behavior:'smooth'});material.focus();}));
+  $('[data-focus]').addEventListener('click',()=>{material.focus();$('#workspace').scrollIntoView({behavior:'smooth'});});
 
-  function buildLesson(raw) {
-    const clean = raw.replace(/\r/g, '').trim();
-    const paragraphs = clean.split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
-    const sentences = clean.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(s => s.length > 24);
-    const title = (paragraphs[0] || clean).replace(/\s+/g, ' ').slice(0, 76);
-    const chunks = (paragraphs.length > 1 ? paragraphs : sentences).slice(0, 6);
-    const concepts = [...new Set((clean.match(/\b[A-ZÁÉÍÓÚÂÊÔÃÕÇ][\wÀ-ÿ-]{4,}\b/g) || []))].slice(0, 8);
-    const lines = [
-      'LIÇÃO: ' + title,
-      '',
-      'OBJETIVO',
-      'Compreender as ideias centrais do material e conseguir explicá-las com suas próprias palavras.',
-      '',
-      'AQUECIMENTO',
-      'Leia o material uma vez e anote o que já sabe sobre o assunto.',
-      '',
-      'CONTEÚDO EM ETAPAS',
-      ...chunks.map((part, i) => (i + 1) + '. ' + part),
-      '',
-      'CONCEITOS PARA DOMINAR',
-      ...(concepts.length ? concepts.map(x => '• ' + x) : ['• Identifique os termos e definições mais importantes do texto.']),
-      '',
-      'PRATIQUE',
-      '1. Qual é a ideia principal deste material?',
-      '2. Como você explicaria o conceito mais importante sem consultar o texto?',
-      '3. Que exemplo próprio demonstra que você entendeu o assunto?',
-      '',
-      'REVISÃO FINAL',
-      'Resuma o que aprendeu em 3 frases e marque os pontos que ainda precisam de revisão.',
-      '',
-      'Nota: lição estruturada automaticamente a partir do texto fornecido; confira os conceitos e complemente quando necessário.'
-    ];
-    return { title, text: lines.join('\n') };
-  }
+  function theme(light){document.body.classList.toggle('light',light);try{localStorage.setItem(THEME_KEY,light?'light':'dark');}catch(_){}}
+  try{theme(localStorage.getItem(THEME_KEY)==='light');}catch(_){}
+  $('#themeBtn').addEventListener('click',()=>{const light=!document.body.classList.contains('light');theme(light);notify(light?'Tema claro ativado.':'Tema escuro ativado.');});
 
-  let currentLesson = '';
-  $('#lessonBtn').addEventListener('click', () => {
-    const raw = material.value.trim();
-    if (!raw) { notify('Cole um material para montar a lição.'); material.focus(); return; }
-    const lesson = buildLesson(raw);
-    currentLesson = lesson.text;
-    $('#lessonTitle').textContent = lesson.title;
-    const body = $('#lessonBody');
-    body.replaceChildren();
-    lesson.text.split('\n').forEach(line => {
-      const p = document.createElement('p');
-      p.textContent = line || ' ';
-      if (/^(OBJETIVO|AQUECIMENTO|CONTEÚDO EM ETAPAS|CONCEITOS PARA DOMINAR|PRATIQUE|REVISÃO FINAL)$/.test(line)) p.className = 'lesson-heading';
-      body.append(p);
-    });
-    $('#lessonResult').hidden = false;
-    mode.value = 'lesson';
-    notify('Lição automática criada. Revise e ajuste se necessário.');
-  });
+  let seconds=25*60, interval=null;
+  function drawTimer(){$('#timerDisplay').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');}
+  function resetTimer(){if(interval)clearInterval(interval);interval=null;seconds=Number($('#timerDuration').value)*60;$('#timerToggle').textContent='Iniciar';$('#timerStatus').textContent='Pronto para começar';drawTimer();}
+  $('#timerDuration').addEventListener('change',resetTimer);
+  $('#timerToggle').addEventListener('click',()=>{if(interval){clearInterval(interval);interval=null;$('#timerToggle').textContent='Continuar';$('#timerStatus').textContent='Sessão pausada';return;}if(seconds<=0)resetTimer();$('#timerToggle').textContent='Pausar';$('#timerStatus').textContent='Foco em andamento';interval=setInterval(()=>{seconds--;drawTimer();if(seconds<=0){clearInterval(interval);interval=null;$('#timerToggle').textContent='Iniciar';$('#timerStatus').textContent='Sessão concluída. Faça uma pausa.';notify('Sessão de foco concluída.');}},1000);});
+  $('#timerReset').addEventListener('click',resetTimer);drawTimer();
 
-  async function copyLesson() {
-    if (!currentLesson) return;
-    try {
-      await navigator.clipboard.writeText(currentLesson);
-      notify('Lição copiada.');
-    } catch (_) { notify('Cópia indisponível neste contexto; use Salvar .txt.'); }
-  }
-  $('#copyLesson').addEventListener('click', copyLesson);
-  $('#downloadLesson').addEventListener('click', () => {
-    if (!currentLesson) return;
-    const url = URL.createObjectURL(new Blob([currentLesson], {type:'text/plain;charset=utf-8'}));
-    const a = document.createElement('a'); a.href = url; a.download = 'waynovo-licao.txt'; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
-
-  $('#addBtn').addEventListener('click', () => {
-    const value = material.value.trim();
-    if (!value) {
-      notify('Adicione um conteúdo antes de criar o fluxo.');
-      material.focus();
-      return;
-    }
-    tasks.unshift({
-      id: createId(),
-      title: value.replace(/\s+/g, ' ').slice(0, 82) + (value.length > 82 ? '…' : ''),
-      content: value,
-      mode: mode.value,
-      priority: $('#priority').value,
-      done: false,
-      date: new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-    });
-    persist();
-    render();
-    material.value = '';
-    material.dispatchEvent(new Event('input'));
-    notify('Fluxo salvo na fila local.');
-  });
-
-  $('#clearQueue').addEventListener('click', () => {
-    if (!tasks.length) return;
-    if (!window.confirm('Deseja limpar todas as tarefas salvas neste navegador?')) return;
-    tasks = [];
-    persist();
-    render();
-    notify('Fila limpa.');
-  });
-
-  $('#exportQueue').addEventListener('click', () => {
-    const backup = {
-      app: 'Waynovo',
-      formatVersion: 1,
-      exportedAt: new Date().toISOString(),
-      tasks
-    };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'waynovo-backup.json';
-    document.body.append(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    notify('Backup exportado.');
-  });
-
-  $('#queueSearch').addEventListener('input', render);
-
-  document.querySelectorAll('[data-mode]').forEach((button) => {
-    button.addEventListener('click', () => {
-      mode.value = button.dataset.mode;
-      $('#workspace').scrollIntoView({ behavior: 'smooth' });
-      material.focus();
-    });
-  });
-  $('[data-focus]').addEventListener('click', () => {
-    material.focus();
-    $('#workspace').scrollIntoView({ behavior: 'smooth' });
-  });
-
-  function setTheme(isLight) {
-    document.body.classList.toggle('light', isLight);
-    try { localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark'); } catch (_) {}
-  }
-  try { setTheme(localStorage.getItem(THEME_KEY) === 'light'); } catch (_) {}
-  $('#themeBtn').addEventListener('click', () => {
-    const isLight = !document.body.classList.contains('light');
-    setTheme(isLight);
-    notify(isLight ? 'Tema claro ativado.' : 'Tema escuro ativado.');
-  });
-
-  const loaderCode = "javascript:(()=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/joaokwiatkovskimoreira-boop/waynovo@main/bookmarklet.js';s.async=true;s.onerror=()=>alert('Waynovo: não foi possível carregar o painel. Este site pode bloquear scripts externos.');(document.head||document.documentElement).appendChild(s)})()";
-  const bookmarkletLink = $('#bookmarkletLink');
-  bookmarkletLink.href = loaderCode;
-  $('#bookmarkletCode').textContent = loaderCode;
-
-  async function copyText(value) {
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(value);
-        return true;
-      }
-    } catch (_) {}
-    const helper = document.createElement('textarea');
-    helper.value = value;
-    helper.setAttribute('readonly', '');
-    helper.style.position = 'fixed';
-    helper.style.opacity = '0';
-    document.body.append(helper);
-    helper.select();
-    let ok = false;
-    try { ok = document.execCommand('copy'); } catch (_) {}
-    helper.remove();
-    return ok;
-  }
-
-  $('#copyBookmarklet').addEventListener('click', async () => {
-    const ok = await copyText(loaderCode);
-    notify(ok ? 'Código do bookmarklet copiado.' : 'Não foi possível copiar. Selecione o código e copie manualmente.');
-  });
-
-  const now = new Date();
-  $('#today').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-  $('#year').textContent = now.getFullYear();
+  const bookmarklet="javascript:(() => { 'use strict'; const ID='waynovo-study-panel'; const previous=document.getElementById(ID); if(previous){previous.remove();return;} const host=document.createElement('div');host.id=ID; (document.body||document.documentElement).appendChild(host); const root=host.attachShadow({mode:'open'}); root.innerHTML=[ '<style>', ':host{all:initial;position:fixed;z-index:2147483000;inset:auto 14px 14px auto;font-family:Inter,system-ui,sans-serif;color:#eef1ff}', '*{box-sizing:border-box}', '.panel{width:min(460px,calc(100vw - 20px));max-height:88vh;overflow:auto;background:#101727;border:1px solid #38435e;border-radius:18px;box-shadow:0 24px 80px #000b;padding:16px;color:#eef1ff}', '.head{display:flex;justify-content:space-between;align-items:center;gap:10px}.brand{font-size:15px;font-weight:800}.mark{display:inline-grid;place-items:center;width:30px;height:30px;margin-right:7px;border-radius:9px;background:linear-gradient(145deg,#a99aff,#6552db)}', 'button{font:700 11px system-ui,sans-serif;cursor:pointer}.close,.secondary{border:1px solid #39445e;background:#1b2639;color:#dce3f1;border-radius:9px;padding:9px 12px}', '.sub,.note{font-size:10px;line-height:1.5;color:#9eabc3}.meta,.count{font-size:9px;color:#8290aa;margin:6px 0;overflow-wrap:anywhere}', 'label{display:block;font-size:10px;font-weight:700;margin:10px 0 5px;color:#cbd4e8}textarea,input,select{display:block;width:100%;background:#0a1120;color:#eef1ff;border:1px solid #35405b;border-radius:9px;padding:10px;font:11px/1.5 system-ui}', 'textarea{min-height:108px;resize:vertical}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.primary,.ai{flex:1;border:0;border-radius:9px;padding:10px 12px;color:white;background:linear-gradient(100deg,#8d7aff,#7064df)}.ai{background:#32295d;border:1px solid #6659a8;color:#ded8ff}.status{font-size:10px;line-height:1.5;color:#86e0c0;margin-top:9px;white-space:pre-wrap}details{margin-top:11px;padding:10px;border:1px solid #303c54;border-radius:10px}summary{cursor:pointer;color:#bdb4ff;font-size:10px;font-weight:700}', '@media(max-width:520px){:host{inset:auto 5px 5px 5px}.panel{width:100%;max-height:88vh}}', '</style>', '<section class=\"panel\" role=\"dialog\" aria-label=\"Waynovo estudo\"><div class=\"head\"><div class=\"brand\"><span class=\"mark\">W</span>waynovo · estudo</div><button class=\"close\" id=\"close\">×</button></div>', '<p class=\"sub\">Selecione texto visível em uma aula, artigo ou documentação. Se a página impedir seleção, cole o material.</p><div class=\"meta\" id=\"pageMeta\"></div>', '<label for=\"source\">Material</label><textarea id=\"source\" placeholder=\"Texto selecionado ou colado...\"></textarea><div class=\"count\" id=\"count\">0 palavras</div>', '<label for=\"mode\">Ferramenta</label><select id=\"mode\"><option value=\"lesson\">Lição offline</option><option value=\"summary\">Resumo offline</option><option value=\"flashcards\">Flashcards offline</option><option value=\"practice\">Perguntas de prática</option><option value=\"checklist\">Checklist</option><option value=\"explain\">Explicação por IA</option><option value=\"plan\">Plano de estudo por IA</option><option value=\"translate\">Tradução por IA</option></select>', '<div class=\"row\"><button id=\"make\" class=\"primary\">Gerar localmente</button><button id=\"refresh\" class=\"secondary\">Atualizar seleção</button></div><div class=\"row\"><button id=\"ai\" class=\"ai\">Gerar com IA</button></div>', '<details id=\"settings\"><summary>Configurar gateway de IA</summary><label for=\"endpoint\">Endpoint /generate</label><input id=\"endpoint\" type=\"url\" placeholder=\"https://seu-worker.workers.dev/generate\"><label for=\"token\">Token do gateway (não a chave do provedor)</label><input id=\"token\" type=\"password\" autocomplete=\"off\"><div class=\"row\"><button id=\"save\" class=\"secondary\">Guardar nesta sessão</button></div><p class=\"note\">A chave do provedor fica no servidor como secret. Nunca cole a chave da API aqui.</p></details>', '<label for=\"output\">Resultado</label><textarea id=\"output\" placeholder=\"Sua lição ou resultado aparecerá aqui.\"></textarea><div class=\"row\"><button id=\"copy\" class=\"primary\">Copiar</button><button id=\"download\" class=\"secondary\">Salvar TXT</button></div><div class=\"status\" id=\"status\" role=\"status\"></div>', '<p class=\"note\">O painel usa somente seleção ou texto colado. Não percorre a página, não lê conteúdo oculto e não envia formulários. Alguns sites bloqueiam bookmarklets; conteúdo em iframe isolado pode exigir cópia manual.</p></section>' ].join(''); const $=(id)=>root.getElementById(id); const source=$('source'),output=$('output'),status=$('status'); const ENDPOINT_KEY='waynovo.gateway.endpoint',TOKEN_KEY='waynovo.gateway.token'; const selection=()=>{try{return String(window.getSelection?window.getSelection():'').trim();}catch(_){return '';}}; source.value=selection();$('pageMeta').textContent=(document.title||'Página')+' · '+location.hostname; try{$('endpoint').value=sessionStorage.getItem(ENDPOINT_KEY)||'';$('token').value=sessionStorage.getItem(TOKEN_KEY)||'';}catch(_){} function updateCount(){const n=source.value.trim()?source.value.trim().split(/\\s+/).length:0;$('count').textContent=n+' palavras · leitura '+(n?Math.max(1,Math.ceil(n/200)):0)+' min';} source.addEventListener('input',updateCount);updateCount(); function chunks(text){const p=text.split(/\\n{2,}/).map(x=>x.trim()).filter(Boolean);const s=text.split(/(?<=[.!?])\\s+/).map(x=>x.trim()).filter(x=>x.length>25);return (p.length>1?p:s).slice(0,9);} function terms(text){const ignored=new Set('sobre entre quando como para pela pelo pelos pelas uma umas uns dos das esse essa isso isto também então muito mais menos cada onde porque seus suas ser ter está são foi foram'.split(' '));const map=new Map();(text.toLowerCase().match(/[a-zÀ-ÿ]{5,}/g)||[]).forEach(w=>{if(!ignored.has(w))map.set(w,(map.get(w)||0)+1);});return [...map.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10).map(x=>x[0]);} function offline(kind,text){ const parts=chunks(text),vocab=terms(text),title=document.title||'Material'; if(kind==='summary')return ['RESUMO — '+title,'',...parts.map((p,i)=>(i+1)+'. '+p),'','TERMOS-CHAVE',...(vocab.length?vocab:['Marque os conceitos técnicos do material.']).map(x=>'• '+x),'','Confira o resumo com a fonte original.'].join('\\n'); if(kind==='flashcards')return ['FLASHCARDS — '+title,'',...parts.map((p,i)=>'CARTÃO '+(i+1)+'\\nPergunta: Qual é a ideia principal deste trecho?\\nPista: '+p),'','Tente responder antes de consultar a pista.'].join('\\n'); if(kind==='practice')return ['PRÁTICA — '+title,'','1. Qual é a ideia central do material?','2. Explique um conceito importante com suas palavras.','3. Como os tópicos se relacionam?','4. Crie um exemplo próprio.','','TÓPICOS PARA REVISAR',...parts.map((p,i)=>(i+1)+'. '+p),'','Perguntas originais para estudo.'].join('\\n'); if(kind==='checklist')return ['CHECKLIST — '+title,'',...parts.map((p,i)=>'[ ] Estudar etapa '+(i+1)+': '+p),'[ ] Explicar o tema sem consultar.','[ ] Revisar em 1, 3 e 7 dias.'].join('\\n'); return ['LIÇÃO — '+title,'','OBJETIVO','Compreender e explicar os conceitos centrais.','','AQUECIMENTO','Anote o que já sabe e uma dúvida.','','CONTEÚDO EM ETAPAS',...parts.map((p,i)=>(i+1)+'. '+p),'','TERMOS-CHAVE',...(vocab.length?vocab:['Identifique os termos técnicos do material.']).map(x=>'• '+x),'','RECUPERAÇÃO ATIVA','Explique a ideia principal sem consultar. Compare dois conceitos. Crie um exemplo próprio.','','REVISÃO ESPAÇADA','Revise hoje, amanhã, em 3 dias e em 7 dias.','','Lição organizada localmente. Confira o contexto dos termos.'].join('\\n'); } function generateLocal(){const text=source.value.trim();if(!text){status.textContent='Selecione ou cole material primeiro.';return;}output.value=offline($('mode').value,text);status.textContent='Material pronto localmente. Revise, copie ou salve.';} $('make').addEventListener('click',generateLocal); $('refresh').addEventListener('click',()=>{const text=selection();if(text){source.value=text;updateCount();status.textContent='Seleção atualizada.';}else status.textContent='Nenhum texto selecionado; cole o material.';}); $('save').addEventListener('click',()=>{try{sessionStorage.setItem(ENDPOINT_KEY,$('endpoint').value.trim());sessionStorage.setItem(TOKEN_KEY,$('token').value.trim());status.textContent='Gateway guardado nesta sessão.';}catch(_){status.textContent='Não foi possível guardar.';}}); $('ai').addEventListener('click',async()=>{ const text=source.value.trim(),endpoint=$('endpoint').value.trim(),token=$('token').value.trim(); if(!text){status.textContent='Selecione ou cole material.';return;}if(!endpoint||!token){$('settings').open=true;status.textContent='Configure endpoint e token do gateway.';return;} let u;try{u=new URL(endpoint);}catch(_){status.textContent='Endpoint inválido.';return;} if(u.protocol!=='https:'&&u.hostname!=='localhost'&&u.hostname!=='127.0.0.1'){status.textContent='Use um endpoint HTTPS.';return;} const button=$('ai');button.disabled=true;button.textContent='Gerando…'; const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000); try{ const task=$('mode').value; const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task,content:text,pageTitle:document.title}),signal:controller.signal}); const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Gateway HTTP '+response.status); if(typeof data.text!=='string'||!data.text.trim())throw new Error('Resposta vazia do gateway.'); output.value=data.text.trim();status.textContent='Resultado IA · '+(data.provider||'gateway')+' · '+(data.model||'modelo')+'. Confira o resultado.'; }catch(error){status.textContent=error.name==='AbortError'?'Tempo limite excedido.':(error.message||'Falha de conexão.');} finally{clearTimeout(timer);button.disabled=false;button.textContent='Gerar com IA';} }); async function copy(text){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return true;}}catch(_){}const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();let ok=false;try{ok=document.execCommand('copy');}catch(_){}area.remove();return ok;} $('copy').addEventListener('click',async()=>{if(!output.value)generateLocal();if(output.value)status.textContent=await copy(output.value)?'Copiado.':'Cópia bloqueada; selecione e copie.';}); $('download').addEventListener('click',()=>{if(!output.value)generateLocal();if(!output.value)return;const url=URL.createObjectURL(new Blob([output.value],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='waynovo-estudo.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}); $('close').addEventListener('click',()=>host.remove());root.addEventListener('keydown',(event)=>{if(event.key==='Escape')host.remove();});source.focus(); })();";
+  $('#bookmarkletLink').href=bookmarklet;$('#bookmarkletCode').textContent=bookmarklet;
+  $('#copyBookmarklet').addEventListener('click',async()=>notify(await copyText(bookmarklet)?'Bookmarklet copiado.':'Não foi possível copiar; selecione o código.'));
+  const now=new Date();$('#today').textContent=now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});$('#year').textContent=now.getFullYear();
   render();
 })();
