@@ -1,4 +1,4 @@
-# Waynovo 5.1
+# Waynovo 5.2
 
 Workspace de estudo com bookmarklet portátil, revisão espaçada local e integração opcional com um gateway de IA.
 
@@ -21,12 +21,18 @@ O bookmarklet é autônomo: não carrega bibliotecas por CDN. Usa somente a sele
 - Baralhos interativos com cartões Difícil/Bom/Fácil e agendamento de revisão espaçada.
 - Cartões difíceis voltam após 10 minutos; os intervalos de cartões conhecidos aumentam progressivamente.
 - Contadores de cartões criados, pendentes e revisados no dia.
-- Temporizador de foco, tema claro/escuro e layout responsivo.
+- Temporizador de foco com registro automático de sessões concluídas.
+- Metas diárias ajustáveis, sequência de dias ativos e gráfico semanal de estudo.
+- Histórico recente por assunto, com registro manual ou automático.
 - Rascunho automático, estimativa de leitura e fila local de tarefas.
-- Importação/exportação JSON com tarefas, cartões e progresso.
+- Importação/exportação JSON com tarefas, cartões, estatísticas de revisão, metas e histórico de sessões.
 - Cópia e exportação de material de estudo para TXT.
 
 Atalho: **Ctrl + Shift + F** leva diretamente ao laboratório de revisão. Na sessão de cartões, a tecla Espaço revela a resposta quando o foco não está em um campo ou botão.
+
+## Metas e histórico de estudo
+
+Defina uma meta diária, registre sessões manualmente ou deixe o temporizador contabilizar uma sessão quando chegar ao fim. O painel mostra o total do dia, os últimos sete dias, dias ativos consecutivos e as sessões recentes. Os registros ficam no navegador e entram no backup JSON.
 
 ## Integração de IA
 

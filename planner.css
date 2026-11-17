@@ -1,0 +1,53 @@
+.planner-section{max-width:1120px;margin:38px auto 0;padding:0 24px}
+.planner-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:17px}
+.planner-head h2{font:600 29px 'Space Grotesk';letter-spacing:-1px;margin:7px 0}
+.planner-head p{font-size:12px;color:var(--muted);margin:0;line-height:1.6}
+.planner-goal-select{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:10px;white-space:nowrap}
+.planner-goal-select select{width:auto;min-width:110px;padding:9px 11px}
+.planner-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.planner-metric,.planner-card{background:linear-gradient(145deg,#141a29,#101522);border:1px solid var(--line);border-radius:14px}
+.planner-metric{padding:16px 18px}
+.planner-metric strong,.planner-metric span{display:block}
+.planner-metric strong{font:600 23px 'Space Grotesk';color:#b7aaff}
+.planner-metric span{font-size:10px;color:var(--muted);margin-top:4px}
+.planner-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:14px}
+.planner-card{padding:19px;min-width:0}
+.planner-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
+.planner-card-head h3{font:600 14px 'Space Grotesk';margin:0}
+.planner-card-head span{font-size:9px;color:var(--muted)}
+.planner-goal-track{height:10px;border-radius:20px;background:#2a3042;overflow:hidden;margin:17px 0 8px}
+.planner-goal-track span{display:block;width:0;height:100%;border-radius:20px;background:linear-gradient(90deg,#927fff,#62d9b7);transition:width .25s}
+.planner-goal-track span[aria-valuenow="100"]{background:linear-gradient(90deg,#62d9b7,#79e7bc)}
+.planner-goal-text{font-size:10px;color:#aeb7ca;margin:0}
+.planner-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;margin-top:20px;align-items:end}
+.planner-day{display:flex;flex-direction:column;align-items:center;min-width:0;gap:5px}
+.planner-day-value{font-size:8px;color:#aeb7ca;white-space:nowrap;min-height:11px}
+.planner-day-track{height:88px;width:100%;display:flex;align-items:flex-end;justify-content:center;background:#0d1320;border-radius:8px 8px 4px 4px;padding:3px}
+.planner-day-bar{display:block;width:100%;max-width:28px;border-radius:5px 5px 3px 3px;background:linear-gradient(180deg,#a99aff,#5bcbb2);min-height:3px}
+.planner-day b{font-size:9px;color:#c8cfe0;text-transform:capitalize}
+.planner-day small{font-size:8px;color:#7f8aa1}
+.planner-form{display:grid;gap:10px}
+.planner-form label{margin:0}
+.planner-form input,.planner-form select{width:100%;padding:11px;border:1px solid #2a3248;background:#0c111e;color:#eef0f8;border-radius:9px;font:11px 'DM Sans'}
+.planner-form input:focus,.planner-form select:focus{outline:2px solid #8e7dff55;border-color:#8e7dff}
+.planner-form-row{display:grid;grid-template-columns:.7fr 1fr;gap:9px;align-items:end}
+.planner-form-row button{width:100%;min-height:38px}
+.planner-form-note{font-size:9px;line-height:1.5;color:var(--muted);margin:2px 0 0}
+.planner-status{min-height:14px;font-size:9px;color:#75d9b8;margin:8px 0 0}
+.planner-history{margin-top:14px}
+.planner-history-list{display:grid;gap:7px}
+.planner-history-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #252d41;background:#0c111e;border-radius:9px}
+.planner-history-details{flex:1;min-width:0}
+.planner-history-details b,.planner-history-details small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.planner-history-details b{font-size:10px;color:#dfe3ef}
+.planner-history-details small{font-size:9px;color:#8490a7;margin-top:4px}
+.planner-history-row>strong{font-size:10px;color:#b8adff;white-space:nowrap}
+.planner-delete{border:0;background:transparent;color:#7f8aa1;font-size:17px;cursor:pointer;padding:2px 7px}
+.planner-empty{font-size:10px;color:var(--muted);text-align:center;padding:15px}
+body.light .planner-metric,body.light .planner-card{background:#fff}
+body.light .planner-day-track{background:#edf0f7}
+body.light .planner-day b,body.light .planner-history-details b{color:#25283a}
+body.light .planner-history-row,body.light .planner-form input,body.light .planner-form select{background:#f7f8fc;color:#202438;border-color:#dfe3ef}
+body.light .planner-goal-text,body.light .planner-day-value{color:#626d84}
+@media(max-width:800px){.planner-section{padding:0 18px}.planner-head{align-items:flex-start;flex-direction:column}.planner-metrics{grid-template-columns:repeat(2,1fr)}.planner-grid{grid-template-columns:1fr}}
+@media(max-width:420px){.planner-section{margin-top:30px}.planner-card{padding:15px}.planner-metric{padding:13px}.planner-metric strong{font-size:20px}.planner-form-row{grid-template-columns:1fr}.planner-week{gap:4px}.planner-day-value{font-size:7px}}

@@ -13,12 +13,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="planner.css">
 </head>
 <body>
   <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
   <header class="topbar">
     <a class="brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a>
-    <nav><a class="nav-link active" href="#workspace">Workspace</a><a class="nav-link" href="#studyLab">Revisão</a><a class="nav-link" href="#bookmarklet">Bookmarklet</a><a class="nav-link" href="#features">Recursos</a></nav>
+    <nav><a class="nav-link active" href="#workspace">Workspace</a><a class="nav-link" href="#studyLab">Revisão</a><a class="nav-link" href="#planner">Progresso</a><a class="nav-link" href="#bookmarklet">Bookmarklet</a><a class="nav-link" href="#features">Recursos</a></nav>
     <div class="top-actions"><span class="status"><i></i> Sistema pronto</span><button class="install-app-btn" id="installAppBtn" type="button" hidden>Instalar app</button><button class="icon-btn" id="themeBtn" aria-label="Alternar tema">◐</button><span class="avatar">W</span></div>
   </header>
   <main>
@@ -68,6 +69,46 @@
       </section>
     </section>
 
+
+    <section class="planner-section" id="planner">
+      <div class="planner-head">
+        <div><div class="eyebrow muted">SEU RITMO, SEU PROGRESSO</div><h2>Metas e histórico.</h2><p>Acompanhe o tempo de estudo, crie uma meta diária e veja sua constância ao longo da semana.</p></div>
+        <label class="planner-goal-select" for="plannerGoal">Meta diária
+          <select id="plannerGoal"><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hora</option><option value="90">1h30</option><option value="120">2 horas</option><option value="180">3 horas</option></select>
+        </label>
+      </div>
+      <div class="planner-metrics">
+        <div class="planner-metric"><strong id="plannerTodayMinutes">0 min</strong><span>Estudado hoje</span></div>
+        <div class="planner-metric"><strong id="plannerWeekMinutes">0 min</strong><span>Últimos 7 dias</span></div>
+        <div class="planner-metric"><strong id="plannerStreak">0</strong><span>Dias seguidos</span></div>
+        <div class="planner-metric"><strong id="plannerSessionCount">0</strong><span>Sessões na semana</span></div>
+      </div>
+      <div class="planner-grid">
+        <article class="planner-card">
+          <div class="planner-card-head"><h3>Meta de hoje</h3><span>SEMANA ATUAL</span></div>
+          <div class="planner-goal-track"><span id="plannerGoalBar" role="progressbar" aria-label="Progresso da meta diária" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></span></div>
+          <p class="planner-goal-text" id="plannerGoalText">0 min de 1 hora · faltam 1 hora</p>
+          <div class="planner-week" id="plannerWeekChart" aria-label="Tempo estudado nos últimos sete dias"></div>
+        </article>
+        <article class="planner-card">
+          <div class="planner-card-head"><h3>Registrar sessão</h3><span>MANUAL OU AUTOMÁTICA</span></div>
+          <form class="planner-form" id="plannerForm">
+            <label for="plannerSubject">Matéria ou assunto</label>
+            <input id="plannerSubject" type="text" maxlength="72" placeholder="Ex.: Matemática, História..." autocomplete="off">
+            <div class="planner-form-row">
+              <div><label for="plannerMinutes">Duração</label><select id="plannerMinutes"><option value="15">15 min</option><option value="25" selected>25 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="50">50 min</option><option value="60">1 hora</option><option value="90">1h30</option></select></div>
+              <button class="primary-btn" type="submit">Registrar sessão</button>
+            </div>
+          </form>
+          <p class="planner-form-note">Sessões concluídas pelo temporizador são registradas aqui automaticamente.</p>
+          <p class="planner-status" id="plannerStatus" role="status"></p>
+        </article>
+      </div>
+      <article class="planner-card planner-history">
+        <div class="planner-card-head"><h3>Atividade recente</h3><span>ÚLTIMAS 7 SESSÕES</span></div>
+        <div class="planner-history-list" id="plannerHistoryList"><p class="planner-empty">Carregando histórico...</p></div>
+      </article>
+    </section>
     <section class="study-lab" id="studyLab">
       <div class="study-lab-head">
         <div><div class="eyebrow muted">REVISÃO INTELIGENTE</div><h2>Memorize de verdade.</h2><p>Revise seus cartões no momento certo. As próximas revisões são agendadas localmente.</p></div>
@@ -124,10 +165,11 @@
       <article class="feature"><div class="feature-icon green">▤</div><h3>Ferramentas de estudo</h3><p>Prepare resumos, flashcards, questões inéditas e planos de revisão.</p></article>
       <article class="feature"><div class="feature-icon blue">◈</div><h3>Pronto para evoluir</h3><p>Estrutura modular para futuramente receber integrações autorizadas e um aplicativo independente.</p></article>
     </div></section>
-    <footer><a class="brand footer-brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a><span>Automação útil, controle transparente.</span><span>v5.1 · <span id="year"></span></span></footer>
+    <footer><a class="brand footer-brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a><span>Automação útil, controle transparente.</span><span>v5.2 · <span id="year"></span></span></footer>
   </main>
   <div id="toast" class="toast" role="status"></div>
   <script src="app.js"></script>
   <script src="features.js"></script>
+  <script src="planner.js"></script>
 </body>
 </html>
