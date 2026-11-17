@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b14">
+  <meta name="description" content="Waynovo — central de automação e produtividade para fluxos de estudo autorizados.">
+  <title>Waynovo — Automação inteligente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a>
+    <nav><a class="nav-link active" href="#workspace">Workspace</a><a class="nav-link" href="#features">Recursos</a></nav>
+    <div class="top-actions"><span class="status"><i></i> Sistema pronto</span><button class="icon-btn" id="themeBtn" aria-label="Alternar tema">◐</button><button class="avatar">W</button></div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="eyebrow"><span class="spark">✦</span> CENTRAL DE AUTOMAÇÃO INTELIGENTE</div>
+      <h1>Menos tarefas repetitivas.<br><span>Mais fluxo.</span></h1>
+      <p class="hero-copy">Organize materiais, monte processos e acompanhe suas tarefas em um só lugar.</p>
+      <div class="hero-meta"><span class="meta-pill">✦ Interface universal</span><span class="meta-pill">⌁ Responsivo</span><span class="meta-pill">◈ Privacidade em primeiro lugar</span></div>
+    </section>
+    <section class="workspace" id="workspace">
+      <div class="section-heading"><div><div class="eyebrow muted">SEU AMBIENTE</div><h2>Workspace</h2></div><span class="date-label" id="today"></span></div>
+      <div class="dashboard-grid">
+        <aside class="side-card">
+          <div class="side-title">Visão geral <span>•••</span></div>
+          <div class="metric"><div class="metric-icon violet">↗</div><div><strong id="taskCount">0</strong><small>Tarefas na fila</small></div></div>
+          <div class="metric"><div class="metric-icon mint">✓</div><div><strong id="doneCount">0</strong><small>Concluídas nesta sessão</small></div></div>
+          <div class="side-divider"></div>
+          <div class="side-title">Atalhos</div>
+          <button class="shortcut active" data-focus="material"><span>＋</span> Novo fluxo</button>
+          <button class="shortcut" data-mode="summary"><span>▤</span> Organizar conteúdo</button>
+          <button class="shortcut" data-mode="flashcards"><span>▧</span> Criar flashcards</button>
+          <div class="privacy-note"><span>◈</span><div><b>Seus dados, suas regras</b><small>O conteúdo fica neste navegador. Nada é enviado sem uma integração que você configurar.</small></div></div>
+        </aside>
+        <section class="main-card">
+          <div class="card-head"><div><h3>Novo fluxo de trabalho</h3><p>Adicione um conteúdo e escolha o que deseja fazer.</p></div><span class="live-tag"><i></i> PRONTO</span></div>
+          <label for="material">Conteúdo ou instruções</label>
+          <textarea id="material" placeholder="Cole um texto, uma lista de questões de prática ou as etapas de uma tarefa autorizada..."></textarea>
+          <div class="input-foot"><span id="charCount">0 caracteres</span><button id="clearBtn" class="text-btn">Limpar</button></div>
+          <div class="form-row"><div class="field"><label for="mode">Tipo de fluxo</label><select id="mode"><option value="organize">Organizar conteúdo</option><option value="summary">Resumo estruturado</option><option value="flashcards">Gerar flashcards</option><option value="practice">Montar simulado de prática</option><option value="checklist">Criar checklist de tarefas</option><option value="review">Revisar respostas de prática</option></select></div><div class="field"><label for="priority">Prioridade</label><select id="priority"><option>Normal</option><option>Alta</option><option>Baixa</option></select></div></div>
+          <div class="form-actions"><span class="hint">⌘ O fluxo será adicionado à sua fila local.</span><button id="addBtn" class="primary-btn">Adicionar à fila <span>↗</span></button></div>
+        </section>
+      </div>
+      <section class="queue-card">
+        <div class="queue-head"><div><h3>Fila de automação</h3><p>Acompanhe e gerencie seus fluxos nesta sessão.</p></div><button id="clearQueue" class="text-btn">Limpar fila</button></div>
+        <div id="queueList" class="queue-list"><div class="empty-state"><div class="empty-icon">⌁</div><b>Sua fila está vazia</b><span>Adicione um fluxo acima para começar.</span></div></div>
+      </section>
+    </section>
+    <section class="features" id="features"><div class="eyebrow muted">FEITO PARA SEU RITMO</div><h2>Um espaço. Várias possibilidades.</h2><div class="feature-grid">
+      <article class="feature"><div class="feature-icon purple">⌁</div><h3>Fluxos organizados</h3><p>Transforme conteúdos e instruções em tarefas claras, priorizadas e fáceis de acompanhar.</p></article>
+      <article class="feature"><div class="feature-icon green">▤</div><h3>Processamento em lote</h3><p>Prepare vários materiais de uma vez e mantenha tudo organizado na mesma fila.</p></article>
+      <article class="feature"><div class="feature-icon blue">◈</div><h3>Pronto para integrações</h3><p>Estrutura preparada para conectar provedores de IA e ferramentas autorizadas com segurança.</p></article>
+    </div></section>
+    <footer><a class="brand footer-brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a><span>Automação útil, controle transparente.</span><span>v4.0 · <span id="year"></span></span></footer>
+  </main>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
