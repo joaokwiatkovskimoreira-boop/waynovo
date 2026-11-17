@@ -62,7 +62,7 @@
     const parts = splitMaterial(text);
     const terms = pickTerms(text);
     const sourceTitle = (document.title || 'Material de estudo').slice(0, 140);
-    const existing = new Set(cards.map((card) => card.back));
+    const existing = new Set(cards.map((card) => String(card.back || '').split('\n\nTermo-chave:')[0]));
     const created = [];
     parts.forEach((part, index) => {
       if (existing.has(part)) return;
@@ -89,7 +89,7 @@
       .sort((a, b) => a.dueAt - b.dueAt || a.createdAt - b.createdAt);
   }
   function nextDueDate() {
-    return cards.filter((card) => !sessionReviewed.has(card.id)).sort((a, b) => a.dueAt - b.dueAt)[0];
+    return cards.slice().sort((a, b) => a.dueAt - b.dueAt)[0];
   }
   function renderStats() {
     const today = localDateKey();
