@@ -1,10 +1,16 @@
-# Waynovo 5.2
+# Waynovo 5.3 — Unified Bookmarklet
 
 Workspace de estudo com bookmarklet portátil, revisão espaçada local e integração opcional com um gateway de IA.
 
 ## Usar o Waynovo
 
 Abra a página publicada pelo GitHub Pages. O app funciona como site e pode ser instalado como PWA em navegadores compatíveis. Após a primeira visita, o shell da interface e o módulo de revisão ficam disponíveis offline.
+
+## Bookmarklet unificado
+
+O código-fonte do painel portátil fica em `bookmarklet.js` e é carregado pela página de instalação. O bookmarklet reúne, em uma única interface, laboratório de estudo, geração local de lições/resumos/exercícios/checklists/glossários, cartões de revisão, editor rápido com notas locais, temporizador de foco e integração opcional com o gateway de IA. O painel é arrastável, minimizável, tem tema claro/escuro e pode ser fechado com Esc.
+
+O bookmarklet usa Shadow DOM para isolar o visual, não importa bibliotecas/CDNs e não executa código remoto. Os cartões e notas ficam no armazenamento local do navegador da página onde foi aberto; o endpoint do gateway pode ser lembrado apenas na sessão. O token do gateway permanece no campo enquanto o painel está aberto.
 
 ## Bookmarklet portátil
 
@@ -36,7 +42,7 @@ Defina uma meta diária, registre sessões manualmente ou deixe o temporizador c
 
 ## Integração de IA
 
-A IA é opcional. Publique o Worker descrito em [AI_GATEWAY.md](AI_GATEWAY.md), configure a chave do provedor como secret do servidor e informe no app apenas o endpoint e o token de acesso do gateway. O token fica no campo enquanto o painel está aberto; não é gravado em localStorage ou sessionStorage. A chave OpenAI/Gemini nunca deve ser colocada no código público.
+A IA é opcional. Publique o Worker descrito em [AI_GATEWAY.md](AI_GATEWAY.md), configure a chave do provedor como secret do servidor e informe no app apenas o endpoint e o token de acesso do gateway. O token fica no campo enquanto o painel está aberto; não é gravado em localStorage ou sessionStorage. A chave OpenAI/Gemini nunca deve ser colocada no código público ou no bookmarklet. Use secrets no Worker e revogue imediatamente qualquer chave que tenha sido publicada por engano.
 
 O texto selecionado/colado é enviado ao provedor somente quando você aciona a geração. APIs podem ter custos e limites próprios.
 
