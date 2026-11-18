@@ -77,9 +77,13 @@ test('Autopilot extracts inline and sibling A-E alternatives and bridges to Tuto
   assert.match(source, /confiança alta, média ou baixa/);
 });
 
+test('Local AI is the default and external providers remain opt-in', () => {
+  assert.ok(source.includes("$('provider').value=sessionStorage.getItem(PROVIDER)||'local'"));
+});
+
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.ok(app.includes('bookmarklet.js?v=1.8'));
-  assert.match(worker, /waynovo-shell-v5/);
+  assert.ok(app.includes('bookmarklet.js?v=1.9'));
+  assert.match(worker, /waynovo-shell-v6/);
 });
