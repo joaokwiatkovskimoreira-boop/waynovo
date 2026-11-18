@@ -51,7 +51,7 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
 <header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.0</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
-<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button></nav>
+<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button></nav>
 <main>
 <section class="view active" data-view="study"><div class="eyebrow">Laboratório de aprendizagem</div><div class="desc" id="pageInfo">Selecione um trecho visível ou cole seu material.</div>
 <label for="source">Material</label><textarea id="source" placeholder="Selecione um texto e toque em Capturar, ou cole aqui..."></textarea><div class="meta" id="count">0 palavras</div>
@@ -88,6 +88,12 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 <article class="module-card"><b>Fubanga · Hub</b><p>Gerencie os módulos internos do Waynovo. Nenhum script remoto será executado.</p><button class="btn primary" data-module="hub">Ver catálogo</button></article>
 </div><div class="status" id="moduleStatus">Escolha um módulo. O Waynovo usa somente o texto selecionado ou colado.</div>
 <div class="hint">Os módulos são independentes, mas compartilham cartões, notas, editor, temporizador e gateway de IA. Ações em páginas externas permanecem sob seu controle.</div></section>
+<section class="view" data-view="automation"><div class="eyebrow">Motor de automação · sandbox</div><div class="desc">Monte e execute fluxos em um ambiente fictício isolado. Nenhuma ação é enviada à página ou a serviços externos.</div>
+<div class="box"><div style="font-size:11px;font-weight:800;margin-bottom:7px">Estado do ambiente simulado</div><div id="labState" style="font-size:10px;line-height:1.8;color:#b8c5df">Sessão: desconectada<br>Página: início<br>Progresso: 0%<br>Resposta: vazia</div></div>
+<label for="flowPreset">Fluxo de demonstração</label><select id="flowPreset"><option value="study">Sessão de estudo guiada</option><option value="navigation">Navegação entre páginas fictícias</option><option value="validation">Teste de validação local</option></select>
+<div class="row"><button class="btn primary" id="runFlow">Executar fluxo</button><button class="btn" id="resetLab">Reiniciar sandbox</button></div>
+<label>Registro de execução</label><textarea id="labLog" class="output" readonly placeholder="As etapas simuladas aparecerão aqui."></textarea>
+<div class="hint">O laboratório testa o motor de etapas, condições e estados usando somente dados em memória. Não realiza login, não altera progresso real e não interage com páginas de terceiros.</div></section>
 </main><footer><span id="site">Waynovo · local-first</span><span>Esc fecha</span></footer></section>
 `;
 const $=id=>root.getElementById(id);
@@ -161,6 +167,24 @@ root.querySelectorAll('[data-module]').forEach(btn=>btn.addEventListener('click'
  $('moduleStatus').textContent=moduleNames[key]+' ativado · '+item.message;
  activateTab('study');$('output').focus();
 }));
+const lab={session:false,page:'início',progress:0,answer:''};
+function drawLab(){ $('labState').innerHTML='Sessão: '+(lab.session?'conectada (fictícia)':'desconectada')+'<br>Página: '+lab.page+'<br>Progresso: '+lab.progress+'%<br>Resposta: '+(lab.answer||'vazia'); }
+function runLab(){
+ const flows={
+ study:[['Abrir ambiente de demonstração',()=>{lab.page='painel de estudo';}],['Criar sessão fictícia',()=>{lab.session=true;}],['Abrir atividade de exemplo',()=>{lab.page='atividade de treino';}],['Registrar resposta de teste',()=>{lab.answer='resposta demonstrativa';}],['Atualizar progresso simulado',()=>{lab.progress=40;}],['Concluir etapa de laboratório',()=>{lab.progress=100;}]],
+ navigation:[['Abrir página inicial',()=>{lab.page='início';}],['Navegar para biblioteca',()=>{lab.page='biblioteca';}],['Abrir material de exemplo',()=>{lab.page='material demonstrativo';}],['Voltar ao painel',()=>{lab.page='painel de estudo';}]],
+ validation:[['Verificar sessão',()=>{if(!lab.session)throw new Error('Sessão fictícia ausente');}],['Validar campo de resposta',()=>{if(!lab.answer)throw new Error('Resposta de teste vazia');}],['Checar estado de progresso',()=>{if(lab.progress<0||lab.progress>100)throw new Error('Progresso fora do intervalo');}]]
+ };
+ const log=$('labLog');log.value='[Waynovo Sandbox] Início do fluxo: '+$('flowPreset').value+'\n';
+ for(const [name,action] of flows[$('flowPreset').value]){
+  try{action();log.value+='✓ '+name+'\n';}
+  catch(err){log.value+='✕ '+name+' — '+err.message+'\n';break;}
+ }
+ drawLab();log.value+='\nEstado final: '+lab.page+' · '+lab.progress+'% · '+(lab.session?'sessão ativa':'sem sessão');
+}
+$('runFlow').addEventListener('click',runLab);
+$('resetLab').addEventListener('click',()=>{lab.session=false;lab.page='início';lab.progress=0;lab.answer='';$('labLog').value='Sandbox reiniciado. Nenhuma alteração externa foi realizada.';drawLab();});
+drawLab();
 root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));}));
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
 $('min').addEventListener('click',()=>{$('panel').classList.toggle('minimized');$('min').textContent=$('panel').classList.contains('minimized')?'+':'−';});
