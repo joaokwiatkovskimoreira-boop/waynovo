@@ -153,7 +153,7 @@ function parseResponsesText(data) {
     .filter(part => part && part.type === "output_text" && typeof part.text === "string")
     .map(part => part.text.trim())
     .filter(Boolean)
-    .join("\\n\\n")
+    .join("\n\n")
     .trim();
 }
 
