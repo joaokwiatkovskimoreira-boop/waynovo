@@ -364,7 +364,8 @@ export default {
           provider: result.provider,
           model: result.model,
           fallbackUsed: attempts.length > 1,
-          attempts
+          attempts,
+          ...(result.usage ? { usage: result.usage } : {})
         }, 200, c.headers);
       }
     }
