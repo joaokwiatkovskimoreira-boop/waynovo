@@ -1,4 +1,4 @@
-# Waynovo 5.5 — Portable Bookmarklet
+# Waynovo 5.6 — Portable Bookmarklet
 
 Bookmarklet portátil gratuito para estudo, organização, automação local, monitoramento automático de páginas visíveis e experimentação de políticas em laboratório, com revisão espaçada e IA opcional.
 
@@ -96,11 +96,13 @@ Ao abrir o bookmarklet, o Autopilot inicia automaticamente um monitor local da p
 - **Tempo de uso:** conta o tempo em que o Waynovo permanece aberto e a aba está visível.
 - **Varreduras:** conta as leituras locais da estrutura visível da página.
 - **Questões detectadas:** conta enunciados únicos reconhecidos durante a sessão.
+- **Alternativas visíveis:** reconhece rótulos comuns (A–E), opções e componentes acessíveis de múltipla escolha sem clicar neles.
 - **Rascunhos sugeridos:** cruza palavras do enunciado com trechos visíveis da própria página e reúne evidências textuais para revisão.
+- **Ponte para o Tutor:** leva enunciado, alternativas e evidências reconhecidas à aba Questões, sem exigir copiar e colar.
 - **Operação local:** não usa API, não exige token e não envia o conteúdo para fora do navegador.
 - **Controles:** é possível pausar, retomar, forçar uma varredura e copiar os rascunhos.
 
-Os rascunhos são extração e correspondência textual, não respostas verificadas por um modelo. O contador mede questões detectadas e rascunhos preparados; não afirma que uma avaliação foi concluída ou que uma resposta foi submetida. O Autopilot não lê conteúdo oculto, campos privados ou documentos de iframes isolados, e não clica em alternativas nem envia respostas a serviços externos. Para automações que alteram dados, use apenas ambientes próprios e adaptadores autorizados.
+Os rascunhos são extração e correspondência textual, não respostas verificadas por um modelo. A extração de alternativas depende da estrutura e da acessibilidade do HTML de cada página; layouts especiais podem exigir revisão manual. O contador mede questões detectadas e rascunhos preparados; não afirma que uma avaliação foi concluída ou que uma resposta foi submetida. O Autopilot não lê conteúdo oculto, campos privados ou documentos de iframes isolados, e não clica em alternativas nem envia respostas a serviços externos. A aba Tutor pode explicar a questão e comparar as opções depois que o usuário aciona a análise. Para automações que alteram dados, use apenas ambientes próprios e adaptadores autorizados.
 
 ## Ferramentas
 
