@@ -117,7 +117,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <label for="flowPreset">Fluxo de demonstração</label><select id="flowPreset"><option value="study">Sessão de estudo guiada</option><option value="navigation">Navegação entre páginas fictícias</option><option value="validation">Teste de validação local</option></select>
 <div class="row"><button class="btn primary" id="runFlow">Executar fluxo</button><button class="btn" id="resetLab">Reiniciar sandbox</button></div>
 <label>Registro de execução</label><textarea id="labLog" class="output" readonly placeholder="As etapas simuladas aparecerão aqui."></textarea>
-<div class="hint">O laboratório testa o motor de etapas, condições e estados usando somente dados em memória. Não realiza login, não altera progresso real e não interage com páginas de terceiros.</div><section class="view" data-view="cognitive"><div class="eyebrow">Cognitive Engine · planejamento local</div>
+<div class="hint">O laboratório testa o motor de etapas, condições e estados usando somente dados em memória. Não realiza login, não altera progresso real e não interage com páginas de terceiros.</div></section><section class="view" data-view="cognitive"><div class="eyebrow">Cognitive Engine · planejamento local</div>
 <div class="desc">Dê um objetivo ao Waynovo. Ele organiza um plano, acompanha as etapas, registra memórias escolhidas por você e verifica critérios. O modo local usa regras transparentes; a análise por modelo é opcional.</div>
 <label for="cogGoal">Qual é o objetivo?</label><textarea id="cogGoal" style="min-height:76px" maxlength="1200" placeholder="Ex.: Quero aprender fotossíntese e conseguir explicar o processo com minhas palavras."></textarea>
 <label for="cogContext">Contexto ou material de apoio (opcional)</label><textarea id="cogContext" style="min-height:86px" maxlength="7000" placeholder="Cole informações relevantes, requisitos ou critérios de conclusão..."></textarea>
@@ -129,7 +129,6 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <div class="cog-card"><div class="cog-label">Análise com modelo · opcional</div><div class="desc">Usa o endpoint e o token configurados na aba IA. O texto só é enviado quando você clicar; podem existir limites ou custos do provedor.</div><div class="row"><button class="btn primary" id="cogAskAI">Analisar objetivo com IA</button></div><textarea id="cogAIResult" class="output" readonly placeholder="A análise do gateway aparecerá aqui."></textarea></div>
 <div class="cog-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:11px">Memória deste navegador</b><button class="btn" id="cogClearMemory">Apagar memória</button></div><div class="desc">Nada é sincronizado. Somente planos salvos explicitamente aparecem aqui.</div><div id="cogMemories"><div class="meta">Nenhuma memória salva.</div></div></div>
 <div class="hint">Limite importante: o planejador local não é um modelo de linguagem e não executa ações em sites externos. Ele organiza o trabalho e acompanha o que você marca como concluído. Use adaptadores próprios e permissões explícitas para integrações futuras.</div></section>
-</section>
 </main><footer><span id="site">Waynovo · local-first</span><span>Esc fecha</span></footer></section>
 `;
 const $=id=>root.getElementById(id);
