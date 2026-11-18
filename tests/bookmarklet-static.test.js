@@ -61,7 +61,7 @@ test('Autopilot extracts inline and sibling A-E alternatives and bridges to Tuto
   const end = source.indexOf('function autoFindEvidence(question,blocks){', start);
   assert.ok(start >= 0 && end > start, 'option parser exists');
   const parserSource = source.slice(start, end);
-  const collect = new Function('autoIsQuestion', parserSource + '; return autoCollectOptions;')((value) => /\\?/.test(value));
+  const collect = new Function('autoIsQuestion', parserSource + '; return autoCollectOptions;')((value) => value.includes('?'));
   assert.deepEqual(
     collect('Quanto é 2+2? A) 3 B) 4 C) 5', ['Quanto é 2+2? A) 3 B) 4 C) 5']),
     ['A) 3', 'B) 4', 'C) 5']
@@ -71,12 +71,12 @@ test('Autopilot extracts inline and sibling A-E alternatives and bridges to Tuto
     ['A) 3', 'B) 4', 'C) 5']
   );
   assert.match(source, /Levar ao Tutor/);
-  assert.match(source, /\\$\\('questionChoices'\\)\\.value=/);
+  assert.ok(source.includes("$('questionChoices').value="));
 });
 
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.match(app, /bookmarklet\\.js\\?v=1\\.7/);
+  assert.ok(app.includes('bookmarklet.js?v=1.7'));
   assert.match(worker, /waynovo-shell-v4/);
 });
