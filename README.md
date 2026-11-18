@@ -59,6 +59,25 @@ A aba **Automação** inclui um motor de fluxos demonstrativo com etapas sequenc
 
 O sandbox não controla sites reais, não faz autenticação externa, não altera progresso de cursos e não envia respostas. Ele serve para desenvolver e testar a arquitetura de automação com segurança antes de conectar adaptadores a ambientes próprios ou explicitamente autorizados.
 
+## Bypass Engine — laboratório local
+
+A aba **Bypass Lab** adiciona um motor executável de políticas com adaptadores registrados no próprio bookmarklet. O laboratório roda integralmente no navegador, sem chamadas de rede e sem interagir com serviços externos.
+
+### Como testar
+
+1. Abra o bookmarklet e selecione **Bypass Lab**.
+2. No adaptador **Gate de recurso no cliente**, mantenha o JSON de exemplo e clique em **Executar baseline**. O resultado esperado é `DENY`.
+3. Clique em **Aplicar override QA**. O resultado esperado é `ALLOW`: esse adaptador é explicitamente `owned-lab`, declara autoridade do lado do cliente e exige uma fixture com `mode: "test"`.
+4. Troque para **Permissão baseada em fixture confiável** e clique em **Aplicar override QA**. O resultado continua `DENY`: essa política não aceita override e considera somente `fixture.grants`, ignorando campos como `role: "admin"` ou `qaOverride: true` vindos do payload do cliente.
+5. Para testar uma concessão válida, edite o JSON e inclua `"premium-reports"` no array `fixture.grants`; rode o baseline novamente. O resultado esperado é `ALLOW`.
+6. Clique em **Rodar suíte de testes** para executar os quatro casos automaticamente. **Exportar auditoria** salva os eventos em JSON.
+
+### Modelo de adaptadores
+
+Cada adaptador precisa ter um identificador único, `scope: "owned-lab"` e uma função `evaluate`. O override de QA só é elegível quando o adaptador também declara `authority: "client"` e `qaOverride: true`, e a fixture está em modo de teste. A decisão protegida usa uma fonte de permissões separada do payload do cliente.
+
+Este recurso é uma bancada de engenharia e QA. Não deve ser conectado a serviços de terceiros para contornar autenticação, autorização, limites ou registros de progresso. Em integrações próprias, mantenha a autorização real no servidor; o override de QA deve existir apenas em ambientes de teste.
+
 ## Ferramentas
 
 - Lição offline, resumo, flashcards, perguntas de prática e checklist.
