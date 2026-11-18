@@ -147,3 +147,10 @@ Planos gratuitos têm cotas e podem mudar. O fallback não garante disponibilida
 ## Privacidade e compatibilidade
 
 Tarefas e cartões ficam no armazenamento local do navegador e não são sincronizados entre dispositivos automaticamente. Faça backups regulares. Alguns sites ou navegadores bloqueiam bookmarklets por política de segurança; não há garantia de execução em todos os domínios. Nesses casos, cole o conteúdo no app.
+
+
+## Waynovo 4.0 — Smart Answer Engine
+
+O Tutor de questões mantém a indicação da alternativa mais provável como recurso central: o prompt pede um veredito explícito com letra e texto, justificativa comparativa, confiança alta/média/baixa e separação entre evidência, inferência e incerteza. A indicação depende da qualidade do enunciado e do material disponível; quando a base é insuficiente, o Tutor deve declarar isso em vez de inventar certeza. O envio ao gateway continua sendo uma ação iniciada pelo usuário.
+
+A Task Queue 4.0 adiciona um pipeline com dependências: cada pacote começa por um controle de qualidade da fonte (caracteres, palavras, blocos e repetição); resumo, flashcards, prática, glossário e mapa só ficam elegíveis depois da aprovação dessa etapa. Adaptadores podem validar os próprios resultados, tarefas aguardam dependências e a fila informa quando uma etapa está bloqueada. O relatório de qualidade aparece como artefato selecionável. Tudo permanece local no navegador, com fonte limitada ao texto visível ou colado pelo usuário.
