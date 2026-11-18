@@ -911,6 +911,7 @@ function autoQueuePersist(){
     flashcards:Array.isArray(autoQueueData.artifacts.flashcards)?autoQueueData.artifacts.flashcards.slice(-30):[],
     glossary:String(autoQueueData.artifacts.glossary||'').slice(0,10000),
     outline:String(autoQueueData.artifacts.outline||'').slice(0,10000),
+    quality:String(autoQueueData.artifacts.quality||'').slice(0,5000),
     questions:Array.isArray(autoQueueData.artifacts.questions)?autoQueueData.artifacts.questions.slice(-30):[]
    }
   }));
