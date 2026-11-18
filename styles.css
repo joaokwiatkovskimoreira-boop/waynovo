@@ -141,3 +141,22 @@ body.light .rating-controls button{background:#f7f8fc;color:#30364a}
 .install-app-btn:hover{border-color:#9b8cff;background:#2c2550}
 body.light .install-app-btn{background:#f1efff;color:#5143a8;border-color:#d8d2fa}
 @media(max-width:760px){.install-app-btn{font-size:9px;padding:7px 8px}.top-actions{gap:8px}}
+
+
+/* Mobile bookmarklet installation */
+.mobile-install-help{margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--text)}
+.mobile-install-help .code-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mobile-install-help>p{font-size:12px;line-height:1.6;color:var(--muted);margin:10px 0}
+.mobile-install-help ol{padding-left:22px;margin:10px 0;color:var(--text);font-size:12px;line-height:1.7}
+.mobile-install-help li{padding:3px 0 3px 2px}
+.mobile-bookmarklet-code{max-height:150px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;user-select:text;-webkit-user-select:text}
+.mobile-install-note{border-left:3px solid #b58e45;padding:9px 11px;background:#332a1838;border-radius:0 9px 9px 0}
+body.light .mobile-install-help{background:#fff;border-color:#dce1ed}
+body.light .mobile-install-note{background:#fff7e8;color:#695c44}
+@media(max-width:600px){
+ .mobile-install-help{padding:12px}
+ .mobile-install-help .code-head{align-items:flex-start;flex-direction:column}
+ .mobile-install-help .code-head button{width:100%;min-height:44px}
+ .mobile-install-help ol{font-size:13px;line-height:1.65}
+ .mobile-bookmarklet-code{font-size:10px}
+}
