@@ -182,6 +182,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <section class="view" data-view="questions"><div class="eyebrow">Assistente de questões · WaygroundX-inspired</div><div class="desc">Cole o enunciado e as alternativas para receber uma explicação guiada. O assistente não lê nem responde diretamente em plataformas externas.</div>
 <label for="questionText">Enunciado</label><textarea id="questionText" placeholder="Cole aqui o enunciado da questão..."></textarea>
 <label for="questionChoices">Alternativas (opcional)</label><textarea id="questionChoices" style="min-height:78px" placeholder="A) ...&#10;B) ...&#10;C) ..."></textarea>
+<label for="questionEvidence">Material de apoio (opcional)</label><textarea id="questionEvidence" style="min-height:90px" placeholder="Trechos de apoio podem ser preenchidos automaticamente pelo Autopilot ou colados aqui..."></textarea>
 <div class="row"><button class="btn primary" id="prepareQuestion">Preparar análise</button><button class="btn" id="clearQuestion">Limpar</button></div>
 <div class="row"><button class="btn primary" id="analyzeQuestionAI">Analisar com IA</button></div>
 <div class="hint">A análise é para estudo: explica o raciocínio, compara alternativas e aponta incertezas. A IA só recebe o conteúdo quando você toca em Analisar com IA e o gateway está configurado.</div><div class="status" id="questionStatus"></div></section>
@@ -468,9 +469,9 @@ $('bypassResetContext').addEventListener('click',()=>{$('bypassExample').value='
 $('bypassSummary').textContent=bypassEngine.list().length+' adaptadores registrados · '+bypassEngine.list().map(x=>x.id).join(', ')+' · auditoria somente na sessão';
 bypassLoadExample();
 function questionPayload(){
- const stem=$('questionText').value.trim(),choices=$('questionChoices').value.trim();
+ const stem=$('questionText').value.trim(),choices=$('questionChoices').value.trim(),evidence=$('questionEvidence').value.trim();
  if(!stem)return '';
- return 'MODO DE ESTUDO: analise a questão e ensine o raciocínio. Não interaja com a plataforma de origem, não submeta respostas e não afirme certeza se faltar contexto.\n\nENUNCIADO:\n'+stem+(choices?'\n\nALTERNATIVAS:\n'+choices:'')+'\n\nFORMATO DA RESPOSTA:\n1. Identifique o conceito cobrado.\n2. Explique o raciocínio passo a passo.\n3. Compare as alternativas, se houver.\n4. Indique a resposta mais provável e justifique, sinalizando incertezas.\n5. Dê uma dica para resolver questões semelhantes.';
+ return 'MODO DE ESTUDO: analise a questão e ensine o raciocínio usando o material fornecido. Não interaja com a plataforma de origem, não submeta respostas e não afirme certeza se faltar contexto.\n\nENUNCIADO:\n'+stem+(choices?'\n\nALTERNATIVAS:\n'+choices:'')+(evidence?'\n\nMATERIAL DE APOIO EXTRAÍDO DA PÁGINA:\n'+evidence:'')+'\n\nFORMATO DA RESPOSTA:\n1. Identifique o conceito cobrado.\n2. Explique o raciocínio passo a passo.\n3. Compare as alternativas, se houver.\n4. Indique a resposta mais provável apenas quando houver base suficiente; justifique e atribua confiança alta, média ou baixa.\n5. Separe evidências do material, inferências e pontos não verificáveis.\n6. Dê uma dica para resolver questões semelhantes.';
 }
 $('prepareQuestion').addEventListener('click',()=>{
  const payload=questionPayload();if(!payload)return status('questionStatus','Cole o enunciado primeiro.');
@@ -478,7 +479,7 @@ $('prepareQuestion').addEventListener('click',()=>{
  $('mode').value='practice';$('output').value='GUIA DE ANÁLISE\n\n'+payload;
  status('questionStatus','Questão organizada. Revise o guia ou solicite análise ao gateway de IA.');
 });
-$('clearQuestion').addEventListener('click',()=>{$('questionText').value='';$('questionChoices').value='';status('questionStatus','Campos limpos.');});
+$('clearQuestion').addEventListener('click',()=>{$('questionText').value='';$('questionChoices').value='';$('questionEvidence').value='';status('questionStatus','Campos limpos.');});
 $('analyzeQuestionAI').addEventListener('click',()=>{
  const payload=questionPayload();if(!payload)return status('questionStatus','Cole o enunciado primeiro.');
  $('source').value=payload;$('source').dispatchEvent(new Event('input'));$('task').value='explain';
@@ -884,6 +885,7 @@ function autoRender(){
   tutor.addEventListener('click',()=>{
    $('questionText').value=item.question;
    $('questionChoices').value=(item.options||[]).join('\n');
+   $('questionEvidence').value=(item.evidence||[]).map(x=>x.text).join('\n\n');
    $('source').value='ENUNCIADO:\n'+item.question+'\n\nALTERNATIVAS:\n'+((item.options||[]).join('\n')||'(não detectadas)')+'\n\nTRECHOS DE APOIO:\n'+(item.evidence||[]).map(x=>x.text).join('\n');
    $('source').dispatchEvent(new Event('input'));
    status('questionStatus','Questão e alternativas extraídas pelo Autopilot. Revise e solicite a explicação do Tutor.');
