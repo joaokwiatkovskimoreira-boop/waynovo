@@ -49,12 +49,20 @@
   $('#downloadLesson').addEventListener('click',()=>{if(!currentResult)return;const url=URL.createObjectURL(new Blob([currentResult],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='waynovo-estudo.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
   $('#saveLesson').addEventListener('click',()=>{if(!currentResult)return;addTask('Estudo: '+($('#lessonTitle').textContent||'Material'),currentResult,mode.value,'Normal');notify('Resultado guardado na fila.');});
 
-  try{$('#aiEndpoint').value=sessionStorage.getItem(ENDPOINT_KEY)||'';$('#aiProvider').value=sessionStorage.getItem(PROVIDER_KEY)||'auto';$('#aiFallback').value=sessionStorage.getItem(FALLBACK_KEY)||'true';}catch(_){}
+  try{$('#aiEndpoint').value=sessionStorage.getItem(ENDPOINT_KEY)||'';$('#aiProvider').value=sessionStorage.getItem(PROVIDER_KEY)||'local';$('#aiFallback').value=sessionStorage.getItem(FALLBACK_KEY)||'true';}catch(_){}
   $('#saveAiConfig').addEventListener('click',()=>{try{const endpoint=$('#aiEndpoint').value.trim();if(endpoint)sessionStorage.setItem(ENDPOINT_KEY,endpoint);else sessionStorage.removeItem(ENDPOINT_KEY);sessionStorage.setItem(PROVIDER_KEY,$('#aiProvider').value);sessionStorage.setItem(FALLBACK_KEY,$('#aiFallback').value);$('#aiConfigStatus').textContent='Endpoint e preferência lembrados nesta sessão. Token não armazenado.';notify('Endpoint guardado; token fica apenas no campo.');}catch(_){$('#aiConfigStatus').textContent='Armazenamento de sessão indisponível.';}});
   $('#aiGenerateBtn').addEventListener('click',async()=>{
     const content=material.value.trim(),endpoint=$('#aiEndpoint').value.trim(),token=$('#aiToken').value.trim();
     if(!content){notify('Adicione material antes de gerar.');return;}
-    if(!endpoint||!token){$('#aiSettings').open=true;notify('Configure endpoint e token do gateway.');return;}
+    if($('#aiProvider').value==='local'){
+      const localKinds={lesson:'lesson',explain:'lesson',summary:'summary',flashcards:'flashcards',practice:'practice',plan:'lesson',checklist:'checklist',translate:'lesson'};
+      const result=offline(localKinds[$('#aiTask').value]||'lesson',content);
+      showResult('Waynovo · Local gratuito',result);
+      $('#lessonResult').scrollIntoView({behavior:'smooth',block:'nearest'});
+      notify('Gerado no dispositivo · sem API, sem cartão e sem cobrança.');
+      return;
+    }
+    if(!endpoint||!token){$('#aiSettings').open=true;notify('Para usar provedores externos, configure endpoint e token. O modo Local não precisa disso.');return;}
     let u;try{u=new URL(endpoint);}catch(_){notify('Endpoint inválido.');return;}
     if(u.protocol!=='https:'&&u.hostname!=='localhost'&&u.hostname!=='127.0.0.1'){notify('Use um endpoint HTTPS.');return;}
     const button=$('#aiGenerateBtn'),old=button.textContent,controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),60000);
