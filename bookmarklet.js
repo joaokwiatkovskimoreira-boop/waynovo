@@ -49,7 +49,7 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 @media(max-width:520px){:host{right:5px;bottom:5px}.panel{width:calc(100vw - 10px);max-height:88vh}}
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.0</div></div><div class="spacer"></div>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.1 · MULTI-IA</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
 <nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="questions">Questões</button></nav>
 <main>
@@ -72,12 +72,14 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 <section class="view" data-view="focus"><div class="eyebrow">Sessão de foco</div><div class="desc">Organize blocos de estudo com um temporizador simples.</div>
 <label for="duration">Duração</label><select id="duration"><option value="15">15 minutos</option><option value="25" selected>25 minutos</option><option value="35">35 minutos</option><option value="45">45 minutos</option><option value="50">50 minutos</option></select>
 <div class="timer" id="timer">25:00</div><div class="meta center" id="timerStatus">Pronto para começar</div><div class="row"><button class="btn primary" id="toggleTimer">Iniciar</button><button class="btn" id="resetTimer">Reiniciar</button></div></section>
-<section class="view" data-view="ai"><div class="eyebrow">Assistente opcional</div><div class="desc">Use um gateway próprio. A chave do provedor fica guardada no servidor, não no bookmarklet.</div>
+<section class="view" data-view="ai"><div class="eyebrow">Assistente opcional</div><div class="desc">Gateway multi-provedor: Gemini, Groq e OpenRouter. As chaves ficam nos secrets do Worker.</div>
 <label for="endpoint">Endpoint do gateway</label><input id="endpoint" type="url" placeholder="https://seu-worker.workers.dev/generate" autocomplete="off">
 <label for="token">Token de acesso do gateway</label><input id="token" type="password" placeholder="Token temporário" autocomplete="off">
+<label for="provider">Provedor preferido</label><select id="provider"><option value="auto">Automático · ordem do Worker</option><option value="gemini">Google Gemini</option><option value="groq">Groq</option><option value="openrouter">OpenRouter</option></select>
+<label for="fallback">Fallback automático</label><select id="fallback"><option value="true" selected>Ativado · tentar os outros provedores</option><option value="false">Desativado · somente o preferido</option></select>
 <label for="task">Tarefa</label><select id="task"><option value="explain">Explicar conceitos</option><option value="summary">Resumo</option><option value="lesson">Criar lição</option><option value="flashcards">Flashcards</option><option value="practice">Exercícios originais</option><option value="plan">Plano de estudo</option><option value="checklist">Checklist</option><option value="translate">Traduzir</option></select>
 <div class="row"><button class="btn primary" id="askAI">Enviar material à IA</button><button class="btn" id="clearToken">Limpar token</button></div><div class="status" id="aiStatus"></div>
-<div class="hint">Digite somente o token do gateway. A chave Gemini/OpenAI é um secret do servidor. O material só é enviado quando você aciona o botão.</div></section>
+<div class="hint">Digite o token do gateway. Configure GEMINI_API_KEY, GROQ_API_KEY e OPENROUTER_API_KEY como secrets no Worker. O conteúdo só é enviado ao clicar.</div></section>
 <section class="view" data-view="modules"><div class="eyebrow">Central de automações</div><div class="desc" id="moduleDetect">Detectando a página atual…</div>
 <div class="module-grid">
 <article class="module-card"><b>WaygroundX</b><p>Transforme enunciados selecionados em explicações e exercícios inéditos.</p><button class="btn primary" data-module="wayground">Analisar questão</button></article>
@@ -103,7 +105,7 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 </main><footer><span id="site">Waynovo · local-first</span><span>Esc fecha</span></footer></section>
 `;
 const $=id=>root.getElementById(id);
-const KEY='waynovo.unified.v1', ENDPOINT='waynovo.gateway.endpoint';
+const KEY='waynovo.unified.v1', ENDPOINT='waynovo.gateway.endpoint', PROVIDER='waynovo.gateway.provider', FALLBACK='waynovo.gateway.fallback';
 const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(_){return {};}};
 const state=read();state.cards=Array.isArray(state.cards)?state.cards.filter(x=>x&&typeof x.front==='string'&&typeof x.back==='string').slice(0,300):[];state.notes=Array.isArray(state.notes)?state.notes.filter(x=>x&&typeof x.text==='string').slice(-100):[];
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch(_){status('toolStatus','Armazenamento indisponível ou cheio.');}};
@@ -113,7 +115,9 @@ const title=String(document.title||'Página').slice(0,140);
 $('pageInfo').textContent=title+' · '+location.hostname+' — selecione ou cole o trecho desejado.';
 $('site').textContent='Waynovo · '+location.hostname;
 $('source').value=selection();
-try{$('endpoint').value=sessionStorage.getItem(ENDPOINT)||'';}catch(_){}
+try{$('endpoint').value=sessionStorage.getItem(ENDPOINT)||'';$('provider').value=sessionStorage.getItem(PROVIDER)||'auto';$('fallback').value=sessionStorage.getItem(FALLBACK)||'true';}catch(_){}
+$('provider').addEventListener('change',()=>{try{sessionStorage.setItem(PROVIDER,$('provider').value);}catch(_){}});
+$('fallback').addEventListener('change',()=>{try{sessionStorage.setItem(FALLBACK,$('fallback').value);}catch(_){}});
 const words=s=>s.trim()?s.trim().split(/\s+/).length:0;
 $('source').addEventListener('input',()=>{$('count').textContent=words($('source').value)+' palavras · '+$('source').value.length+' caracteres';});
 $('source').dispatchEvent(new Event('input'));
@@ -154,7 +158,7 @@ $('resetTimer').addEventListener('click',resetTimer);drawTimer();
 try{$('endpoint').value=sessionStorage.getItem(ENDPOINT)||'';}catch(_){}
 $('endpoint').addEventListener('change',()=>{try{sessionStorage.setItem(ENDPOINT,$('endpoint').value.trim());}catch(_){}});
 $('clearToken').addEventListener('click',()=>{$('token').value='';status('aiStatus','Token apagado do campo.');});
-$('askAI').addEventListener('click',async()=>{const content=$('source').value.trim(),endpoint=$('endpoint').value.trim(),token=$('token').value.trim();if(!content)return status('aiStatus','Adicione material na aba Estudo.');if(!endpoint||!token)return status('aiStatus','Configure endpoint e token do gateway.');let u;try{u=new URL(endpoint);}catch(_){return status('aiStatus','Endpoint inválido.');}if(u.protocol!=='https:'&&u.hostname!=='localhost'&&u.hostname!=='127.0.0.1')return status('aiStatus','Use HTTPS, exceto em localhost.');const btn=$('askAI');btn.disabled=true;btn.textContent='Enviando…';const c=new AbortController(),t=setTimeout(()=>c.abort(),55000);try{const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:$('task').value,content:content,pageTitle:title}),signal:c.signal});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||'Gateway HTTP '+res.status);if(typeof data.text!=='string'||!data.text.trim())throw new Error('Resposta vazia do gateway.');$('output').value=data.text.trim();status('aiStatus','Resposta recebida · '+(data.provider||'gateway')+' / '+(data.model||'modelo')+'. Confira o resultado.');}catch(e){status('aiStatus',e.name==='AbortError'?'Tempo limite excedido.':e.message||'Falha no gateway.');}finally{clearTimeout(t);btn.disabled=false;btn.textContent='Enviar material à IA';}});
+$('askAI').addEventListener('click',async()=>{const content=$('source').value.trim(),endpoint=$('endpoint').value.trim(),token=$('token').value.trim();if(!content)return status('aiStatus','Adicione material na aba Estudo.');if(!endpoint||!token)return status('aiStatus','Configure endpoint e token do gateway.');let u;try{u=new URL(endpoint);}catch(_){return status('aiStatus','Endpoint inválido.');}if(u.protocol!=='https:'&&u.hostname!=='localhost'&&u.hostname!=='127.0.0.1')return status('aiStatus','Use HTTPS, exceto em localhost.');const btn=$('askAI');btn.disabled=true;btn.textContent='Enviando…';const c=new AbortController(),t=setTimeout(()=>c.abort(),55000);try{const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:$('task').value,content:content,pageTitle:title,provider:$('provider').value,fallback:$('fallback').value!=='false'}),signal:c.signal});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||'Gateway HTTP '+res.status);if(typeof data.text!=='string'||!data.text.trim())throw new Error('Resposta vazia do gateway.');$('output').value=data.text.trim();status('aiStatus','Resposta recebida · '+(data.provider||'gateway')+' / '+(data.model||'modelo')+'. Confira o resultado.');}catch(e){status('aiStatus',e.name==='AbortError'?'Tempo limite excedido.':e.message||'Falha no gateway.');}finally{clearTimeout(t);btn.disabled=false;btn.textContent='Enviar material à IA';}});
 const moduleNames={wayground:'WaygroundX',leiapr:'LeiaPR',redacao:'Redação',khan:'Khan',alura:'Alura'};
 const hostName=String(location.hostname||'').toLowerCase();
 const detected=hostName.includes('wayground')||hostName.includes('quizizz')?'WaygroundX':hostName.includes('leia')?'LeiaPR':hostName.includes('khanacademy')?'Khan':hostName.includes('alura')?'Alura':'';
