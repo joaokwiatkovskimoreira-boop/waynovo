@@ -110,7 +110,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 }
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.4 · COGNITIVE AUTOPILOT</div></div><div class="spacer"></div>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.5 · FREE LOCAL FIRST</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
 <nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
@@ -136,7 +136,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <section class="view" data-view="ai"><div class="eyebrow">Assistente opcional</div><div class="desc">Gateway multi-provedor: OpenAI Responses API, Gemini, Groq e OpenRouter. As chaves ficam nos secrets do Worker.</div>
 <label for="endpoint">Endpoint do gateway</label><input id="endpoint" type="url" placeholder="https://seu-worker.workers.dev/generate" autocomplete="off">
 <label for="token">Token de acesso do gateway</label><input id="token" type="password" placeholder="Token temporário" autocomplete="off">
-<label for="provider">Provedor preferido</label><select id="provider"><option value="auto">Automático · ordem do Worker</option><option value="openai">OpenAI · Responses API</option><option value="gemini">Google Gemini</option><option value="groq">Groq</option><option value="openrouter">OpenRouter</option></select>
+<label for="provider">Provedor preferido</label><select id="provider"><option value="local" selected>Local gratuito · offline</option><option value="auto">Automático · provedores externos</option>Automático · ordem do Worker</option><option value="openai">OpenAI API · paga</option><option value="gemini">Google Gemini</option><option value="groq">Groq</option><option value="openrouter">OpenRouter</option></select>
 <label for="fallback">Fallback automático</label><select id="fallback"><option value="true" selected>Ativado · tentar os outros provedores</option><option value="false">Desativado · somente o preferido</option></select>
 <label for="task">Tarefa</label><select id="task"><option value="explain">Explicar conceitos</option><option value="summary">Resumo</option><option value="lesson">Criar lição</option><option value="flashcards">Flashcards</option><option value="practice">Exercícios originais</option><option value="plan">Plano de estudo</option><option value="checklist">Checklist</option><option value="translate">Traduzir</option></select>
 <div class="row"><button class="btn primary" id="askAI">Enviar material à IA</button><button class="btn" id="clearToken">Limpar token</button></div><div class="status" id="aiStatus"></div>
@@ -255,7 +255,35 @@ $('resetTimer').addEventListener('click',resetTimer);drawTimer();
 try{$('endpoint').value=sessionStorage.getItem(ENDPOINT)||'';}catch(_){}
 $('endpoint').addEventListener('change',()=>{try{sessionStorage.setItem(ENDPOINT,$('endpoint').value.trim());}catch(_){}});
 $('clearToken').addEventListener('click',()=>{$('token').value='';status('aiStatus','Token apagado do campo.');});
-$('askAI').addEventListener('click',async()=>{const content=$('source').value.trim(),endpoint=$('endpoint').value.trim(),token=$('token').value.trim();if(!content)return status('aiStatus','Adicione material na aba Estudo.');if(!endpoint||!token)return status('aiStatus','Configure endpoint e token do gateway.');let u;try{u=new URL(endpoint);}catch(_){return status('aiStatus','Endpoint inválido.');}if(u.protocol!=='https:'&&u.hostname!=='localhost'&&u.hostname!=='127.0.0.1')return status('aiStatus','Use HTTPS, exceto em localhost.');const btn=$('askAI');btn.disabled=true;btn.textContent='Enviando…';const c=new AbortController(),t=setTimeout(()=>c.abort(),55000);try{const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:$('task').value,content:content,pageTitle:title,provider:$('provider').value,fallback:$('fallback').value!=='false'}),signal:c.signal});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||'Gateway HTTP '+res.status);if(typeof data.text!=='string'||!data.text.trim())throw new Error('Resposta vazia do gateway.');$('output').value=data.text.trim();status('aiStatus','Resposta recebida · '+(data.provider||'gateway')+' / '+(data.model||'modelo')+(data.fallbackUsed?' · fallback usado':'')+'. Confira o resultado.');}catch(e){status('aiStatus',e.name==='AbortError'?'Tempo limite excedido.':e.message||'Falha no gateway.');}finally{clearTimeout(t);btn.disabled=false;btn.textContent='Enviar material à IA';}});
+$('askAI').addEventListener('click',async()=>{
+ const content=$('source').value.trim(),provider=$('provider').value,task=$('task').value;
+ if(!content)return status('aiStatus','Adicione material na aba Estudo.');
+ if(provider==='local'){
+  const localKinds={explain:'lesson',summary:'summary',lesson:'lesson',flashcards:'flashcards',practice:'practice',plan:'outline',checklist:'checklist',translate:'glossary'};
+  $('output').value=local(localKinds[task]||'lesson',content);
+  status('studyStatus','Modo Local gratuito: resultado criado no navegador. Nenhum conteúdo foi enviado.');
+  status('aiStatus','Concluído offline · sem API, sem token e sem cobrança.');
+  activateTab('study');
+  return;
+ }
+ const endpoint=$('endpoint').value.trim(),token=$('token').value.trim();
+ if(!endpoint||!token)return status('aiStatus','Para provedores externos, configure endpoint e token. O modo Local funciona sem isso.');
+ let u;try{u=new URL(endpoint);}catch(_){return status('aiStatus','Endpoint inválido.');}
+ if(u.protocol!=='https:'&&u.hostname!=='localhost'&&u.hostname!=='127.0.0.1')return status('aiStatus','Use HTTPS, exceto em localhost.');
+ const btn=$('askAI');btn.disabled=true;const old=btn.textContent;btn.textContent='Enviando…';
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),55000);
+ try{
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task,content,pageTitle:title,provider,fallback:$('fallback').value!=='false'}),signal:controller.signal});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||'Gateway HTTP '+response.status);
+  if(typeof data.text!=='string'||!data.text.trim())throw new Error('Resposta vazia do gateway.');
+  $('output').value=data.text.trim();
+  const usage=data.usage?' · '+usage.inputTokens+' entrada / '+usage.outputTokens+' saída tokens':'';
+  status('aiStatus','Resposta via '+(data.provider||provider)+' / '+(data.model||'modelo')+(data.fallbackUsed?' · fallback usado':'')+usage+'. Revise o resultado.');
+  activateTab('study');
+ }catch(error){status('aiStatus',error.name==='AbortError'?'Tempo limite excedido.':error.message||'Falha no gateway.');}
+ finally{clearTimeout(timer);btn.disabled=false;btn.textContent=old;}
+});
 const moduleNames={wayground:'WaygroundX',leiapr:'LeiaPR',redacao:'Redação',khan:'Khan',alura:'Alura'};
 const hostName=String(location.hostname||'').toLowerCase();
 const detected=hostName.includes('wayground')||hostName.includes('quizizz')?'WaygroundX':hostName.includes('leia')?'LeiaPR':hostName.includes('khanacademy')?'Khan':hostName.includes('alura')?'Alura':'';
