@@ -885,7 +885,7 @@ function autoMakeDraft(question,evidence){
  if(!evidence.length)return 'Ainda não encontrei evidência suficiente no texto visível desta página. O enunciado foi detectado, mas precisa de contexto ou pesquisa adicional.';
  return 'Rascunho sugerido com base no conteúdo encontrado na página:\n'+evidence.map((item,i)=>(i+1)+'. '+item.text).join('\n')+'\n\nConfira se esses trechos realmente respondem ao enunciado antes de usar.';
 }
-// Task Queue 2.0: execução local, retomável e auditável.
+// Task Queue 4.0: pipeline inteligente, validado e retomável.
 const AUTO_QUEUE_KEY='waynovo.autopilot.queue.v1';
 const autoQueueData=(()=>{
  try{
