@@ -193,7 +193,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
  <div class="auto-queue-meta" id="autoQueueProgress">0 concluídas · 0 pendentes · 0 falhas</div>
  <div class="auto-queue-bar"><span id="autoQueueBar"></span></div>
  <div class="row"><button class="btn primary" id="autoQueueCreatePack">Gerar pacote da página</button><button class="btn" id="autoQueueRun">Executar fila</button></div>
- <div class="row"><button class="btn" id="autoQueuePause">Pausar fila</button><button class="btn" id="autoQueueAudit">Baixar auditoria</button><button class="btn" id="autoQueueClear">Limpar fila</button></div>
+ <div class="row"><button class="btn" id="autoQueuePause">Pausar fila</button><button class="btn" id="autoQueueRetry">Repetir falhas</button><button class="btn" id="autoQueueAudit">Baixar auditoria</button><button class="btn" id="autoQueueClear">Limpar fila</button></div>
  <div id="autoQueueList"><div class="meta">Questões detectadas entram automaticamente. Gere um pacote para processar o restante da página.</div></div>
  <label for="autoQueueArtifact">Saída produzida</label>
  <select id="autoQueueArtifact"><option value="summary">Resumo</option><option value="practice">Exercícios originais</option><option value="flashcards">Flashcards gerados</option><option value="questions">Dossiês de questões</option></select>
@@ -955,6 +955,7 @@ function autoQueueRender(){
  $('autoQueueBar').style.width=(counts.total?Math.round(counts.done/counts.total*100):0)+'%';
  $('autoQueueRun').disabled=autoQueueRunning||counts.pending===0;
  $('autoQueuePause').disabled=!autoQueueRunning;
+ $('autoQueueRetry').disabled=counts.failed===0||autoQueueRunning;
  const list=$('autoQueueList');list.replaceChildren();
  if(!counts.total){
   const empty=document.createElement('div');empty.className='meta';
@@ -1070,6 +1071,17 @@ function autoQueueExport(){
 $('autoQueueCreatePack').addEventListener('click',autoQueueCreatePack);
 $('autoQueueRun').addEventListener('click',autoQueueStart);
 $('autoQueuePause').addEventListener('click',autoQueuePause);
+$('autoQueueRetry').addEventListener('click',()=>{
+ let retried=0;
+ autoQueueData.tasks.forEach(task=>{
+  if(task.status==='failed'){
+   task.status='pending';task.error='';task.finishedAt='';retried++;
+   autoQueueLog('retry',task,'Tarefa reenfileirada após falha.');
+  }
+ });
+ autoQueuePersist();autoQueueRender();
+ if(retried)autoQueueStart();else status('autoStatus','Não há falhas para repetir.');
+});
 $('autoQueueClear').addEventListener('click',()=>{
  if(autoQueueRunning)autoQueuePause();
  autoQueueData.tasks=[];autoQueueData.audit=[];autoQueueData.artifacts={summary:'',practice:'',flashcards:[],questions:[]};
