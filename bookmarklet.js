@@ -64,6 +64,50 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 :host([data-theme=light]) .cog-step.done{background:#effaf4;border-color:#b5dfc8}
 .cog-action-result{min-height:145px}.cog-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.cog-action-grid .btn{width:100%}.cog-chip{display:inline-block;padding:3px 7px;border:1px solid #485779;border-radius:999px;color:#c8d1e7;font-size:9px}:host([data-theme=light]) .cog-chip{color:#42506a;border-color:#cbd3e3}
 @media(max-width:360px){.tab{min-width:54px;padding:8px 5px}.cog-memory{align-items:flex-start;flex-wrap:wrap}}
+
+@media(max-width:640px){
+ :host{display:block;box-sizing:border-box;left:0;right:0;top:0;bottom:0;width:100vw;height:100vh;height:100dvh;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+ .panel{width:100%;height:100%;max-height:none;border:0;border-radius:0;box-shadow:none}
+ header{min-height:58px;padding:8px 10px;cursor:default;touch-action:none}
+ .logo{width:34px;height:34px;flex:0 0 34px}
+ .brand{font-size:15px}.version{font-size:9px}
+ .icon{width:42px;height:42px;min-width:42px;border-radius:10px;font-size:20px}
+ nav{padding:6px;gap:5px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+ .tab{flex:0 0 auto;min-width:68px;min-height:44px;padding:10px 9px;font-size:11px}
+ main{flex:1;min-height:0;padding:12px;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+ footer{padding:10px 12px;min-height:36px}
+ input,textarea,select{font-size:16px;min-height:44px;padding:11px 12px}
+ textarea{min-height:140px;line-height:1.5}
+ .btn{min-height:44px;padding:11px 12px;font-size:12px}
+ label{font-size:12px;margin-top:12px}
+ .eyebrow{font-size:10px}
+ .desc{font-size:12px;line-height:1.55}
+ .meta,.status,.hint{font-size:11px;line-height:1.5}
+ .row{gap:8px}
+ .module-grid{grid-template-columns:1fr}
+ .module-card{padding:12px}
+ .module-card b{font-size:13px}
+ .module-card p{min-height:0;font-size:11px}
+ .cog-action-grid{grid-template-columns:1fr}
+ .cog-card{padding:12px}
+ .cog-step p{font-size:11px}
+ .cog-why{font-size:10px}
+ .cog-memory{flex-wrap:wrap}
+ .cog-memory button{min-height:40px}
+ .timer{font-size:40px}
+}
+@media(max-width:360px){
+ header{gap:6px;padding-left:8px;padding-right:8px}
+ .brand{font-size:13px}
+ .version{font-size:8px}
+ .icon{width:40px;height:40px;min-width:40px}
+ .tab{min-width:64px;padding-left:7px;padding-right:7px}
+ .row{flex-direction:column}
+ .row>*{width:100%}
+}
+@media(min-width:641px) and (max-height:600px){
+ .panel{max-height:94vh}
+}
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
 <header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.3 · COGNITIVE AUTOPILOT</div></div><div class="spacer"></div>
@@ -645,13 +689,13 @@ function cogRenderMemories(){
 }
 cogRestoreActive();cogRenderMemories();cogRender();
 
-root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));}));
+root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));if(touchLayout())b.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}));
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
 $('min').addEventListener('click',()=>{$('panel').classList.toggle('minimized');$('min').textContent=$('panel').classList.contains('minimized')?'+':'−';});
 function close(){if(interval)clearInterval(interval);host.remove();}
 $('close').addEventListener('click',close);root.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
-let drag=null;$('drag').addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=host.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};$('drag').setPointerCapture(e.pointerId);});
+let drag=null;const touchLayout=()=>window.matchMedia&&window.matchMedia('(pointer: coarse), (max-width: 640px)').matches;$('drag').addEventListener('pointerdown',e=>{if(touchLayout()||e.target.closest('button'))return;const r=host.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};$('drag').setPointerCapture(e.pointerId);});
 $('drag').addEventListener('pointermove',e=>{if(!drag)return;host.style.left=Math.max(0,Math.min(innerWidth-host.offsetWidth,e.clientX-drag.x))+'px';host.style.top=Math.max(0,Math.min(innerHeight-48,e.clientY-drag.y))+'px';host.style.right='auto';host.style.bottom='auto';});
 const stop=()=>{drag=null;};$('drag').addEventListener('pointerup',stop);$('drag').addEventListener('pointercancel',stop);
-$('source').focus();
+if(!window.matchMedia||!window.matchMedia('(pointer: coarse), (max-width: 640px)').matches)$('source').focus();
 })();
