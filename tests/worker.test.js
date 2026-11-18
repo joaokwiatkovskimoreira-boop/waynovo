@@ -11,17 +11,10 @@ const workerSource = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'u
 function loadWorker(fetchImpl) {
   const instrumented = workerSource
     .replace('export default {', 'const worker = {')
-    .replace(/\n};\s*$/, '\n};\nglobalThis.__waynovoTest = { worker, parseResponsesText, providerConfig, providerOrder };');
+    .replace(/\n};\s*$/, '\n};\nglobalThis.__waynovoTest = { worker, providerOrder, providerConfig, isFreeMode, freeProviderAllowlist };');
   const context = {
-    Request,
-    Response,
-    URL,
-    AbortController,
-    TextEncoder,
-    setTimeout,
-    clearTimeout,
-    fetch: fetchImpl,
-    console
+    Request, Response, URL, AbortController, TextEncoder,
+    setTimeout, clearTimeout, fetch: fetchImpl, console
   };
   vm.runInNewContext(instrumented, context, { timeout: 3000 });
   return context.__waynovoTest;
@@ -30,10 +23,12 @@ function loadWorker(fetchImpl) {
 function env(overrides = {}) {
   return {
     WAYNOVO_ACCESS_TOKEN: 'test-gateway-token',
+    WAYNOVO_FREE_MODE: 'true',
+    WAYNOVO_FREE_PROVIDERS: 'openrouter',
+    AI_PRIMARY_PROVIDER: 'openrouter',
+    AI_PROVIDER_ORDER: 'openrouter',
+    OPENROUTER_MODEL: 'openrouter/free',
     CORS_ORIGINS: '*',
-    AI_PRIMARY_PROVIDER: 'gemini',
-    AI_PROVIDER_ORDER: 'gemini,groq,openrouter',
-    OPENAI_MODEL: 'gpt-6-luna',
     ...overrides
   };
 }
@@ -49,94 +44,100 @@ function authorizedRequest(pathname, options = {}) {
   });
 }
 
-test('OpenAI uses the official Responses endpoint and does not store responses', async () => {
-  let captured;
-  const api = loadWorker(async (url, init) => {
-    captured = { url: String(url), init };
-    return new Response(JSON.stringify({
-      id: 'resp_test_123',
-      status: 'completed',
-      output: [{ type: 'message', content: [{ type: 'output_text', text: 'Resposta GPT de teste.' }] }],
-      usage: { input_tokens: 21, output_tokens: 13, total_tokens: 34 }
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json', 'x-request-id': 'req_test_456' }
-    });
-  });
-
-  const response = await api.worker.fetch(authorizedRequest('/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ task: 'explain', content: 'Material de teste', provider: 'openai', fallback: false })
-  }), env({ OPENAI_API_KEY: 'sk-test-only' }));
-
-  const data = await response.json();
-  assert.equal(response.status, 200);
-  assert.equal(captured.url, 'https://api.openai.com/v1/responses');
-  assert.equal(captured.init.headers.Authorization, 'Bearer sk-test-only');
-  const payload = JSON.parse(captured.init.body);
-  assert.equal(payload.model, 'gpt-6-luna');
-  assert.equal(payload.store, false);
-  assert.equal(payload.input.includes('Material de teste'), true);
-  assert.equal(data.text, 'Resposta GPT de teste.');
-  assert.equal(data.provider, 'openai');
-  assert.equal(data.usage.totalTokens, 34);
-  assert.equal(data.responseId, 'resp_test_123');
-  assert.equal(data.requestId, 'req_test_456');
-});
-
-test('OpenAI fallback is opt-in and does not appear in the automatic default chain', () => {
+test('free mode defaults to a single allowlisted provider', () => {
   const api = loadWorker(async () => new Response('{}'));
-  const order = api.providerOrder(env(), 'auto', true);
-  assert.deepEqual(Array.from(order), ['gemini', 'groq', 'openrouter']);
-  const explicitOpenAI = api.providerOrder(env(), 'openai', true);
-  assert.equal(explicitOpenAI[0], 'openai');
+  assert.equal(api.isFreeMode(env()), true);
+  assert.deepEqual(Array.from(api.freeProviderAllowlist(env())), ['openrouter']);
+  assert.deepEqual(Array.from(api.providerOrder(env(), 'auto', true)), ['openrouter']);
 });
 
-test('OpenAI failure falls back to a configured Gemini provider when enabled', async () => {
+test('paid OpenAI is filtered from auto and explicit requests in free mode', () => {
+  const api = loadWorker(async () => new Response('{}'));
+  assert.deepEqual(Array.from(api.providerOrder(env(), 'auto', true)), ['openrouter']);
+  assert.deepEqual(Array.from(api.providerOrder(env(), 'openai', false)), ['openrouter']);
+});
+
+test('requesting OpenAI never sends a paid request when free mode is active', async () => {
   const calls = [];
-  const api = loadWorker(async (url) => {
-    calls.push(String(url));
-    if (String(url).includes('api.openai.com')) {
-      return new Response(JSON.stringify({ error: { message: 'rate limited' } }), { status: 429 });
-    }
+  const api = loadWorker(async (url, init) => {
+    calls.push({ url: String(url), init });
     return new Response(JSON.stringify({
-      candidates: [{ content: { parts: [{ text: 'Resposta Gemini fallback.' }] } }]
+      choices: [{ message: { content: 'Resposta gratuita de teste.' } }]
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   });
-
   const response = await api.worker.fetch(authorizedRequest('/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ task: 'summary', content: 'Texto', provider: 'openai', fallback: true })
-  }), env({ OPENAI_API_KEY: 'sk-test-only', GEMINI_API_KEY: 'gem-test-only', GEMINI_MODEL: 'gemini-test' }));
-
+    body: JSON.stringify({ task: 'explain', content: 'Material', provider: 'openai', fallback: false })
+  }), env({
+    OPENAI_API_KEY: 'sk-should-never-be-used',
+    OPENAI_MODEL: 'gpt-6-luna',
+    OPENROUTER_API_KEY: 'or-free-key'
+  }));
   const data = await response.json();
   assert.equal(response.status, 200);
-  assert.equal(data.provider, 'gemini');
-  assert.equal(data.fallbackUsed, true);
-  assert.equal(data.attempts.length, 2);
-  assert.equal(calls.length, 2);
+  assert.equal(data.provider, 'openrouter');
+  assert.equal(data.model, 'openrouter/free');
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, 'https://openrouter.ai/api/v1/chat/completions');
+  assert.equal(calls.some(call => call.url.includes('api.openai.com')), false);
 });
 
-test('/status requires the gateway token and never returns secret values', async () => {
+test('free mode rejects a paid OpenRouter model before making a network request', async () => {
+  let calls = 0;
+  const api = loadWorker(async () => { calls += 1; return new Response('{}'); });
+  const response = await api.worker.fetch(authorizedRequest('/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ task: 'summary', content: 'Material', provider: 'openrouter', fallback: false })
+  }), env({
+    OPENROUTER_API_KEY: 'or-free-key',
+    OPENROUTER_MODEL: 'provider/model-paid'
+  }));
+  const data = await response.json();
+  assert.equal(response.status, 502);
+  assert.equal(calls, 0);
+  assert.equal(data.attempts[0].status, 'paid_model_blocked');
+});
+
+test('free OpenRouter model variants ending in :free are allowed', async () => {
+  let calls = 0;
+  const api = loadWorker(async () => {
+    calls += 1;
+    return new Response(JSON.stringify({ choices: [{ message: { content: 'OK' } }] }), { status: 200 });
+  });
+  const response = await api.worker.fetch(authorizedRequest('/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ task: 'summary', content: 'Material', provider: 'openrouter', fallback: false })
+  }), env({
+    OPENROUTER_API_KEY: 'or-free-key',
+    OPENROUTER_MODEL: 'provider/model:free'
+  }));
+  const data = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(data.text, 'OK');
+  assert.equal(calls, 1);
+});
+
+test('/status reports free mode and never reveals secrets', async () => {
   const api = loadWorker(async () => new Response('{}'));
   const unauthorized = await api.worker.fetch(new Request('https://gateway.example/status'), env());
   assert.equal(unauthorized.status, 401);
 
   const response = await api.worker.fetch(authorizedRequest('/status'), env({
     OPENAI_API_KEY: 'sk-do-not-leak',
-    GEMINI_API_KEY: 'gem-do-not-leak',
-    GEMINI_MODEL: 'gemini-test'
+    OPENROUTER_API_KEY: 'or-do-not-leak'
   }));
   const data = await response.json();
   assert.equal(response.status, 200);
-  const openai = data.providers.find((item) => item.provider === 'openai');
-  assert.equal(openai.configured, true);
-  assert.equal(openai.model, 'gpt-6-luna');
+  assert.equal(data.billingMode, 'free-only');
+  assert.deepEqual(Array.from(data.freeProviders), ['openrouter']);
+  const openai = data.providers.find(item => item.provider === 'openai');
+  assert.equal(openai.configured, false);
+  assert.ok(openai.missing.includes('disabled_by_free_mode'));
   assert.equal(JSON.stringify(data).includes('sk-do-not-leak'), false);
-  assert.equal(JSON.stringify(data).includes('gem-do-not-leak'), false);
-  assert.deepEqual(Array.from(data.tasks).includes('verify'), true);
+  assert.equal(JSON.stringify(data).includes('or-do-not-leak'), false);
 });
 
 test('/status supports CORS preflight for GET clients', async () => {
@@ -149,10 +150,13 @@ test('/status supports CORS preflight for GET clients', async () => {
   assert.match(response.headers.get('Access-Control-Allow-Methods'), /GET/);
 });
 
-test('OpenAI response parser handles both output_text shapes', () => {
-  const api = loadWorker(async () => new Response('{}'));
-  assert.equal(api.parseResponsesText({ output_text: '  direto  ' }), 'direto');
-  assert.equal(api.parseResponsesText({
-    output: [{ type: 'message', content: [{ type: 'output_text', text: 'Parte A' }, { type: 'output_text', text: 'Parte B' }] }]
-  }), 'Parte A\n\nParte B');
+test('gateway rejects requests without its shared token before reading or forwarding content', async () => {
+  let calls = 0;
+  const api = loadWorker(async () => { calls += 1; return new Response('{}'); });
+  const response = await api.worker.fetch(new Request('https://gateway.example/generate', {
+    method: 'POST',
+    body: JSON.stringify({ task: 'summary', content: 'secret' })
+  }), env());
+  assert.equal(response.status, 401);
+  assert.equal(calls, 0);
 });
