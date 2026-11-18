@@ -1,6 +1,7 @@
 const TASKS = {
   lesson: "Crie uma lição didática com objetivo, pré-requisitos, explicação em etapas, exemplos originais, conceitos-chave, prática e revisão espaçada.",
   explain: "Explique passo a passo em português claro, defina os termos e conecte as ideias.",
+  verify: "Audite criticamente o resultado contra o objetivo, os critérios e o material fornecido. Separe itens atendidos, pendentes e não verificáveis; identifique afirmações sem suporte, omissões, contradições, riscos e próximos passos. Não invente evidências nem diga que realizou testes não executados.",
   summary: "Faça um resumo estruturado e fiel ao material, com conceitos, definições e conclusão.",
   flashcards: "Crie até 12 flashcards de recuperação ativa, cada um com pergunta e resposta baseadas no material.",
   practice: "Crie perguntas inéditas de prática, sem responder nem reproduzir uma avaliação ativa.",
@@ -240,11 +241,19 @@ export default {
       return out({ error: "Token do gateway inválido." }, 401, c.headers);
     }
 
-    const size = Number(request.headers.get("Content-Length") || 0);
-    if (size > 40000) return out({ error: "Solicitação excede 40 KB." }, 413, c.headers);
+    let rawBody;
+    try { rawBody = await request.text(); } catch (_) {
+      return out({ error: "Não foi possível ler a solicitação." }, 400, c.headers);
+    }
+    if (new TextEncoder().encode(rawBody).byteLength > 40000) {
+      return out({ error: "Solicitação excede 40 KB." }, 413, c.headers);
+    }
     let body;
-    try { body = await request.json(); } catch (_) {
+    try { body = JSON.parse(rawBody); } catch (_) {
       return out({ error: "JSON inválido." }, 400, c.headers);
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return out({ error: "O corpo deve ser um objeto JSON." }, 400, c.headers);
     }
 
     const task = String(body.task || "lesson");
