@@ -65,7 +65,7 @@ function providerOrder(env, requested, fallbackEnabled) {
   const preferred = requested === "auto"
     ? normalizeProvider(env.AI_PRIMARY_PROVIDER) || legacyProvider(env) || "gemini"
     : normalizeProvider(requested);
-  const order = [preferred, ...baseOrder].filter((x, i, a) => PROVIDERS.includes(x) && a.indexOf(x) === i);
+  const order = [preferred, ...baseOrder].filter((x, i, a) => (PROVIDERS.includes(x) || x === "openai-compatible") && a.indexOf(x) === i);
   if (!fallbackEnabled) return order.slice(0, 1);
   return order;
 }
@@ -181,7 +181,7 @@ async function requestProvider(provider, config, system, prompt, env) {
     };
     if (provider === "openrouter") {
       if (env.OPENROUTER_SITE_URL) headers["HTTP-Referer"] = String(env.OPENROUTER_SITE_URL);
-      headers["X-Title"] = String(env.OPENROUTER_APP_NAME || "Waynovo");
+      headers["X-OpenRouter-Title"] = String(env.OPENROUTER_APP_NAME || "Waynovo");
     }
     response = await fetch(base + "/chat/completions", {
       method: "POST",
@@ -281,26 +281,6 @@ export default {
           provider: result.provider,
           model: result.model,
           fallbackUsed: attempts.length > 1,
-          attempts
-        }, 200, c.headers);
-      }
-    }
-
-    const configuredLegacy = legacyProvider(env);
-    if (requested === "auto" && configuredLegacy === "openai-compatible" && fallbackEnabled) {
-      const config = providerConfig("openai-compatible", env);
-      const result = await requestProvider("openai-compatible", config, system, prompt, env);
-      attempts.push({
-        provider: "openai-compatible",
-        status: result.status || "success",
-        model: result.model || (config && config.model) || null
-      });
-      if (result.ok) {
-        return out({
-          text: result.text,
-          provider: result.provider,
-          model: result.model,
-          fallbackUsed: true,
           attempts
         }, 200, c.headers);
       }
