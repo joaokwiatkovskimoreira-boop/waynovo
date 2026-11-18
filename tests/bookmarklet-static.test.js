@@ -10,14 +10,14 @@ const source = fs.readFileSync(path.join(__dirname, '..', 'bookmarklet.js'), 'ut
 test('every bookmarklet tab has a matching view', () => {
   const tabs = [...source.matchAll(/<button class="tab(?: active)?" data-tab="([^"]+)"/g)].map((m) => m[1]);
   const views = [...source.matchAll(/<section class="view(?: active)?" data-view="([^"]+)"/g)].map((m) => m[1]);
-  assert.ok(tabs.includes('autopilot'), 'Autopilot tab is present');
+  assert.equal(tabs.length, 11);
   assert.deepEqual([...tabs].sort(), [...views].sort());
-  assert.equal(new Set(tabs).size, tabs.length, 'tab identifiers are unique');
+  assert.equal(new Set(tabs).size, tabs.length);
 });
 
 test('Autopilot exposes usage, scan, question and draft counters', () => {
   for (const id of ['autoTime', 'autoScans', 'autoQuestions', 'autoDrafts', 'autoState', 'autoResults']) {
-    assert.match(source, new RegExp('id="' + id + '"'));
+    assert.ok(source.includes('id="' + id + '"'), 'missing ' + id);
   }
   assert.match(source, /autoStart\(\);/);
   assert.match(source, /autoScan\(false\)/);
@@ -27,7 +27,7 @@ test('Autopilot exposes usage, scan, question and draft counters', () => {
 test('scanner filters hidden elements, controls and the Waynovo panel', () => {
   const start = source.indexOf('function autoVisibleBlocks()');
   const end = source.indexOf('function autoIsQuestion(', start);
-  assert.ok(start >= 0 && end > start, 'visible scanner function exists');
+  assert.ok(start >= 0 && end > start);
   const scanner = source.slice(start, end);
   assert.match(scanner, /host\.contains\(el\)/);
   assert.match(scanner, /getClientRects/);
@@ -38,7 +38,7 @@ test('scanner filters hidden elements, controls and the Waynovo panel', () => {
 test('Autopilot analyzes locally and does not submit forms or call a network API', () => {
   const start = source.indexOf('// Autopilot: monitor automático');
   const end = source.indexOf("root.querySelectorAll('[data-tab]')", start);
-  assert.ok(start >= 0 && end > start, 'Autopilot runtime block exists');
+  assert.ok(start >= 0 && end > start);
   const runtime = source.slice(start, end);
   assert.doesNotMatch(runtime, /\bfetch\s*\(/);
   assert.doesNotMatch(runtime, /form\.submit\s*\(/);
@@ -54,23 +54,17 @@ test('closing or toggling the bookmarklet cleans up Autopilot timers', () => {
   assert.match(close[0], /autoScannerInterval/);
   assert.match(close[0], /autoClockInterval/);
   assert.match(close[0], /autoObserver/);
+  assert.match(close[0], /autoQueueTimer/);
 });
 
 test('Autopilot extracts inline and sibling A-E alternatives and bridges to Tutor', () => {
   const start = source.indexOf('function autoCollectOptions(question,blocks){');
   const end = source.indexOf('function autoFindEvidence(question,blocks){', start);
-  assert.ok(start >= 0 && end > start, 'option parser exists');
-  const parserSource = source.slice(start, end);
-  const collect = new Function('autoIsQuestion', parserSource + '; return autoCollectOptions;')((value) => value.includes('?'));
-  assert.deepEqual(
-    collect('Quanto é 2+2? A) 3 B) 4 C) 5', ['Quanto é 2+2? A) 3 B) 4 C) 5']),
-    ['A) 3', 'B) 4', 'C) 5']
-  );
-  assert.deepEqual(
-    collect('Quanto é 2+2?', ['Quanto é 2+2?', 'A) 3', 'B) 4', 'C) 5', 'Qual a capital?']),
-    ['A) 3', 'B) 4', 'C) 5']
-  );
-  assert.match(source, /Levar ao Tutor/);
+  assert.ok(start >= 0 && end > start);
+  const collect = new Function('autoIsQuestion', source.slice(start, end) + '; return autoCollectOptions;')((value) => value.includes('?'));
+  assert.deepEqual(collect('Quanto é 2+2? A) 3 B) 4 C) 5', []), ['A) 3', 'B) 4', 'C) 5']);
+  assert.deepEqual(collect('Quanto é 2+2?', ['Quanto é 2+2?', 'A) 3', 'B) 4', 'C) 5', 'Qual a capital?']), ['A) 3', 'B) 4', 'C) 5']);
+  assert.ok(source.includes('Levar ao Tutor'));
   assert.ok(source.includes("$('questionChoices').value="));
   assert.ok(source.includes("$('questionEvidence').value="));
   assert.match(source, /MATERIAL DE APOIO EXTRAÍDO DA PÁGINA/);
@@ -81,11 +75,13 @@ test('Local AI is the default and external providers remain opt-in', () => {
   assert.ok(source.includes("$('provider').value=sessionStorage.getItem(PROVIDER)||'local'"));
 });
 
-
 test('Task Queue 2.1 exposes controls, resumable state and audit export', () => {
-  for (const id of ['autoQueueState', 'autoQueueProgress', 'autoQueueList', 'autoQueueCreatePack', 'autoQueueCreateFromText', 'autoQueueRun', 'autoQueuePause', 'autoQueueRetry', 'autoQueueAudit', 'autoQueueClear', 'autoQueueArtifact', 'autoQueueOutput']) {
-    assert.ok(source.includes('id="' + id + '"'), 'missing queue control ' + id);
-  }
+  for (const id of [
+    'autoQueueState','autoQueueProgress','autoQueueAdapters','autoQueueList',
+    'autoQueueCreatePack','autoQueueCreateFromText','autoQueueRun','autoQueuePause',
+    'autoQueueRetry','autoQueueAudit','autoQueueClear','autoQueueArtifact','autoQueueOutput',
+    'autoQueueShow','autoQueueCopyOutput'
+  ]) assert.ok(source.includes('id="' + id + '"'), 'missing queue control ' + id);
   assert.match(source, /waynovo\.autopilot\.queue\.v1/);
   assert.match(source, /if\(task\.status==='running'\)task\.status='pending'/);
   assert.match(source, /autoQueueLog\('completed'/);
@@ -94,66 +90,61 @@ test('Task Queue 2.1 exposes controls, resumable state and audit export', () => 
   assert.match(source, /waynovo-task-audit\.json/);
 });
 
-
-test('manual pasted-text pack enqueues five local task types and starts the queue', () => {
-  const start = source.indexOf('function autoQueueCreateFromText(){');
-  const end = source.indexOf('function autoQueueCreatePack(){', start);
-  assert.ok(start >= 0 && end > start, 'manual pack helper exists');
-  const added = [];
-  let started = false, statusText = '';
-  const studySource = { value: 'x'.repeat(120) };
-  const fakeDollar = (id) => id === 'source' ? studySource : null;
-  const run = new Function('
+test('Task Queue runtime parses and export omits raw page payloads', () => {
   const start = source.indexOf('// Task Queue 2.0:');
   const end = source.indexOf('function autoRender(){', start);
-  assert.ok(start >= 0 && end > start, 'queue runtime exists');
+  assert.ok(start >= 0 && end > start);
   const queue = source.slice(start, end);
-  assert.doesNotThrow(() => new Function(queue), 'queue block parses as JavaScript');
+  assert.doesNotThrow(() => new Function(queue));
   assert.doesNotMatch(queue, /\bfetch\s*\(/);
   assert.doesNotMatch(queue, /form\.submit\s*\(/);
   const exportStart = queue.indexOf('function autoQueueExport(){');
-  const exportEnd = queue.indexOf("$('autoQueueCreatePack')", exportStart);
+  const exportEnd = queue.indexOf("$('autoQueueCreateFromText')", exportStart);
   const exporter = queue.slice(exportStart, exportEnd);
   assert.match(exporter, /tasks\.map\(\(\{id,type,title,status,createdAt,finishedAt,error\}\)/);
   assert.doesNotMatch(exporter, /payload/);
 });
 
-
 test('Task Queue registry registers six owned-local adapters and rejects invalid scopes', () => {
   const start = source.indexOf('const autoQueueAdapterRegistry=new Map();');
   const end = source.indexOf('function autoQueueTick(){', start);
-  assert.ok(start >= 0 && end > start, 'adapter registry exists');
+  assert.ok(start >= 0 && end > start);
   const state = { cards: [] };
-  const artifacts = { summary: '', practice: '', flashcards: [], glossary: '', outline: '', questions: [] };
+  const artifacts = { summary:'', practice:'', flashcards:[], glossary:'', outline:'', questions:[] };
   let saves = 0, draws = 0;
   const api = new Function(
     'local','pieces','state','save','drawCard','autoQueueData','autoHash',
     source.slice(start, end) + '; return {register:autoQueueRegisterAdapter,list:autoQueueListAdapters,run:autoQueueExecute};'
   )(
-    (kind, text) => kind + ':' + text,
-    (text) => String(text).split('|').filter(Boolean),
+    (kind, value) => kind + ':' + value,
+    (value) => String(value).split('|').filter(Boolean),
     state, () => { saves++; }, () => { draws++; }, { artifacts },
-    (value) => 'h' + String(value).length
+    (value) => {
+      let hash = 2166136261;
+      for (let i = 0; i < value.length; i++) { hash ^= value.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+      return (hash >>> 0).toString(36);
+    }
   );
   assert.equal(api.list().length, 6);
   assert.ok(api.list().every((adapter) => adapter.scope === 'owned-local'));
   assert.throws(() => api.register({id:'foreign-adapter',scope:'third-party',execute:()=> 'no'}), /owned-local/);
   assert.throws(() => api.register({id:'page-summary',scope:'owned-local',execute:()=> 'duplicate'}), /já registrado/);
   assert.throws(() => api.run({type:'missing-adapter'}), /Nenhum adaptador/);
+
   assert.match(api.run({type:'page-summary',payload:{content:'material'}}), /Resumo local/);
-  assert.equal(artifacts.summary,'summary:material');
+  assert.equal(artifacts.summary, 'summary:material');
   assert.match(api.run({type:'page-practice',payload:{content:'material'}}), /Exercícios/);
-  assert.equal(artifacts.practice,'practice:material');
+  assert.equal(artifacts.practice, 'practice:material');
   assert.match(api.run({type:'page-glossary',payload:{content:'terms'}}), /Glossário/);
-  assert.equal(artifacts.glossary,'glossary:terms');
+  assert.equal(artifacts.glossary, 'glossary:terms');
   assert.match(api.run({type:'page-outline',payload:{content:'topics'}}), /Mapa de tópicos/);
-  assert.equal(artifacts.outline,'outline:topics');
+  assert.equal(artifacts.outline, 'outline:topics');
   assert.match(api.run({type:'page-flashcards',payload:{content:'one|two'}}), /flashcard/);
-  assert.equal(state.cards.length,2);
-  assert.equal(saves,1);
-  assert.equal(draws,1);
+  assert.equal(state.cards.length, 2);
+  assert.equal(saves, 1);
+  assert.equal(draws, 1);
   assert.match(api.run({type:'question-dossier',payload:{id:'q1',question:'Q?',options:['A) 1'],evidence:[{text:'source',score:0.8}],draft:'review'}}), /Dossiê/);
-  assert.equal(artifacts.questions.length,1);
+  assert.equal(artifacts.questions.length, 1);
 });
 
 test('Task Queue flashcards are idempotent and respect the local deck limit', () => {
@@ -161,33 +152,34 @@ test('Task Queue flashcards are idempotent and respect the local deck limit', ()
   const end = source.indexOf('function autoQueueTick(){', start);
   const state = { cards: [] }, artifacts = {summary:'',practice:'',flashcards:[],glossary:'',outline:'',questions:[]};
   let saves = 0;
-  const api = new Function('local','pieces','state','save','drawCard','autoQueueData','autoHash',
-    source.slice(start,end)+';return autoQueueExecute;'
-  )((kind,text)=>kind+':'+text,(text)=>String(text).split('|').filter(Boolean),state,()=>saves++,()=>{}, {artifacts},(value)=>String(value.length));
-  const task={type:'page-flashcards',payload:{content:'alpha|beta'}};
-  api(task);
-  api(task);
-  assert.equal(state.cards.length,2,'replaying the same task does not duplicate cards');
-  assert.equal(saves,1,'only the first execution writes new cards');
-  state.cards=Array.from({length:300},(_,i)=>({id:'existing-'+i,front:'f',back:'b'}));
-  api({type:'page-flashcards',payload:{content:'gamma|delta'}});
-  assert.equal(state.cards.length,300,'deck cap is preserved');
+  const execute = new Function('local','pieces','state','save','drawCard','autoQueueData','autoHash',
+    source.slice(start,end) + ';return autoQueueExecute;'
+  )((kind,value)=>kind+':'+value,(value)=>String(value).split('|').filter(Boolean),state,()=>saves++,()=>{}, {artifacts},
+    (value) => {
+      let hash = 2166136261;
+      for (let i = 0; i < value.length; i++) { hash ^= value.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+      return (hash >>> 0).toString(36);
+    }
+  );
+  const task = {type:'page-flashcards',payload:{content:'alpha|beta'}};
+  execute(task);
+  execute(task);
+  assert.equal(state.cards.length, 2);
+  assert.equal(saves, 1);
+  state.cards = Array.from({length:300},(_,i)=>({id:'existing-'+i,front:'f',back:'b'}));
+  execute({type:'page-flashcards',payload:{content:'gamma|delta'}});
+  assert.equal(state.cards.length, 300);
 });
 
-
-test('registered adapters are visible and included in queue audit metadata', () => {
-  assert.ok(source.includes('id="autoQueueAdapters"'));
-  assert.ok(source.includes("autoQueueListAdapters().map(x=>x.name)"));
-  assert.match(source, /adapters:autoQueueListAdapters\(\)/);
-});
-
-test('Android installer and service worker point to the current bookmarklet release', () => {
-  const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
-  const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.ok(app.includes('bookmarklet.js?v=2.1'));
-  assert.match(worker, /waynovo-shell-v8/);
-});
-,'autoQueueAdd','autoQueueStart','status',
+test('manual pasted-text pack enqueues five local task types and starts the queue', () => {
+  const start = source.indexOf('function autoQueueCreateFromText(){');
+  const end = source.indexOf('function autoQueueCreatePack(){', start);
+  assert.ok(start >= 0 && end > start);
+  const added = [];
+  let started = false, statusText = '';
+  const studySource = { value: 'x'.repeat(120) };
+  const fakeDollar = (id) => id === 'source' ? studySource : null;
+  const run = new Function('$','autoQueueAdd','autoQueueStart','status',
     source.slice(start,end) + ';return autoQueueCreateFromText;'
   )(fakeDollar,(type,title,payload)=>{added.push({type,title,payload});},()=>{started=true;},(id,message)=>{statusText=message;});
   run();
@@ -202,84 +194,13 @@ test('Android installer and service worker point to the current bookmarklet rele
   assert.match(statusText,/80 caracteres/);
 });
 
-test('queue artifact selector supports glossary and topic outline', () => {
-  assert.match(source, /value="glossary">Glossário/);
-  assert.match(source, /value="outline">Mapa de tópicos/);
+test('queue artifact selector supports summary, practice, flashcards, glossary, outline and questions', () => {
+  for (const type of ['summary','practice','flashcards','glossary','outline','questions']) {
+    assert.ok(source.includes('value="' + type + '"'), 'missing artifact type ' + type);
+  }
   assert.ok(source.includes("else if(kind==='glossary')output=String(a.glossary||'')"));
   assert.ok(source.includes("else if(kind==='outline')output=String(a.outline||'')"));
 });
-
-test('Task Queue executor and exported audit avoid network and submission actions', () => {
-  const start = source.indexOf('// Task Queue 2.0:');
-  const end = source.indexOf('function autoRender(){', start);
-  assert.ok(start >= 0 && end > start, 'queue runtime exists');
-  const queue = source.slice(start, end);
-  assert.doesNotThrow(() => new Function(queue), 'queue block parses as JavaScript');
-  assert.doesNotMatch(queue, /\bfetch\s*\(/);
-  assert.doesNotMatch(queue, /form\.submit\s*\(/);
-  const exportStart = queue.indexOf('function autoQueueExport(){');
-  const exportEnd = queue.indexOf("$('autoQueueCreatePack')", exportStart);
-  const exporter = queue.slice(exportStart, exportEnd);
-  assert.match(exporter, /tasks\.map\(\(\{id,type,title,status,createdAt,finishedAt,error\}\)/);
-  assert.doesNotMatch(exporter, /payload/);
-});
-
-
-test('Task Queue registry registers six owned-local adapters and rejects invalid scopes', () => {
-  const start = source.indexOf('const autoQueueAdapterRegistry=new Map();');
-  const end = source.indexOf('function autoQueueTick(){', start);
-  assert.ok(start >= 0 && end > start, 'adapter registry exists');
-  const state = { cards: [] };
-  const artifacts = { summary: '', practice: '', flashcards: [], glossary: '', outline: '', questions: [] };
-  let saves = 0, draws = 0;
-  const api = new Function(
-    'local','pieces','state','save','drawCard','autoQueueData','autoHash',
-    source.slice(start, end) + '; return {register:autoQueueRegisterAdapter,list:autoQueueListAdapters,run:autoQueueExecute};'
-  )(
-    (kind, text) => kind + ':' + text,
-    (text) => String(text).split('|').filter(Boolean),
-    state, () => { saves++; }, () => { draws++; }, { artifacts },
-    (value) => 'h' + String(value).length
-  );
-  assert.equal(api.list().length, 6);
-  assert.ok(api.list().every((adapter) => adapter.scope === 'owned-local'));
-  assert.throws(() => api.register({id:'foreign-adapter',scope:'third-party',execute:()=> 'no'}), /owned-local/);
-  assert.throws(() => api.register({id:'page-summary',scope:'owned-local',execute:()=> 'duplicate'}), /já registrado/);
-  assert.throws(() => api.run({type:'missing-adapter'}), /Nenhum adaptador/);
-  assert.match(api.run({type:'page-summary',payload:{content:'material'}}), /Resumo local/);
-  assert.equal(artifacts.summary,'summary:material');
-  assert.match(api.run({type:'page-practice',payload:{content:'material'}}), /Exercícios/);
-  assert.equal(artifacts.practice,'practice:material');
-  assert.match(api.run({type:'page-glossary',payload:{content:'terms'}}), /Glossário/);
-  assert.equal(artifacts.glossary,'glossary:terms');
-  assert.match(api.run({type:'page-outline',payload:{content:'topics'}}), /Mapa de tópicos/);
-  assert.equal(artifacts.outline,'outline:topics');
-  assert.match(api.run({type:'page-flashcards',payload:{content:'one|two'}}), /flashcard/);
-  assert.equal(state.cards.length,2);
-  assert.equal(saves,1);
-  assert.equal(draws,1);
-  assert.match(api.run({type:'question-dossier',payload:{id:'q1',question:'Q?',options:['A) 1'],evidence:[{text:'source',score:0.8}],draft:'review'}}), /Dossiê/);
-  assert.equal(artifacts.questions.length,1);
-});
-
-test('Task Queue flashcards are idempotent and respect the local deck limit', () => {
-  const start = source.indexOf('const autoQueueAdapterRegistry=new Map();');
-  const end = source.indexOf('function autoQueueTick(){', start);
-  const state = { cards: [] }, artifacts = {summary:'',practice:'',flashcards:[],glossary:'',outline:'',questions:[]};
-  let saves = 0;
-  const api = new Function('local','pieces','state','save','drawCard','autoQueueData','autoHash',
-    source.slice(start,end)+';return autoQueueExecute;'
-  )((kind,text)=>kind+':'+text,(text)=>String(text).split('|').filter(Boolean),state,()=>saves++,()=>{}, {artifacts},(value)=>String(value.length));
-  const task={type:'page-flashcards',payload:{content:'alpha|beta'}};
-  api(task);
-  api(task);
-  assert.equal(state.cards.length,2,'replaying the same task does not duplicate cards');
-  assert.equal(saves,1,'only the first execution writes new cards');
-  state.cards=Array.from({length:300},(_,i)=>({id:'existing-'+i,front:'f',back:'b'}));
-  api({type:'page-flashcards',payload:{content:'gamma|delta'}});
-  assert.equal(state.cards.length,300,'deck cap is preserved');
-});
-
 
 test('registered adapters are visible and included in queue audit metadata', () => {
   assert.ok(source.includes('id="autoQueueAdapters"'));
