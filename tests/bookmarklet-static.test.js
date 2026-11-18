@@ -186,6 +186,13 @@ test('Task Queue flashcards are idempotent and respect the local deck limit', ()
   assert.equal(state.cards.length,300,'deck cap is preserved');
 });
 
+
+test('registered adapters are visible and included in queue audit metadata', () => {
+  assert.ok(source.includes('id="autoQueueAdapters"'));
+  assert.ok(source.includes("autoQueueListAdapters().map(x=>x.name)"));
+  assert.match(source, /adapters:autoQueueListAdapters\(\)/);
+});
+
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
