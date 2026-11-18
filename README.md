@@ -40,6 +40,17 @@ A aba **Questões** aceita enunciado e alternativas colados pelo usuário, prepa
 
 A implementação aproveita a ideia geral de análise de questões com IA, mas não incorpora o mecanismo de geração de bookmarklets do projeto de referência que injeta chaves de API no código, substitui `window.eval` e carrega um script remoto por CDN. No Waynovo, as chaves do provedor devem permanecer como secrets no gateway; o bookmarklet recebe apenas o token temporário do gateway.
 
+## Cognitive Engine — aba Cérebro
+
+A aba **Cérebro** acrescenta um planejador local ao bookmarklet. Informe um objetivo e, opcionalmente, contexto: o motor classifica o tipo de tarefa por regras simples, cria etapas, explica por que cada etapa foi sugerida e permite marcar o progresso manualmente.
+
+- **Planejamento local:** cria planos para aprendizagem, produção de conteúdo, pesquisa/análise, organização/automação, desenvolvimento técnico e objetivos gerais.
+- **Verificação:** cada etapa inclui uma razão e o fluxo termina com conferência de critérios e pendências.
+- **Memória local explícita:** planos só entram na memória quando você toca em Guardar na memória. É possível reabrir ou apagar os registros.
+- **Análise opcional por IA:** usa o endpoint e o token já configurados na aba IA; o envio só acontece após o clique em Analisar objetivo com IA.
+- **Privacidade:** memória e planos ficam no armazenamento local do navegador e não são sincronizados.
+
+O planejador local **não é um modelo de linguagem**: usa heurísticas transparentes e não verifica fatos sozinho. A análise pelo gateway depende do provedor configurado, pode ter custos/limites e deve ser conferida. Marcar uma etapa significa apenas registrar manualmente que ela foi concluída; o mecanismo não executa ações em sites externos.
 ## Motor de automação e sandbox
 
 A aba **Automação** inclui um motor de fluxos demonstrativo com etapas sequenciais, condições e estado isolado em memória. Há três cenários: sessão de estudo fictícia, navegação entre páginas de exemplo e validação local de estado. O registro mostra o resultado de cada etapa e o ambiente pode ser reiniciado.
