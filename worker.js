@@ -11,7 +11,7 @@ const TASKS = {
 };
 
 const PROVIDERS = ["openai", "gemini", "groq", "openrouter"];
-const DEFAULT_ORDER = ["openai", "gemini", "groq", "openrouter"];
+const DEFAULT_ORDER = ["gemini", "groq", "openrouter"];
 
 function out(data, status, headers) {
   return new Response(JSON.stringify(data), {
@@ -33,7 +33,7 @@ function cors(request, env) {
     allowed,
     headers: {
       "Access-Control-Allow-Origin": wildcard ? "*" : (allowed ? origin : "null"),
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Authorization, Content-Type",
       "Access-Control-Max-Age": "86400",
       "Vary": "Origin"
@@ -44,6 +44,7 @@ function cors(request, env) {
 function normalizeProvider(value) {
   const provider = String(value || "").toLowerCase().trim();
   if (provider === "google" || provider === "google-gemini") return "gemini";
+  if (provider === "open-ai") return "openai";
   if (provider === "groq-cloud") return "groq";
   if (provider === "open-router") return "openrouter";
   return PROVIDERS.includes(provider) || provider === "openai-compatible" ? provider : "";
@@ -150,7 +151,11 @@ async function requestProvider(provider, config, system, prompt, env) {
   }
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 16000);
+  const configuredTimeout = Number(env.AI_PROVIDER_TIMEOUT_MS);
+  const timeoutMs = Number.isFinite(configuredTimeout) && configuredTimeout >= 8000
+    ? Math.min(configuredTimeout, 60000)
+    : 45000;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     let response;
     let data = {};
@@ -185,23 +190,31 @@ async function requestProvider(provider, config, system, prompt, env) {
         };
       }
       const text = parseResponsesText(data);
+      const usage = data && data.usage ? {
+        inputTokens: Number(data.usage.input_tokens) || 0,
+        outputTokens: Number(data.usage.output_tokens) || 0,
+        totalTokens: Number(data.usage.total_tokens) || 0
+      } : null;
+      const incomplete = Boolean(data && data.status === "incomplete");
       return text
         ? {
             ok: true,
             text,
             provider,
             model: config.model,
-            usage: data.usage ? {
-              inputTokens: Number(data.usage.input_tokens) || 0,
-              outputTokens: Number(data.usage.output_tokens) || 0,
-              totalTokens: Number(data.usage.total_tokens) || 0
-            } : null
+            responseId: typeof data.id === "string" ? data.id : null,
+            completionStatus: incomplete ? "incomplete" : (data.status || "completed"),
+            incompleteReason: incomplete && data.incomplete_details
+              ? String(data.incomplete_details.reason || "").slice(0, 120)
+              : null,
+            requestId: response.headers.get("x-request-id") || null,
+            usage
           }
         : {
             ok: false,
-            status: data && data.status === "incomplete" ? "incomplete" : "empty",
-            message: data && data.status === "incomplete"
-              ? "A OpenAI interrompeu a resposta antes da conclusão."
+            status: incomplete ? "incomplete" : "empty",
+            message: incomplete
+              ? "A OpenAI interrompeu a resposta antes de produzir texto."
               : "OpenAI retornou uma resposta vazia."
           };
     }
@@ -306,13 +319,36 @@ export default {
     if (!c.allowed) return out({ error: "Origem não autorizada." }, 403, c.headers);
 
     const url = new URL(request.url);
-    if (url.pathname !== "/generate") return out({ error: "Rota não encontrada." }, 404, c.headers);
-    if (request.method !== "POST") return out({ error: "Use POST." }, 405, c.headers);
+    if (url.pathname !== "/generate" && url.pathname !== "/status") {
+      return out({ error: "Rota não encontrada." }, 404, c.headers);
+    }
+    if (url.pathname === "/status" && request.method !== "GET") {
+      return out({ error: "Use GET em /status." }, 405, c.headers);
+    }
+    if (url.pathname === "/generate" && request.method !== "POST") {
+      return out({ error: "Use POST em /generate." }, 405, c.headers);
+    }
     if (!env.WAYNOVO_ACCESS_TOKEN) {
       return out({ error: "Configure WAYNOVO_ACCESS_TOKEN como secret do Worker." }, 503, c.headers);
     }
     if (request.headers.get("Authorization") !== "Bearer " + env.WAYNOVO_ACCESS_TOKEN) {
       return out({ error: "Token do gateway inválido." }, 401, c.headers);
+    }
+    if (url.pathname === "/status") {
+      const providers = PROVIDERS.map(provider => {
+        const config = providerConfig(provider, env);
+        const missing = [];
+        if (!config || !config.key) missing.push("api_key");
+        if (!config || !config.model) missing.push("model");
+        return { provider, configured: missing.length === 0, model: config && config.model ? String(config.model) : null, missing };
+      });
+      return out({
+        service: "waynovo-ai-gateway", status: "ok", version: "1.1.0",
+        defaultProvider: normalizeProvider(env.AI_PRIMARY_PROVIDER) || "gemini",
+        automaticFallbackOrder: String(env.AI_PROVIDER_ORDER || DEFAULT_ORDER.join(",")),
+        providerTimeoutMs: Number(env.AI_PROVIDER_TIMEOUT_MS) >= 8000 ? Math.min(Number(env.AI_PROVIDER_TIMEOUT_MS), 60000) : 45000,
+        providers, tasks: Object.keys(TASKS)
+      }, 200, c.headers);
     }
 
     let rawBody;
@@ -364,6 +400,11 @@ export default {
           provider: result.provider,
           model: result.model,
           fallbackUsed: attempts.length > 1,
+          ...(result.usage ? { usage: result.usage } : {}),
+          ...(result.responseId ? { responseId: result.responseId } : {}),
+          ...(result.requestId ? { requestId: result.requestId } : {}),
+          ...(result.completionStatus ? { completionStatus: result.completionStatus } : {}),
+          ...(result.incompleteReason ? { incompleteReason: result.incompleteReason } : {}),
           attempts,
           ...(result.usage ? { usage: result.usage } : {})
         }, 200, c.headers);
