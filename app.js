@@ -122,7 +122,7 @@
   $('#timerReset').addEventListener('click',resetTimer);drawTimer();
 
   let bookmarklet = '';
-  const mobileBookmarklet = "javascript:(()=>{const id='waynovo-mobile-loader';if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src='https://raw.githubusercontent.com/joaokwiatkovskimoreira-boop/waynovo/main/bookmarklet.js?v=2.1';s.onload=()=>s.remove();s.onerror=()=>{s.remove();alert('Waynovo: não foi possível carregar o painel. Confira a conexão ou a política de segurança do site.')};(document.head||document.documentElement).appendChild(s)})()";
+  const mobileBookmarklet = "javascript:(()=>{const id='waynovo-mobile-loader';if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src='https://raw.githubusercontent.com/joaokwiatkovskimoreira-boop/waynovo/main/bookmarklet.js?v=4.0';s.onload=()=>s.remove();s.onerror=()=>{s.remove();alert('Waynovo: não foi possível carregar o painel. Confira a conexão ou a política de segurança do site.')};(document.head||document.documentElement).appendChild(s)})()";
   async function loadBookmarklet() {
     const link = $('#bookmarkletLink');
     const code = $('#bookmarkletCode');
