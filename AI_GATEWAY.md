@@ -75,6 +75,12 @@ Quando o fallback está desativado, somente o provedor escolhido é tentado. Qua
 
 A configuração antiga com \`AI_PROVIDER\`, \`AI_API_KEY\`, \`AI_MODEL\` e \`AI_API_BASE_URL\` continua aceita para instalações que usavam um único provedor. A configuração multi-provedor recomendada usa secrets e variáveis específicas por serviço.
 
+## Tarefa de auditoria (`verify`)
+
+O endpoint `/generate` também aceita `task: "verify"`. O prompt de sistema pede uma revisão crítica que identifique critérios atendidos, lacunas, alegações sem suporte, contradições, riscos e próximos passos. O resultado é uma segunda opinião gerada pelo modelo, não uma garantia de correção nem um teste automático do mundo real.
+
+O Worker lê o corpo antes de interpretar JSON e aplica o limite de 40 KB ao tamanho real em bytes; corpos que não sejam objetos JSON são rejeitados.
+
 ## Privacidade, cotas e segurança
 
 O material é enviado ao provedor somente após o usuário acionar a geração. O gateway não grava o texto recebido. Cada provedor aplica seus próprios termos, limites e políticas de retenção/uso de dados; revise esses termos e evite enviar informações confidenciais.
