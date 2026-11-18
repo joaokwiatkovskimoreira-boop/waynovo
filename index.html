@@ -57,7 +57,7 @@
             <div class="ai-settings-grid">
               <label for="aiEndpoint">Endpoint do gateway</label><input id="aiEndpoint" type="url" placeholder="https://seu-worker.workers.dev/generate">
               <label for="aiToken">Token temporário do gateway (não é a chave do provedor)</label><input id="aiToken" type="password" autocomplete="off" placeholder="Token de acesso">
-              <label for="aiProvider">Provedor preferido</label><select id="aiProvider"><option value="auto">Automático · ordem do Worker</option><option value="openai">OpenAI · Responses API</option><option value="gemini">Google Gemini</option><option value="groq">Groq</option><option value="openrouter">OpenRouter</option></select>
+              <label for="aiProvider">Provedor preferido</label><select id="aiProvider"><option value="local" selected>Local gratuito · offline</option><option value="auto">Automático · provedores externos</option><option value="openai">OpenAI API · paga</option><option value="gemini">Google Gemini</option><option value="groq">Groq</option><option value="openrouter">OpenRouter</option></select>
               <label for="aiFallback">Fallback automático</label><select id="aiFallback"><option value="true" selected>Ativado · tentar os outros provedores</option><option value="false">Desativado · somente o preferido</option></select>
               <div class="ai-settings-actions"><button id="saveAiConfig" class="secondary-btn" type="button">Guardar nesta sessão</button><span id="aiConfigStatus">O token fica só no campo. As chaves dos provedores ficam nos secrets do Worker. OpenAI usa a Responses API.</span></div>
             </div>
