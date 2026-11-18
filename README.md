@@ -1,4 +1,4 @@
-# Waynovo 6.0 — Portable Bookmarklet
+# Waynovo 6.1 — Portable Bookmarklet
 
 Bookmarklet portátil gratuito para estudo, organização, automação local, monitoramento automático de páginas visíveis e experimentação de políticas em laboratório, com revisão espaçada e IA opcional.
 
@@ -107,12 +107,12 @@ Ao abrir o bookmarklet, o Autopilot inicia automaticamente um monitor local da p
 A aba **Autopilot** agora possui uma fila local de tarefas sequenciais:
 
 - Cada nova questão detectada gera automaticamente um dossiê local com enunciado, alternativas reconhecidas e trechos de apoio; a fila processa esse dossiê sem clicar ou submeter opções.
-- **Gerar pacote da página** cria três tarefas: resumo, flashcards e exercícios originais a partir do texto visível.
+- **Gerar pacote da página** cria cinco tarefas: resumo, flashcards, exercícios originais, glossário e mapa de tópicos a partir do texto visível. **Gerar pacote do texto colado** faz o mesmo a partir do material na aba Estudo.
 - O estado de cada tarefa é registrado como pendente, em execução, concluída ou falha. A fila executa uma tarefa por vez e permite pausar, retomar e repetir falhas.
 - Tarefas pendentes são recuperadas ao reabrir o bookmarklet na mesma aba. A fila e os artefatos ficam em sessionStorage; os flashcards gerados também entram no baralho local.
 - **Visualizar saída** permite consultar o resumo, exercícios, flashcards e dossiês produzidos. **Baixar auditoria** exporta JSON com estados e eventos, sem incluir o conteúdo integral da página.
 
-A fila executa somente transformações locais do Waynovo. Ela não usa a IA online por padrão, não envia conteúdo ao site, não clica em alternativas, não preenche formulários e não marca tarefas externas como concluídas.
+A fila utiliza seis adaptadores registrados — resumo, prática, flashcards, glossário, mapa de tópicos e dossiê de questão — com escopo `owned-local`, lista de adaptadores e validação de contrato. Flashcards são deduplicados e respeitam o limite de 300 cartões. A fila executa somente transformações locais do Waynovo. Ela não usa a IA online por padrão, não envia conteúdo ao site, não clica em alternativas, não preenche formulários e não marca tarefas externas como concluídas.
 
 Os rascunhos são extração e correspondência textual, não respostas verificadas por um modelo. A extração de alternativas depende da estrutura e da acessibilidade do HTML de cada página; layouts especiais podem exigir revisão manual. O contador mede questões detectadas e rascunhos preparados; não afirma que uma avaliação foi concluída ou que uma resposta foi submetida. O Autopilot não lê conteúdo oculto, campos privados ou documentos de iframes isolados, e não clica em alternativas nem envia respostas a serviços externos. A aba Tutor pode explicar a questão e comparar as opções depois que o usuário aciona a análise. Para automações que alteram dados, use apenas ambientes próprios e adaptadores autorizados.
 
