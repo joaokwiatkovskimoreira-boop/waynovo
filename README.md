@@ -102,13 +102,13 @@ Ao abrir o bookmarklet, o Autopilot inicia automaticamente um monitor local da p
 - **Operação local:** o provedor padrão da aba IA é Local; não usa API, não exige token e não envia o conteúdo para fora do navegador. Provedores externos são opt-in.
 - **Controles:** é possível pausar, retomar, forçar uma varredura e copiar os rascunhos.
 
-### Task Queue 2.1 — adaptadores locais, fila retomável e auditoria
+### Task Queue 4.0 — pipeline inteligente e auditoria
 
 A aba **Autopilot** agora possui uma fila local de tarefas sequenciais:
 
 - Cada nova questão detectada gera automaticamente um dossiê local com enunciado, alternativas reconhecidas e trechos de apoio; a fila processa esse dossiê sem clicar ou submeter opções.
-- **Gerar pacote da página** cria cinco tarefas: resumo, flashcards, exercícios originais, glossário e mapa de tópicos a partir do texto visível. **Gerar pacote do texto colado** faz o mesmo a partir do material na aba Estudo.
-- O estado de cada tarefa é registrado como pendente, em execução, concluída ou falha. A fila executa uma tarefa por vez e permite pausar, retomar e repetir falhas.
+- **Gerar pacote da página** cria uma etapa de controle de qualidade da fonte e, após aprovação, cinco tarefas dependentes: resumo, flashcards, exercícios originais, glossário e mapa de tópicos. **Gerar pacote do texto colado** aplica o mesmo pipeline.
+- O estado de cada tarefa é registrado como pendente, em execução, concluída ou falha. Dependências impedem que os geradores comecem antes da aprovação da fonte; adaptadores também validam a saída antes de marcar uma tarefa como concluída. A fila executa uma tarefa por vez e permite pausar, retomar e repetir falhas.
 - Tarefas pendentes são recuperadas ao reabrir o bookmarklet na mesma aba. A fila e os artefatos ficam em sessionStorage; os flashcards gerados também entram no baralho local.
 - **Visualizar saída** permite consultar o resumo, exercícios, flashcards, glossário, mapa de tópicos e dossiês produzidos. **Baixar auditoria** exporta JSON com estados e eventos, sem incluir o conteúdo integral da página. Os títulos das tarefas usam rótulos genéricos/identificadores, não trechos do enunciado; o JSON exportado contém somente metadados e eventos, sem payloads do material.
 
