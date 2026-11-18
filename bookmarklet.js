@@ -192,7 +192,8 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:11px">Task Queue · execução local</b><span class="auto-queue-badge" id="autoQueueState">AGUARDANDO</span></div>
  <div class="auto-queue-meta" id="autoQueueAdapters">4 adaptadores locais</div><div class="auto-queue-meta" id="autoQueueProgress">0 concluídas · 0 pendentes · 0 falhas</div>
  <div class="auto-queue-bar"><span id="autoQueueBar"></span></div>
- <div class="row"><button class="btn primary" id="autoQueueCreatePack">Gerar pacote da página</button><button class="btn" id="autoQueueRun">Executar fila</button></div>
+ <div class="row"><button class="btn primary" id="autoQueueCreatePack">Gerar pacote da página</button><button class="btn" id="autoQueueCreateFromText">Gerar pacote do texto colado</button></div>
+ <div class="row"><button class="btn" id="autoQueueRun">Executar fila</button></div>
  <div class="row"><button class="btn" id="autoQueuePause">Pausar fila</button><button class="btn" id="autoQueueRetry">Repetir falhas</button><button class="btn" id="autoQueueAudit">Baixar auditoria</button><button class="btn" id="autoQueueClear">Limpar fila</button></div>
  <div id="autoQueueList"><div class="meta">Questões detectadas entram automaticamente. Gere um pacote para processar o restante da página.</div></div>
  <label for="autoQueueArtifact">Saída produzida</label>
@@ -1114,6 +1115,16 @@ function autoQueuePause(){
  autoQueueLog('paused',null,'Execução pausada pelo usuário.');
  autoQueuePersist();autoQueueRender();status('autoStatus','Fila pausada; tarefas pendentes serão retomadas quando solicitado.');
 }
+function autoQueueCreateFromText(){
+ const content=String($('source').value||'').trim().slice(0,16000);
+ if(content.length<80)return status('autoStatus','Cole pelo menos 80 caracteres na aba Estudo para gerar um pacote.');
+ autoQueueAdd('page-summary','Resumo do texto colado',{content});
+ autoQueueAdd('page-flashcards','Flashcards do texto colado',{content});
+ autoQueueAdd('page-practice','Exercícios do texto colado',{content});
+ autoQueueAdd('page-glossary','Glossário do texto colado',{content});
+ autoQueueAdd('page-outline','Mapa de tópicos do texto colado',{content});
+ autoQueueStart();
+}
 function autoQueueCreatePack(){
  const blocks=autoVisibleBlocks();
  const content=blocks.filter(x=>!autoIsQuestion(x)).join('\n\n').slice(0,16000);
@@ -1141,6 +1152,7 @@ function autoQueueExport(){
  status('autoStatus','Auditoria JSON exportada sem incluir o conteúdo integral das páginas.');
 }
 $('autoQueueCreatePack').addEventListener('click',autoQueueCreatePack);
+$('autoQueueCreateFromText').addEventListener('click',autoQueueCreateFromText);
 $('autoQueueRun').addEventListener('click',autoQueueStart);
 $('autoQueuePause').addEventListener('click',autoQueuePause);
 $('autoQueueRetry').addEventListener('click',()=>{
