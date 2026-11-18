@@ -1,4 +1,4 @@
-# Waynovo 5.6 — Portable Bookmarklet
+# Waynovo 5.7 — Portable Bookmarklet
 
 Bookmarklet portátil gratuito para estudo, organização, automação local, monitoramento automático de páginas visíveis e experimentação de políticas em laboratório, com revisão espaçada e IA opcional.
 
@@ -98,7 +98,7 @@ Ao abrir o bookmarklet, o Autopilot inicia automaticamente um monitor local da p
 - **Questões detectadas:** conta enunciados únicos reconhecidos durante a sessão.
 - **Alternativas visíveis:** reconhece rótulos comuns (A–E), opções e componentes acessíveis de múltipla escolha sem clicar neles.
 - **Rascunhos sugeridos:** cruza palavras do enunciado com trechos visíveis da própria página e reúne evidências textuais para revisão.
-- **Ponte para o Tutor:** leva enunciado, alternativas e evidências reconhecidas à aba Questões, sem exigir copiar e colar.
+- **Ponte para o Tutor:** leva enunciado, alternativas e evidências reconhecidas à aba Questões, sem exigir copiar e colar. O Tutor inclui o material de apoio na análise, separa evidência de inferência e solicita nível de confiança.
 - **Operação local:** não usa API, não exige token e não envia o conteúdo para fora do navegador.
 - **Controles:** é possível pausar, retomar, forçar uma varredura e copiar os rascunhos.
 
