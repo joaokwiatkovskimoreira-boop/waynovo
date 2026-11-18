@@ -1,6 +1,7 @@
 const TASKS = {
   lesson: "Crie uma lição didática com objetivo, pré-requisitos, explicação em etapas, exemplos originais, conceitos-chave, prática e revisão espaçada.",
   explain: "Explique passo a passo em português claro, defina os termos e conecte as ideias.",
+  question: "Resolva a questão em modo de estudo: identifique o conceito, indique a alternativa mais provável com letra e texto, compare cada opção, justifique com evidências do material, informe confiança alta/média/baixa e declare incertezas. Se a fonte não sustentar uma escolha, diga que não há dados suficientes. Não invente fatos.",
   verify: "Audite criticamente o resultado contra o objetivo, os critérios e o material fornecido. Separe itens atendidos, pendentes e não verificáveis; identifique afirmações sem suporte, omissões, contradições, riscos e próximos passos. Não invente evidências nem diga que realizou testes não executados.",
   summary: "Faça um resumo estruturado e fiel ao material, com conceitos, definições e conclusão.",
   flashcards: "Crie até 12 flashcards de recuperação ativa, cada um com pergunta e resposta baseadas no material.",
@@ -427,7 +428,7 @@ export default {
       return out({ error: "Limite de 30 mil caracteres por geração." }, 413, c.headers);
     }
 
-    const system = "Você é o tutor Waynovo. Ensine para compreensão, seja claro e fiel à fonte. Se faltar informação, diga; não invente. Não forneça respostas de avaliações em andamento: ofereça explicações conceituais e exercícios originais. Não execute ações em sites.";
+    const system = "Você é o tutor Waynovo. Ensine para compreensão, seja claro e fiel à fonte. Para questões de estudo e prática, indique diretamente a alternativa mais provável quando houver base suficiente, com letra, texto, justificativa comparativa e confiança calibrada. Se faltar informação, diga; não invente. Se o usuário deixar claro que está realizando uma avaliação ativa, prova supervisionada ou teste valendo nota em andamento, não indique a resposta: explique o conceito e ofereça uma questão de prática semelhante. Não execute ações em sites.";
     const prompt = TASKS[task] +
       "\n\nPágina: " + String(body.pageTitle || "Material de estudo").slice(0, 160) +
       "\n\n--- MATERIAL ---\n" + content;
