@@ -195,6 +195,10 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
  <div class="row"><button class="btn primary" id="autoQueueCreatePack">Gerar pacote da página</button><button class="btn" id="autoQueueRun">Executar fila</button></div>
  <div class="row"><button class="btn" id="autoQueuePause">Pausar fila</button><button class="btn" id="autoQueueAudit">Baixar auditoria</button><button class="btn" id="autoQueueClear">Limpar fila</button></div>
  <div id="autoQueueList"><div class="meta">Questões detectadas entram automaticamente. Gere um pacote para processar o restante da página.</div></div>
+ <label for="autoQueueArtifact">Saída produzida</label>
+ <select id="autoQueueArtifact"><option value="summary">Resumo</option><option value="practice">Exercícios originais</option><option value="flashcards">Flashcards gerados</option><option value="questions">Dossiês de questões</option></select>
+ <textarea id="autoQueueOutput" class="output" readonly placeholder="Os resultados da fila aparecerão aqui."></textarea>
+ <div class="row"><button class="btn" id="autoQueueShow">Visualizar saída</button><button class="btn" id="autoQueueCopyOutput">Copiar saída</button></div>
 </div>
 <label>Questões encontradas e sugestões</label><div id="autoResults"><div class="meta">O monitor está iniciando a primeira varredura…</div></div>
 <div class="hint">O modo local não usa API nem cobra nada. As sugestões são extraídas de trechos visíveis da própria página e precisam ser conferidas. O contador registra questões detectadas, não respostas submetidas ou avaliações concluídas. Conteúdo oculto, campos privados, iframes isolados e botões de resposta são ignorados.</div>
@@ -1010,7 +1014,7 @@ function autoQueueTick(){
  if(!autoQueueRunning)return;
  const task=autoQueueData.tasks.find(x=>x.status==='pending');
  if(!task){
-  autoQueueRunning=false;autoQueueTimer=null;autoQueuePersist();autoQueueRender();
+  autoQueueRunning=false;autoQueueTimer=null;autoQueuePersist();autoQueueRender();autoQueueShowArtifact();
   status('autoStatus','Fila local finalizada. Confira resultados e auditoria.');
   return;
  }
@@ -1024,7 +1028,7 @@ function autoQueueTick(){
   task.status='failed';task.finishedAt=new Date().toISOString();task.error=String(error&&error.message||error).slice(0,180);
   autoQueueLog('failed',task,task.error);
  }
- autoQueuePersist();autoQueueRender();
+ autoQueuePersist();autoQueueRender();autoQueueShowArtifact();
  autoQueueTimer=setTimeout(autoQueueTick,120);
 }
 function autoQueueStart(){
@@ -1073,7 +1077,23 @@ $('autoQueueClear').addEventListener('click',()=>{
 });
 $('autoQueueAudit').addEventListener('click',autoQueueExport);
 autoQueueRender();
-
+if(autoQueueCounts().pending)autoQueueStart();
+function autoQueueShowArtifact(){
+ const kind=$('autoQueueArtifact').value,a=autoQueueData.artifacts;
+ let output='';
+ if(kind==='summary')output=String(a.summary||'');
+ else if(kind==='practice')output=String(a.practice||'');
+ else if(kind==='flashcards')output=(a.flashcards||[]).map((x,i)=>(i+1)+'. '+x.front+'\n'+x.back).join('\n\n');
+ else output=(a.questions||[]).map((x,i)=>(i+1)+'. '+x.question+'\n'+(x.options||[]).join('\n')+'\n'+x.draft+'\n'+x.note).join('\n\n---\n\n');
+ $('autoQueueOutput').value=output||'Ainda não há saída deste tipo. Execute a fila ou gere um pacote da página.';
+}
+$('autoQueueShow').addEventListener('click',autoQueueShowArtifact);
+$('autoQueueArtifact').addEventListener('change',autoQueueShowArtifact);
+$('autoQueueCopyOutput').addEventListener('click',async()=>{
+ const output=$('autoQueueOutput').value;
+ if(!output)return status('autoStatus','Não há saída para copiar.');
+ status('autoStatus',await copy(output)?'Saída copiada.':'Não foi possível copiar neste navegador.');
+});
 function autoRender(){
  $('autoTime').textContent=autoClock(autoStats.seconds);
  $('autoScans').textContent=String(autoStats.scans);
