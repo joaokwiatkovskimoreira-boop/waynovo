@@ -65,12 +65,15 @@ Atalho: **Ctrl + Shift + F** leva diretamente ao laboratório de revisão. Na se
 
 Defina uma meta diária, registre sessões manualmente ou deixe o temporizador contabilizar uma sessão quando chegar ao fim. O painel mostra o total do dia, os últimos sete dias, dias ativos consecutivos e as sessões recentes. Os registros ficam no navegador e entram no backup JSON.
 
-## Integração de IA
+## Integração multi-provedor de IA
 
-A IA é opcional. Publique o Worker descrito em [AI_GATEWAY.md](AI_GATEWAY.md), configure a chave do provedor como secret do servidor e informe no app apenas o endpoint e o token de acesso do gateway. O token fica no campo enquanto o painel está aberto; não é gravado em localStorage ou sessionStorage. A chave OpenAI/Gemini nunca deve ser colocada no código público ou no bookmarklet. Use secrets no Worker e revogue imediatamente qualquer chave que tenha sido publicada por engano.
+A integração suporta **Google Gemini, Groq e OpenRouter**, com seleção manual, modo automático e fallback. O app principal e o bookmarklet enviam ao gateway apenas a tarefa, o conteúdo autorizado, o provedor preferido e a preferência de fallback.
 
-O texto selecionado/colado é enviado ao provedor somente quando você aciona a geração. APIs podem ter custos e limites próprios.
+Publique o Worker descrito em [AI_GATEWAY.md](AI_GATEWAY.md). Cadastre \`WAYNOVO_ACCESS_TOKEN\`, \`GEMINI_API_KEY\`, \`GROQ_API_KEY\` e \`OPENROUTER_API_KEY\` como secrets do Cloudflare Worker; ajuste os três IDs de modelo em \`wrangler.toml\`. Não publique chaves em arquivos do repositório.
 
+O roteador tenta o provedor preferido e, quando habilitado, segue a ordem de fallback configurada no Worker. Provedores sem chave/modelo são ignorados. A resposta informa o provedor e o modelo utilizados, além do estado das tentativas.
+
+Planos gratuitos têm cotas e podem mudar. O fallback não garante disponibilidade ou gratuidade permanente. O material só é enviado após o clique de geração; evite informações confidenciais e confira as políticas de dados de cada provedor.
 ## Privacidade e compatibilidade
 
 Tarefas e cartões ficam no armazenamento local do navegador e não são sincronizados entre dispositivos automaticamente. Faça backups regulares. Alguns sites ou navegadores bloqueiam bookmarklets por política de segurança; não há garantia de execução em todos os domínios. Nesses casos, cole o conteúdo no app.
