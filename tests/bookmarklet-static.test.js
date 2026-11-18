@@ -151,7 +151,7 @@ test('Task Queue registry registers four owned-local adapters and rejects invali
     state, () => { saves++; }, () => { draws++; }, { artifacts },
     (value) => 'h' + String(value).length
   );
-  assert.equal(api.list().length, 4);
+  assert.equal(api.list().length, 6);
   assert.ok(api.list().every((adapter) => adapter.scope === 'owned-local'));
   assert.throws(() => api.register({id:'foreign-adapter',scope:'third-party',execute:()=> 'no'}), /owned-local/);
   assert.throws(() => api.register({id:'page-summary',scope:'owned-local',execute:()=> 'duplicate'}), /já registrado/);
@@ -160,6 +160,10 @@ test('Task Queue registry registers four owned-local adapters and rejects invali
   assert.equal(artifacts.summary,'summary:material');
   assert.match(api.run({type:'page-practice',payload:{content:'material'}}), /Exercícios/);
   assert.equal(artifacts.practice,'practice:material');
+  assert.match(api.run({type:'page-glossary',payload:{content:'terms'}}), /Glossário/);
+  assert.equal(artifacts.glossary,'glossary:terms');
+  assert.match(api.run({type:'page-outline',payload:{content:'topics'}}), /Mapa de tópicos/);
+  assert.equal(artifacts.outline,'outline:topics');
   assert.match(api.run({type:'page-flashcards',payload:{content:'one|two'}}), /flashcard/);
   assert.equal(state.cards.length,2);
   assert.equal(saves,1);
