@@ -21,6 +21,19 @@ O bookmarklet usa Shadow DOM para isolar o visual, não importa bibliotecas/CDNs
 
 O bookmarklet é autônomo: não carrega bibliotecas por CDN. Usa somente a seleção visível ou texto colado. Não percorre a página, não lê conteúdo oculto nem envia formulários.
 
+## Módulos do bookmarklet
+
+A aba **Módulos** reúne seis fluxos independentes:
+
+- **WaygroundX:** transforma um enunciado selecionado em material de explicação e prática inédita.
+- **LeiaPR:** organiza trechos de leitura em resumo e termos para revisão.
+- **Redação:** envia o texto selecionado ao editor local para estruturação e revisão.
+- **Khan:** prepara uma lição de revisão de conceitos.
+- **Alura:** prepara notas e checklist pessoal de aula.
+- **Fubanga Hub:** catálogo local dos módulos internos; não baixa nem executa scripts remotos.
+
+A detecção de plataforma é apenas informativa. Os módulos trabalham com texto selecionado ou colado pelo usuário; não fazem varredura de conteúdo oculto, envio automático de respostas, alteração de notas ou simulação de conclusão em serviços externos. Todos compartilham o editor, os cartões, as notas, o temporizador e a integração opcional com IA.
+
 ## Ferramentas
 
 - Lição offline, resumo, flashcards, perguntas de prática e checklist.
