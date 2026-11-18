@@ -196,7 +196,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
  <div class="row"><button class="btn" id="autoQueuePause">Pausar fila</button><button class="btn" id="autoQueueRetry">Repetir falhas</button><button class="btn" id="autoQueueAudit">Baixar auditoria</button><button class="btn" id="autoQueueClear">Limpar fila</button></div>
  <div id="autoQueueList"><div class="meta">Questões detectadas entram automaticamente. Gere um pacote para processar o restante da página.</div></div>
  <label for="autoQueueArtifact">Saída produzida</label>
- <select id="autoQueueArtifact"><option value="summary">Resumo</option><option value="practice">Exercícios originais</option><option value="flashcards">Flashcards gerados</option><option value="questions">Dossiês de questões</option></select>
+ <select id="autoQueueArtifact"><option value="summary">Resumo</option><option value="practice">Exercícios originais</option><option value="flashcards">Flashcards gerados</option><option value="glossary">Glossário</option><option value="outline">Mapa de tópicos</option><option value="questions">Dossiês de questões</option></select>
  <textarea id="autoQueueOutput" class="output" readonly placeholder="Os resultados da fila aparecerão aqui."></textarea>
  <div class="row"><button class="btn" id="autoQueueShow">Visualizar saída</button><button class="btn" id="autoQueueCopyOutput">Copiar saída</button></div>
 </div>
@@ -894,9 +894,9 @@ const autoQueueData=(()=>{
   return {
    tasks,
    audit:Array.isArray(raw.audit)?raw.audit.slice(-160):[],
-   artifacts:raw.artifacts&&typeof raw.artifacts==='object'?raw.artifacts:{summary:'',practice:'',flashcards:[],questions:[]}
+   artifacts:raw.artifacts&&typeof raw.artifacts==='object'?raw.artifacts:{summary:'',practice:'',flashcards:[],glossary:'',outline:'',questions:[]}
   };
- }catch(_){return {tasks:[],audit:[],artifacts:{summary:'',practice:'',flashcards:[],questions:[]}};}
+ }catch(_){return {tasks:[],audit:[],artifacts:{summary:'',practice:'',flashcards:[],glossary:'',outline:'',questions:[]}};}
 })();
 let autoQueueRunning=false,autoQueueTimer=null;
 function autoQueuePersist(){
@@ -908,6 +908,8 @@ function autoQueuePersist(){
     summary:String(autoQueueData.artifacts.summary||'').slice(0,14000),
     practice:String(autoQueueData.artifacts.practice||'').slice(0,14000),
     flashcards:Array.isArray(autoQueueData.artifacts.flashcards)?autoQueueData.artifacts.flashcards.slice(-30):[],
+    glossary:String(autoQueueData.artifacts.glossary||'').slice(0,10000),
+    outline:String(autoQueueData.artifacts.outline||'').slice(0,10000),
     questions:Array.isArray(autoQueueData.artifacts.questions)?autoQueueData.artifacts.questions.slice(-30):[]
    }
   }));
@@ -1044,6 +1046,22 @@ autoQueueRegisterAdapter({
  }
 });
 autoQueueRegisterAdapter({
+ id:'page-glossary',name:'Glossário local',scope:'owned-local',
+ description:'Extrai termos-chave para um glossário de revisão.',
+ execute:(payload,ctx)=>{
+  ctx.autoQueueData.artifacts.glossary=ctx.local('glossary',String(payload.content||'').slice(0,16000));
+  return 'Glossário local preparado.';
+ }
+});
+autoQueueRegisterAdapter({
+ id:'page-outline',name:'Mapa de tópicos',scope:'owned-local',
+ description:'Organiza ideias e conceitos num roteiro hierárquico.',
+ execute:(payload,ctx)=>{
+  ctx.autoQueueData.artifacts.outline=ctx.local('outline',String(payload.content||'').slice(0,16000));
+  return 'Mapa de tópicos local preparado.';
+ }
+});
+autoQueueRegisterAdapter({
  id:'question-dossier',name:'Dossiê de questão',scope:'owned-local',
  description:'Agrupa enunciado, opções detectadas e evidências para o Tutor.',
  execute:(payload,ctx)=>{
@@ -1103,6 +1121,8 @@ function autoQueueCreatePack(){
  autoQueueAdd('page-summary','Resumo da página',{content});
  autoQueueAdd('page-flashcards','Flashcards da página',{content});
  autoQueueAdd('page-practice','Exercícios de prática da página',{content});
+ autoQueueAdd('page-glossary','Glossário da página',{content});
+ autoQueueAdd('page-outline','Mapa de tópicos da página',{content});
  autoQueueStart();
 }
 function autoQueueExport(){
@@ -1136,7 +1156,7 @@ $('autoQueueRetry').addEventListener('click',()=>{
 });
 $('autoQueueClear').addEventListener('click',()=>{
  if(autoQueueRunning)autoQueuePause();
- autoQueueData.tasks=[];autoQueueData.audit=[];autoQueueData.artifacts={summary:'',practice:'',flashcards:[],questions:[]};
+ autoQueueData.tasks=[];autoQueueData.audit=[];autoQueueData.artifacts={summary:'',practice:'',flashcards:[],glossary:'',outline:'',questions:[]};
  autoQueuePersist();autoQueueRender();status('autoStatus','Fila e auditoria da sessão limpas.');
 });
 $('autoQueueAudit').addEventListener('click',autoQueueExport);
@@ -1148,6 +1168,8 @@ function autoQueueShowArtifact(){
  if(kind==='summary')output=String(a.summary||'');
  else if(kind==='practice')output=String(a.practice||'');
  else if(kind==='flashcards')output=(a.flashcards||[]).map((x,i)=>(i+1)+'. '+x.front+'\n'+x.back).join('\n\n');
+ else if(kind==='glossary')output=String(a.glossary||'');
+ else if(kind==='outline')output=String(a.outline||'');
  else output=(a.questions||[]).map((x,i)=>(i+1)+'. '+x.question+'\n'+(x.options||[]).join('\n')+'\n'+x.draft+'\n'+x.note).join('\n\n---\n\n');
  $('autoQueueOutput').value=output||'Ainda não há saída deste tipo. Execute a fila ou gere um pacote da página.';
 }
