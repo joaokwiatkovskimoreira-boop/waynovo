@@ -10,8 +10,8 @@ const TASKS = {
   translate: "Traduza para português natural e explique os termos técnicos relevantes."
 };
 
-const PROVIDERS = ["gemini", "groq", "openrouter"];
-const DEFAULT_ORDER = ["gemini", "groq", "openrouter"];
+const PROVIDERS = ["openai", "gemini", "groq", "openrouter"];
+const DEFAULT_ORDER = ["openai", "gemini", "groq", "openrouter"];
 
 function out(data, status, headers) {
   return new Response(JSON.stringify(data), {
@@ -73,6 +73,14 @@ function providerOrder(env, requested, fallbackEnabled) {
 
 function providerConfig(provider, env) {
   const legacy = legacyProvider(env);
+  if (provider === "openai") {
+    return {
+      key: env.OPENAI_API_KEY || (legacy === "openai" ? env.AI_API_KEY : ""),
+      model: env.OPENAI_MODEL || "gpt-6-luna",
+      base: "https://api.openai.com/v1",
+      kind: "openai-responses"
+    };
+  }
   if (provider === "gemini") {
     return {
       key: env.GEMINI_API_KEY || (legacy === "gemini" ? env.AI_API_KEY : ""),
@@ -107,6 +115,21 @@ function providerConfig(provider, env) {
   return null;
 }
 
+function parseResponsesText(data) {
+  if (data && typeof data.output_text === "string" && data.output_text.trim()) {
+    return data.output_text.trim();
+  }
+  const messages = Array.isArray(data && data.output) ? data.output : [];
+  return messages
+    .filter(item => item && item.type === "message" && Array.isArray(item.content))
+    .flatMap(item => item.content)
+    .filter(part => part && part.type === "output_text" && typeof part.text === "string")
+    .map(part => part.text.trim())
+    .filter(Boolean)
+    .join("\\n\\n")
+    .trim();
+}
+
 function parseCompatibleText(data) {
   const value = data && data.choices && data.choices[0] &&
     data.choices[0].message && data.choices[0].message.content;
@@ -131,6 +154,57 @@ async function requestProvider(provider, config, system, prompt, env) {
   try {
     let response;
     let data = {};
+
+    if (config.kind === "openai-responses") {
+      response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + config.key
+        },
+        body: JSON.stringify({
+          model: config.model,
+          instructions: system,
+          input: prompt,
+          max_output_tokens: 2200,
+          store: false
+        }),
+        signal: controller.signal
+      });
+      data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const hint = response.status === 401
+          ? " Confira OPENAI_API_KEY."
+          : response.status === 429
+            ? " Confira créditos, limites e faturamento da OpenAI API."
+            : "";
+        return {
+          ok: false,
+          status: "http_" + response.status,
+          message: "OpenAI Responses API respondeu HTTP " + response.status + "." + hint
+        };
+      }
+      const text = parseResponsesText(data);
+      return text
+        ? {
+            ok: true,
+            text,
+            provider,
+            model: config.model,
+            usage: data.usage ? {
+              inputTokens: Number(data.usage.input_tokens) || 0,
+              outputTokens: Number(data.usage.output_tokens) || 0,
+              totalTokens: Number(data.usage.total_tokens) || 0
+            } : null
+          }
+        : {
+            ok: false,
+            status: data && data.status === "incomplete" ? "incomplete" : "empty",
+            message: data && data.status === "incomplete"
+              ? "A OpenAI interrompeu a resposta antes da conclusão."
+              : "OpenAI retornou uma resposta vazia."
+          };
+    }
 
     if (config.kind === "gemini") {
       const model = String(config.model).replace(/^models\//, "");
