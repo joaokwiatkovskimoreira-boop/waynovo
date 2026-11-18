@@ -19,7 +19,7 @@ O bookmarklet usa Shadow DOM para isolar o visual, não importa bibliotecas/CDNs
 3. Abra o favorito na página que deseja estudar. O **Autopilot** começa a varredura do texto renderizado e visível automaticamente.
 4. Confira a aba **Autopilot** para ver tempo de uso, varreduras, questões detectadas e rascunhos sugeridos. Se a página bloquear bookmarklets ou o conteúdo estiver dentro de um iframe isolado, cole o trecho manualmente.
 
-O bookmarklet não carrega bibliotecas por CDN nem executa código remoto. O Autopilot percorre apenas texto renderizado em elementos visíveis da página atual; ignora conteúdo oculto, campos de entrada, botões e iframes isolados. O monitor extrai enunciados e evidências textuais localmente, sem enviar formulários nem clicar em respostas.
+O favorito desktop é autocontido: inclui o código do painel e não carrega bibliotecas por CDN nem scripts remotos. O código curto usado na instalação Android é um carregador versionado que busca `bookmarklet.js` do repositório; por isso precisa de conectividade quando o arquivo ainda não está em cache e pode ser bloqueado por CSP. O Autopilot percorre apenas texto renderizado em elementos visíveis da página atual; ignora conteúdo oculto, campos de entrada, botões comuns e iframes isolados. O monitor extrai enunciados, alternativas acessíveis e evidências textuais localmente, sem enviar formulários nem clicar em respostas.
 
 ## Módulos do bookmarklet
 
