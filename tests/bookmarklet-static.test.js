@@ -171,6 +171,25 @@ test('Task Queue flashcards are idempotent and respect the local deck limit', ()
   assert.equal(state.cards.length, 300);
 });
 
+
+test('queue capacity warning is explicit and the audit task title contains no question text', () => {
+  assert.ok(source.includes("Fila cheia: conclua ou limpe tarefas antes de adicionar novas."));
+  assert.match(source, /autoQueueAdd\('question-dossier','Questão detectada · '\+key,item\)/);
+
+  const start = source.indexOf('function autoQueueAdd(type,title,payload){');
+  const end = source.indexOf('function autoQueueCounts(){', start);
+  assert.ok(start >= 0 && end > start);
+  const tasks = Array.from({length:60},(_,i)=>({id:'pending-'+i,status:'pending'}));
+  const data = {tasks,audit:[]};
+  let notice = '';
+  const add = new Function('autoQueueData','autoHash','autoQueueLog','autoQueuePersist','autoQueueRender','status',
+    source.slice(start,end)+';return autoQueueAdd;'
+  )(data,()=> 'fingerprint',()=>{},()=>{},()=>{},(id,message)=>{notice=message;});
+  assert.equal(add('page-summary','summary',{content:'x'}),null);
+  assert.equal(data.tasks.length,60);
+  assert.match(notice,/Fila cheia/);
+});
+
 test('manual pasted-text pack enqueues five local task types and starts the queue', () => {
   const start = source.indexOf('function autoQueueCreateFromText(){');
   const end = source.indexOf('function autoQueueCreatePack(){', start);
