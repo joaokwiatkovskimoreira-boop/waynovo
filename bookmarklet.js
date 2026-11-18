@@ -777,18 +777,22 @@ function autoHash(value){
  return (hash>>>0).toString(36);
 }
 function autoVisibleBlocks(){
- const selector='[role="question"],[data-testid*="question" i],[class*="question" i],p,li,article,h1,h2,h3,h4,div';
- const nodes=Array.from(document.querySelectorAll(selector));
+ const selector='[role="question"],[data-testid*="question" i],[class*="question" i],[role="radio"],[role="option"],[class*="option" i],[class*="answer" i],label,p,li,article,h1,h2,h3,h4,div,button[role="radio"],button[role="option"],button[class*="option" i],button[class*="answer" i]';
+ const nodes=Array.from(document.querySelectorAll(selector)).slice(0,3500);
  const seenText=new Set(),blocks=[];
  for(const el of nodes){
   if(host.contains(el))continue;
   const tag=String(el.tagName||'').toUpperCase();
-  if(['SCRIPT','STYLE','NOSCRIPT','SVG','BUTTON','INPUT','TEXTAREA','SELECT','OPTION','NAV','HEADER','FOOTER'].includes(tag))continue;
+  const marker=String(el.className||'')+' '+String(el.getAttribute('data-testid')||'');
+  const role=el.getAttribute('role')||'';
+  const isChoice=role==='radio'||role==='option'||/option|answer/i.test(marker);
+  if(['SCRIPT','STYLE','NOSCRIPT','SVG','INPUT','TEXTAREA','SELECT','OPTION','NAV','HEADER','FOOTER'].includes(tag))continue;
+  if(tag==='BUTTON'&&!isChoice)continue;
   if(!el.getClientRects||!el.getClientRects().length)continue;
+  if(el.closest&&el.closest('[aria-hidden="true"],[hidden],[inert]'))continue;
   let style;try{style=getComputedStyle(el);}catch(_){continue;}
   if(style.display==='none'||style.visibility==='hidden'||Number(style.opacity)===0)continue;
-  const marker=String(el.className||'')+' '+String(el.getAttribute('data-testid')||'');
-  const isMarked=/question/i.test(marker)||el.getAttribute('role')==='question';
+  const isMarked=/question/i.test(marker)||role==='question';
   if(tag==='DIV'&&!isMarked&&el.querySelector('p,li,article,[role="question"],[class*="question" i],[data-testid*="question" i]'))continue;
   const text=String(el.innerText||el.textContent||'').replace(/\s+/g,' ').trim();
   if(text.length<18||text.length>1600)continue;
@@ -806,6 +810,38 @@ function autoTokens(text){
 }
 function autoIsQuestion(text){
  return /[?¿？]/.test(text)||/^(?:qual|quais|quem|quando|onde|por que|porque|como|quanto|quantos|explique|descreva|calcule|determine|identifique|assinale|selecione|marque|compare|cite|defina|resolva)\b/i.test(text);
+}
+function autoCollectOptions(question,blocks){
+ const inline=String(question||'').replace(/\s+/g,' ').trim();
+ const marker=/(?:^|\s)([A-E])[\)\].:\-]\s*/gi;
+ const points=[];let match;
+ while((match=marker.exec(inline))!==null){
+  points.push({label:match[1].toUpperCase(),start:match.index+(match[0].startsWith(' ')?1:0),end:marker.lastIndex});
+ }
+ const options=[];
+ if(points.length>=2){
+  for(let i=0;i<points.length;i++){
+   const end=i+1<points.length?points[i+1].start:inline.length;
+   const text=inline.slice(points[i].end,end).trim();
+   if(text)options.push(points[i].label+') '+text);
+  }
+ }
+ if(options.length>=2)return options.slice(0,8);
+ const start=blocks.indexOf(question);
+ if(start<0)return options;
+ for(let i=start+1;i<Math.min(blocks.length,start+11);i++){
+  const value=String(blocks[i]||'').trim();
+  if(autoIsQuestion(value))break;
+  const item=value.match(/^\s*(?:\(([A-E])\)|([A-E])[\).:\-])\s*(.+)$/i);
+  if(item){
+   const label=(item[1]||item[2]).toUpperCase();
+   if(!options.some(x=>x.startsWith(label+')')))options.push(label+') '+item[3].trim());
+   if(options.length>=8)break;
+  }else if(options.length&&value.length<220&&value.length>2&&i<start+7){
+   options.push(String.fromCharCode(65+options.length)+') '+value);
+  }
+ }
+ return options.slice(0,8);
 }
 function autoFindEvidence(question,blocks){
  const terms=autoTokens(question);
@@ -841,10 +877,20 @@ function autoRender(){
  autoDrafts.slice(0,25).forEach((item,index)=>{
   const card=document.createElement('article');card.className='auto-item';
   const heading=document.createElement('div');heading.className='auto-question';heading.textContent=(index+1)+'. '+item.question;
+  const choices=document.createElement('div');choices.className='auto-evidence';choices.textContent=item.options&&item.options.length?'Alternativas detectadas:\n'+item.options.join('\n'):'Nenhuma alternativa reconhecida automaticamente.';
   const answer=document.createElement('div');answer.className='auto-answer';answer.textContent=item.draft;
   const evidence=document.createElement('div');evidence.className='auto-evidence';
   evidence.textContent=item.evidence.length?'Evidência · correspondência textual: '+Math.round(item.evidence[0].score*100)+'%':'Evidência · nenhum trecho relacionado encontrado';
   const actions=document.createElement('div');actions.className='row';
+  const tutor=document.createElement('button');tutor.className='btn primary';tutor.textContent='Levar ao Tutor';
+  tutor.addEventListener('click',()=>{
+   $('questionText').value=item.question;
+   $('questionChoices').value=(item.options||[]).join('\n');
+   $('source').value='ENUNCIADO:\n'+item.question+'\n\nALTERNATIVAS:\n'+((item.options||[]).join('\n')||'(não detectadas)')+'\n\nTRECHOS DE APOIO:\n'+(item.evidence||[]).map(x=>x.text).join('\n');
+   $('source').dispatchEvent(new Event('input'));
+   status('questionStatus','Questão e alternativas extraídas pelo Autopilot. Revise e solicite a explicação do Tutor.');
+   activateTab('questions');
+  });
   const open=document.createElement('button');open.className='btn';open.textContent='Abrir no Estudo';
   open.addEventListener('click',()=>{
    $('source').value='ENUNCIADO:\n'+item.question+'\n\nRASCUNHO:\n'+item.draft;
@@ -853,7 +899,7 @@ function autoRender(){
    status('studyStatus','Rascunho do Autopilot enviado para revisão. Confira a fonte.');
    activateTab('study');
   });
-  actions.append(open);card.append(heading,answer,evidence,actions);list.append(card);
+  actions.append(tutor,open);card.append(heading,choices,answer,evidence,actions);list.append(card);
  });
 }
 function autoScan(force){
@@ -867,8 +913,9 @@ function autoScan(force){
   if(isNew){autoSeen.add(key);autoStats.drafts++;}
   if(isNew||!autoDrafts.some(item=>item.id===key)){
    added++;
+   const options=autoCollectOptions(question,blocks);
    const evidence=autoFindEvidence(question,blocks);
-   autoDrafts.unshift({id:key,question,evidence,draft:autoMakeDraft(question,evidence)});
+   autoDrafts.unshift({id:key,question,options,evidence,draft:autoMakeDraft(question,evidence)});
   }
  });
  autoDrafts=autoDrafts.slice(0,25);
@@ -906,7 +953,7 @@ $('autoScanNow').addEventListener('click',()=>autoScan(true));
 $('autoToggle').addEventListener('click',()=>{if(autoRunning)autoPause();else autoStart();});
 $('autoCopy').addEventListener('click',async()=>{
  if(!autoDrafts.length)return status('autoStatus','Ainda não há rascunhos para copiar.');
- const text=autoDrafts.map((item,i)=>(i+1)+'. '+item.question+'\n'+item.draft).join('\n\n---\n\n');
+ const text=autoDrafts.map((item,i)=>(i+1)+'. '+item.question+'\n'+((item.options||[]).join('\n'))+'\n'+item.draft).join('\n\n---\n\n');
  status('autoStatus',await copy(text)?'Rascunhos copiados.':'Não foi possível copiar neste navegador.');
 });
 autoClockInterval=setInterval(()=>{
