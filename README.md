@@ -34,6 +34,12 @@ A aba **Módulos** reúne seis fluxos independentes:
 
 A detecção de plataforma é apenas informativa. Os módulos trabalham com texto selecionado ou colado pelo usuário; não fazem varredura de conteúdo oculto, envio automático de respostas, alteração de notas ou simulação de conclusão em serviços externos. Todos compartilham o editor, os cartões, as notas, o temporizador e a integração opcional com IA.
 
+## Assistente de questões inspirado no WaygroundXGen
+
+A aba **Questões** aceita enunciado e alternativas colados pelo usuário, prepara um roteiro de análise e pode enviar o conteúdo ao gateway de IA configurado para explicar o conceito, comparar alternativas e justificar a resposta provável. O envio é iniciado pelo próprio usuário; não há leitura de questões ocultas, clique em alternativas ou submissão automática em plataformas externas.
+
+A implementação aproveita a ideia geral de análise de questões com IA, mas não incorpora o mecanismo de geração de bookmarklets do projeto de referência que injeta chaves de API no código, substitui `window.eval` e carrega um script remoto por CDN. No Waynovo, as chaves do provedor devem permanecer como secrets no gateway; o bookmarklet recebe apenas o token temporário do gateway.
+
 ## Motor de automação e sandbox
 
 A aba **Automação** inclui um motor de fluxos demonstrativo com etapas sequenciais, condições e estado isolado em memória. Há três cenários: sessão de estudo fictícia, navegação entre páginas de exemplo e validação local de estado. O registro mostra o resultado de cada etapa e o ambiente pode ser reiniciado.
