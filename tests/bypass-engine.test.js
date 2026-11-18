@@ -43,7 +43,7 @@ test('QA override cannot be used in demo or on fixture-authority adapters', () =
   const demo = engine.run('client-feature-gate', {
     environment: 'demo', authorization: { qaOverride: true }, clientPayload: { featureEnabled: false }
   }, 'qa-override');
-  const trusted = engine.run('trusted-entitlement-lab', {
+  const trusted = engine.run('trusted-entitlement', {
     environment: 'test', authorization: { qaOverride: true }, fixture: { trustedGrants: [] }
   }, 'qa-override');
   assert.equal(demo.outcome, 'DENY');
@@ -53,7 +53,7 @@ test('QA override cannot be used in demo or on fixture-authority adapters', () =
 });
 
 test('client payload cannot forge a trusted entitlement', () => {
-  const record = Engine.createDefaultEngine().run('trusted-entitlement-lab', {
+  const record = Engine.createDefaultEngine().run('trusted-entitlement', {
     environment: 'test',
     fixture: { trustedGrants: [] },
     clientPayload: { role: 'admin', qaOverride: true }
@@ -62,7 +62,7 @@ test('client payload cannot forge a trusted entitlement', () => {
 });
 
 test('rate limit uses fixture counter, not client-supplied attempts', () => {
-  const record = Engine.createDefaultEngine().run('rate-limit-lab', {
+  const record = Engine.createDefaultEngine().run('rate-limit', {
     environment: 'test',
     fixture: { attempts: 3, limit: 3 },
     clientPayload: { attempts: 0 }
@@ -72,7 +72,7 @@ test('rate limit uses fixture counter, not client-supplied attempts', () => {
 
 test('evaluation exceptions fail closed and are audited', () => {
   const engine = Engine.createDefaultEngine();
-  const record = engine.run('fault-tolerance-lab', {
+  const record = engine.run('fault-tolerance', {
     environment: 'test', fixture: { simulateFailure: true }
   });
   assert.equal(record.outcome, 'DENY');
@@ -108,5 +108,19 @@ test('audit export contains metadata but not the raw input context', () => {
 test('built-in suite passes every scenario', () => {
   const suite = Engine.runSuite();
   assert.equal(suite.passed, suite.total);
-  assert.equal(suite.total, 9);
+  assert.equal(suite.total, 11);
+});
+
+test('rate limit allows a fixture counter below the limit', () => {
+  const record = Engine.createDefaultEngine().run('rate-limit', {
+    environment: 'test', fixture: { attempts: 1, limit: 3 }, clientPayload: { attempts: 99 }
+  });
+  assert.equal(record.outcome, 'ALLOW');
+});
+
+test('healthy dependency fixture is allowed', () => {
+  const record = Engine.createDefaultEngine().run('fault-tolerance', {
+    environment: 'test', fixture: { healthy: true }
+  });
+  assert.equal(record.outcome, 'ALLOW');
 });
