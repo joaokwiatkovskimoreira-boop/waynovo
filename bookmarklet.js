@@ -62,10 +62,11 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 .cog-label{font-size:9px;color:#9eabc7;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
 :host([data-theme=light]) .cog-card,:host([data-theme=light]) .cog-step,:host([data-theme=light]) .cog-memory{background:#fff;border-color:#dce1ed}
 :host([data-theme=light]) .cog-step.done{background:#effaf4;border-color:#b5dfc8}
+.cog-action-result{min-height:145px}.cog-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.cog-action-grid .btn{width:100%}.cog-chip{display:inline-block;padding:3px 7px;border:1px solid #485779;border-radius:999px;color:#c8d1e7;font-size:9px}:host([data-theme=light]) .cog-chip{color:#42506a;border-color:#cbd3e3}
 @media(max-width:360px){.tab{min-width:54px;padding:8px 5px}.cog-memory{align-items:flex-start;flex-wrap:wrap}}
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.1 · MULTI-IA</div></div><div class="spacer"></div>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.2 · COGNITIVE AUTOPILOT</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
 <nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
@@ -126,6 +127,14 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <div class="cog-card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:11px">Plano de execução</b><span class="meta" id="cogProgress">0 etapas</span></div><div class="cog-progress"><span id="cogProgressBar"></span></div><div id="cogSteps"><div class="meta">Crie um plano para ver as etapas.</div></div>
 <div class="row"><button class="btn primary" id="cogNext" disabled>Concluir etapa atual</button><button class="btn" id="cogReset" disabled>Reiniciar plano</button></div>
 <div class="row"><button class="btn" id="cogSaveMemory" disabled>Guardar na memória</button><button class="btn" id="cogCopyPlan" disabled>Copiar plano</button></div><div class="status" id="cogStatus"></div></div>
+<div class="cog-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:11px">Action Lab · execução assistida</b><span class="cog-chip">sem ações externas</span></div>
+<div class="desc">Produza uma entrega para a etapa atual e audite o resultado. Cada chamada usa o provedor/fallback escolhido na aba IA e exige seu clique.</div>
+<div class="meta" id="cogCurrentStep">Crie um plano para começar.</div>
+<div class="cog-action-grid"><button class="btn primary" id="cogRunStep" disabled>Executar etapa com IA</button><button class="btn" id="cogVerifyStep" disabled>Auditar resultado</button></div>
+<label for="cogStepResult">Resultado produzido</label><textarea id="cogStepResult" class="cog-action-result" placeholder="A entrega aparecerá aqui. Você pode editá-la antes da auditoria."></textarea>
+<label for="cogAuditResult">Auditoria e pontos a corrigir</label><textarea id="cogAuditResult" class="cog-action-result" readonly placeholder="A auditoria aponta critérios atendidos, lacunas e incertezas."></textarea>
+<div class="row"><button class="btn" id="cogSendResult" disabled>Enviar para Estudo</button><button class="btn" id="cogSaveResult" disabled>Guardar plano + entrega</button></div>
+<div class="status" id="cogActionStatus"></div></div>
 <div class="cog-card"><div class="cog-label">Análise com modelo · opcional</div><div class="desc">Usa o endpoint e o token configurados na aba IA. O texto só é enviado quando você clicar; podem existir limites ou custos do provedor.</div><div class="row"><button class="btn primary" id="cogAskAI">Analisar objetivo com IA</button></div><textarea id="cogAIResult" class="output" readonly placeholder="A análise do gateway aparecerá aqui."></textarea></div>
 <div class="cog-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:11px">Memória deste navegador</b><button class="btn" id="cogClearMemory">Apagar memória</button></div><div class="desc">Nada é sincronizado. Somente planos salvos explicitamente aparecem aqui.</div><div id="cogMemories"><div class="meta">Nenhuma memória salva.</div></div></div>
 <div class="hint">Limite importante: o planejador local não é um modelo de linguagem e não executa ações em sites externos. Ele organiza o trabalho e acompanha o que você marca como concluído. Use adaptadores próprios e permissões explícitas para integrações futuras.</div></section>
@@ -241,7 +250,7 @@ $('analyzeQuestionAI').addEventListener('click',()=>{
  activateTab('ai');$('askAI').click();
 });
 
-const COG_KEY='waynovo.cognitive.v1';
+const COG_KEY='waynovo.cognitive.v1',COG_ACTIVE_KEY='waynovo.cognitive.active.v1';
 let cogPlan=null,cogStepIndex=0,cogMemories=[];
 function cogReadMemories(){
  try{
@@ -250,8 +259,25 @@ function cogReadMemories(){
  }catch(_){return [];}
 }
 function cogSaveMemories(){
- try{localStorage.setItem(COG_KEY,JSON.stringify(cogMemories.slice(0,30)));return true;}
+ try{localStorage.setItem(COG_KEY,JSON.stringify(cogMemories.slice(0,20)));return true;}
  catch(_){status('cogStatus','Não foi possível salvar: armazenamento indisponível ou cheio.');return false;}
+}
+function cogPersistActive(){
+ try{
+  if(!cogPlan){localStorage.removeItem(COG_ACTIVE_KEY);return true;}
+  const snapshot={...cogPlan,context:String(cogPlan.context||'').slice(0,3500),lastResult:cogPlan.lastResult?{...cogPlan.lastResult,text:String(cogPlan.lastResult.text||'').slice(0,9000)}:null,lastAudit:String(cogPlan.lastAudit||'').slice(0,6000),completed:cogStepIndex};
+  localStorage.setItem(COG_ACTIVE_KEY,JSON.stringify(snapshot));return true;
+ }catch(_){status('cogStatus','Plano ativo não pôde ser salvo; copie uma versão de backup.');return false;}
+}
+function cogRestoreActive(){
+ try{
+  const item=JSON.parse(localStorage.getItem(COG_ACTIVE_KEY)||'null');
+  if(!item||typeof item.goal!=='string'||!Array.isArray(item.steps)||!item.steps.length)return;
+  cogPlan=item;cogStepIndex=Math.max(0,Math.min(Number(item.completed)||0,item.steps.length));
+  $('cogGoal').value=item.goal;$('cogContext').value=String(item.context||'');
+  $('cogStepResult').value=item.lastResult&&typeof item.lastResult.text==='string'?item.lastResult.text:'';
+  $('cogAuditResult').value=String(item.lastAudit||'');
+ }catch(_){}
 }
 cogMemories=cogReadMemories();
 function cogCategory(goal){
@@ -315,6 +341,8 @@ function cogRender(){
   $('cogEvidence').textContent='Nenhuma análise criada.';
   $('cogProgress').textContent='0 etapas';$('cogProgressBar').style.width='0%';
   $('cogNext').disabled=true;$('cogReset').disabled=true;$('cogSaveMemory').disabled=true;$('cogCopyPlan').disabled=true;
+  $('cogRunStep').disabled=true;$('cogVerifyStep').disabled=true;$('cogSendResult').disabled=true;$('cogSaveResult').disabled=true;
+  $('cogCurrentStep').textContent='Crie um plano para começar.';$('cogStepResult').value='';$('cogAuditResult').value='';
   return;
  }
  $('cogRationale').textContent=cogPlan.rationale;
@@ -335,6 +363,12 @@ function cogRender(){
  });
  $('cogNext').disabled=done>=total;$('cogNext').textContent=done>=total?'Plano concluído':'Concluir etapa atual';
  $('cogReset').disabled=false;$('cogSaveMemory').disabled=false;$('cogCopyPlan').disabled=false;
+ const activeStep=cogPlan.steps[Math.min(done,total-1)];
+ $('cogCurrentStep').textContent=done>=total?'Todas as etapas estão marcadas. Revise as entregas salvas.':'Etapa '+(done+1)+' · '+activeStep.title+' — '+activeStep.detail;
+ if(cogPlan.lastResult&&typeof cogPlan.lastResult.text==='string')$('cogStepResult').value=cogPlan.lastResult.text;
+ $('cogAuditResult').value=String(cogPlan.lastAudit||'');
+ $('cogRunStep').disabled=done>=total;$('cogVerifyStep').disabled=!String($('cogStepResult').value||'').trim();
+ $('cogSendResult').disabled=!String($('cogStepResult').value||'').trim();$('cogSaveResult').disabled=!String($('cogStepResult').value||'').trim();
 }
 function cogPlanText(){
  if(!cogPlan)return '';
@@ -343,8 +377,8 @@ function cogPlanText(){
 $('cogPlan').addEventListener('click',()=>{
  const goal=$('cogGoal').value.trim(),context=$('cogContext').value.trim();
  if(!goal)return status('cogStatus','Descreva um objetivo antes de criar o plano.');
- cogPlan=cogMakePlan(goal,context);cogStepIndex=0;$('cogAIResult').value='';
- cogRender();status('cogStatus','Plano criado localmente. Revise as etapas e marque cada uma quando realmente concluir.');
+ cogPlan=cogMakePlan(goal,context);cogStepIndex=0;$('cogAIResult').value='';$('cogStepResult').value='';$('cogAuditResult').value='';
+ cogPersistActive();cogRender();status('cogStatus','Plano criado localmente e salvo como plano ativo. Revise as etapas e marque cada uma quando realmente concluir.');
 });
 $('cogUseMaterial').addEventListener('click',()=>{
  const material=$('source').value.trim();
@@ -353,40 +387,103 @@ $('cogUseMaterial').addEventListener('click',()=>{
 });
 $('cogNext').addEventListener('click',()=>{
  if(!cogPlan||cogStepIndex>=cogPlan.steps.length)return;
- cogStepIndex++;cogRender();
+ cogStepIndex++;cogPersistActive();cogRender();
  status('cogStatus',cogStepIndex===cogPlan.steps.length?'Todas as etapas foram marcadas como concluídas. Confira os critérios e pendências antes de encerrar.':'Etapa marcada. A próxima etapa está destacada.');
 });
 $('cogReset').addEventListener('click',()=>{
- if(!cogPlan)return;cogStepIndex=0;cogRender();status('cogStatus','Progresso do plano reiniciado; objetivo e etapas foram mantidos.');
+ if(!cogPlan)return;cogStepIndex=0;cogPlan.lastResult=null;cogPlan.lastAudit='';$('cogStepResult').value='';$('cogAuditResult').value='';cogPersistActive();cogRender();status('cogStatus','Progresso do plano reiniciado; objetivo e etapas foram mantidos.');
 });
 $('cogSaveMemory').addEventListener('click',()=>{
  if(!cogPlan)return;
+ if(String($('cogStepResult').value||'').trim())cogPlan.lastResult={...(cogPlan.lastResult||{}),stepIndex:cogStepIndex,text:String($('cogStepResult').value).slice(0,9000)};
+ cogPlan.lastAudit=String($('cogAuditResult').value||cogPlan.lastAudit||'').slice(0,6000);cogPersistActive();
  const item={...cogPlan,completed:cogStepIndex};
- cogMemories=[item,...cogMemories.filter(x=>x.id!==item.id)].slice(0,30);
+ cogMemories=[item,...cogMemories.filter(x=>x.id!==item.id)].slice(0,20);
  if(cogSaveMemories()){cogRenderMemories();status('cogStatus','Plano salvo na memória local deste navegador.');}
 });
 $('cogCopyPlan').addEventListener('click',async()=>{
- if(!cogPlan)return;status('cogStatus',await copy(cogPlanText())?'Plano copiado.':'Não foi possível copiar neste navegador.');
+ if(!cogPlan)return;status('cogStatus',await copy(cogPlanText())?'Plano e última entrega copiados.':'Não foi possível copiar neste navegador.');
 });
-$('cogAskAI').addEventListener('click',async()=>{
- const goal=$('cogGoal').value.trim(),context=$('cogContext').value.trim();
- if(!goal)return status('cogStatus','Descreva um objetivo antes de solicitar análise.');
+
+async function cogGatewayRequest(task,content){
  const endpoint=$('endpoint').value.trim(),token=$('token').value.trim();
- if(!endpoint||!token){status('cogStatus','Configure endpoint e token na aba IA primeiro.');return;}
- let url;try{url=new URL(endpoint);}catch(_){status('cogStatus','Endpoint inválido.');return;}
- if(url.protocol!=='https:'&&url.hostname!=='localhost'&&url.hostname!=='127.0.0.1'){status('cogStatus','Use HTTPS, exceto em localhost.');return;}
- const btn=$('cogAskAI'),old=btn.textContent,controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),55000);
- const content='OBJETIVO DO USUÁRIO:\n'+goal+'\n\nCONTEXTO FORNECIDO:\n'+(context||'(não fornecido)')+'\n\nINSTRUÇÕES: crie um plano acionável em etapas; declare pressupostos; diferencie fatos do contexto e inferências; inclua critérios de verificação, riscos e próximos passos. Explique concisamente por que cada etapa existe. Não afirme que realizou ações. Não revele cadeia interna de pensamento; forneça apenas justificativas resumidas e verificáveis.';
- btn.disabled=true;btn.textContent='Analisando…';
+ if(!endpoint||!token)throw new Error('Configure endpoint e token na aba IA primeiro.');
+ let url;try{url=new URL(endpoint);}catch(_){throw new Error('Endpoint inválido.');}
+ if(url.protocol!=='https:'&&url.hostname!=='localhost'&&url.hostname!=='127.0.0.1')throw new Error('Use HTTPS, exceto em localhost.');
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),55000);
  try{
-  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:'plan',content,pageTitle:title}),signal:controller.signal});
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task,content:content.slice(0,28000),pageTitle:title,provider:$('provider').value,fallback:$('fallback').value!=='false'}),signal:controller.signal});
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||'Gateway HTTP '+response.status);
   if(typeof data.text!=='string'||!data.text.trim())throw new Error('A IA retornou resposta vazia.');
+  return data;
+ }catch(error){if(error.name==='AbortError')throw new Error('Tempo limite excedido.');throw error;}
+ finally{clearTimeout(timeout);}
+}
+$('cogStepResult').addEventListener('input',()=>{
+ const has=Boolean(String($('cogStepResult').value||'').trim());
+ $('cogVerifyStep').disabled=!has;$('cogSendResult').disabled=!has;$('cogSaveResult').disabled=!has;
+});
+$('cogStepResult').addEventListener('change',()=>{
+ if(cogPlan){cogPlan.lastResult={...(cogPlan.lastResult||{}),stepIndex:cogStepIndex,text:String($('cogStepResult').value).slice(0,9000)};cogPersistActive();}
+});
+$('cogRunStep').addEventListener('click',async()=>{
+ if(!cogPlan)return status('cogActionStatus','Crie ou recupere um plano primeiro.');
+ if(cogStepIndex>=cogPlan.steps.length)return status('cogActionStatus','Todas as etapas já estão marcadas como concluídas.');
+ const step=cogPlan.steps[cogStepIndex],btn=$('cogRunStep'),old=btn.textContent;
+ const content='OBJETIVO:\n'+cogPlan.goal+'\n\nETAPA ATUAL ('+(cogStepIndex+1)+'/'+cogPlan.steps.length+'):\n'+step.title+'\n'+step.detail+'\n\nJUSTIFICATIVA:\n'+step.why+'\n\nCONTEXTO:\n'+(cogPlan.context||'(não fornecido)')+'\n\nPRODUZA uma entrega útil para esta etapa. Separe fatos do contexto, inferências e pontos que precisam de confirmação. Não diga que executou ações externas nem invente evidências. Termine com critérios objetivos de revisão.';
+ btn.disabled=true;btn.textContent='Executando…';status('cogActionStatus','Enviando somente a etapa atual ao provedor escolhido…');
+ try{
+  const data=await cogGatewayRequest('explain',content);
+  $('cogStepResult').value=data.text.trim();$('cogAuditResult').value='';
+  cogPlan.lastResult={stepIndex:cogStepIndex,text:data.text.trim(),provider:data.provider||'',model:data.model||'',createdAt:new Date().toISOString()};
+  cogPlan.lastAudit='';cogPersistActive();cogRender();
+  status('cogActionStatus','Entrega recebida · '+(data.provider||'gateway')+' / '+(data.model||'modelo')+(data.fallbackUsed?' · fallback usado':'')+'. Revise antes de marcar a etapa.');
+ }catch(error){status('cogActionStatus',error.message||'Falha na execução assistida.');}
+ finally{btn.disabled=false;btn.textContent=old;}
+});
+$('cogVerifyStep').addEventListener('click',async()=>{
+ if(!cogPlan)return status('cogActionStatus','Crie ou recupere um plano primeiro.');
+ const result=String($('cogStepResult').value||'').trim();if(!result)return status('cogActionStatus','Gere ou cole um resultado antes de auditar.');
+ const idx=cogPlan.lastResult&&Number.isInteger(cogPlan.lastResult.stepIndex)?cogPlan.lastResult.stepIndex:cogStepIndex;
+ const step=cogPlan.steps[Math.max(0,Math.min(idx,cogPlan.steps.length-1))];
+ const content='OBJETIVO:\n'+cogPlan.goal+'\n\nETAPA:\n'+step.title+'\n'+step.detail+'\n\nCONTEXTO/FONTE:\n'+(cogPlan.context||'(não fornecido)')+'\n\nRESULTADO:\n'+result+'\n\nAUDITE aderência ao objetivo, critérios atendidos, lacunas, afirmações sem suporte, contradições, riscos e próximos passos. Separe fatos, inferências e pontos não verificáveis. Não invente evidências nem declare testes não realizados. Termine com veredito calibrado: adequado, parcialmente adequado ou precisa de revisão.';
+ const btn=$('cogVerifyStep'),old=btn.textContent;btn.disabled=true;btn.textContent='Auditando…';status('cogActionStatus','Solicitando revisão crítica…');
+ try{
+  const data=await cogGatewayRequest('verify',content);
+  $('cogAuditResult').value=data.text.trim();cogPlan.lastAudit=data.text.trim();cogPersistActive();
+  status('cogActionStatus','Auditoria recebida · '+(data.provider||'gateway')+' / '+(data.model||'modelo')+(data.fallbackUsed?' · fallback usado':'')+'. Segunda opinião: confira as fontes.');
+ }catch(error){status('cogActionStatus',error.message||'Falha na auditoria.');}
+ finally{btn.disabled=false;btn.textContent=old;}
+});
+$('cogSendResult').addEventListener('click',()=>{
+ const result=String($('cogStepResult').value||'').trim();if(!result)return status('cogActionStatus','Não há resultado para enviar.');
+ $('source').value='Resultado Waynovo · '+(cogPlan?cogPlan.goal:'')+'\n\n'+result;
+ $('source').dispatchEvent(new Event('input'));$('output').value=result;
+ status('studyStatus','Resultado do Cognitive Engine enviado para a aba Estudo.');
+ activateTab('study');$('output').focus();
+});
+$('cogSaveResult').addEventListener('click',()=>{
+ if(!cogPlan)return;
+ cogPlan.lastResult={...(cogPlan.lastResult||{}),stepIndex:cogStepIndex,text:String($('cogStepResult').value||'').slice(0,9000)};
+ cogPlan.lastAudit=String($('cogAuditResult').value||cogPlan.lastAudit||'').slice(0,6000);
+ const item={...cogPlan,completed:cogStepIndex};cogMemories=[item,...cogMemories.filter(x=>x.id!==item.id)].slice(0,20);
+ cogPersistActive();
+ if(cogSaveMemories()){cogRenderMemories();status('cogActionStatus','Plano, entrega e auditoria guardados na memória local.');}
+});
+
+$('cogAskAI').addEventListener('click',async()=>{
+ const goal=$('cogGoal').value.trim(),context=$('cogContext').value.trim();
+ if(!goal)return status('cogStatus','Descreva um objetivo antes de solicitar análise.');
+ const btn=$('cogAskAI'),old=btn.textContent;
+ const content='OBJETIVO DO USUÁRIO:\n'+goal+'\n\nCONTEXTO FORNECIDO:\n'+(context||'(não fornecido)')+'\n\nCrie um plano acionável em etapas, declare pressupostos, separe fatos de inferências e inclua critérios de verificação, riscos e próximos passos. Explique resumidamente por que cada etapa existe. Não afirme que executou ações; forneça justificativas verificáveis.';
+ btn.disabled=true;btn.textContent='Analisando…';
+ try{
+  const data=await cogGatewayRequest('plan',content);
   $('cogAIResult').value=data.text.trim();
-  status('cogStatus','Análise recebida pelo gateway · '+(data.provider||'provedor')+' / '+(data.model||'modelo')+'. Compare com o contexto e verifique as sugestões.');
- }catch(error){status('cogStatus',error.name==='AbortError'?'Tempo limite excedido.':error.message||'Falha ao acessar o gateway.');}
- finally{clearTimeout(timeout);btn.disabled=false;btn.textContent=old;}
+  status('cogStatus','Análise recebida · '+(data.provider||'provedor')+' / '+(data.model||'modelo')+(data.fallbackUsed?' · fallback usado':'')+'. Compare com as sugestões locais.');
+ }catch(error){status('cogStatus',error.message||'Falha ao acessar o gateway.');}
+ finally{btn.disabled=false;btn.textContent=old;}
 });
 $('cogClearMemory').addEventListener('click',()=>{
  if(!cogMemories.length)return status('cogStatus','A memória já está vazia.');
@@ -410,7 +507,7 @@ function cogRenderMemories(){
   row.append(label,open);list.append(row);
  });
 }
-cogRenderMemories();cogRender();
+cogRestoreActive();cogRenderMemories();cogRender();
 
 root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));}));
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
