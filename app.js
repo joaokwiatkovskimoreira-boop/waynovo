@@ -2,7 +2,7 @@
   'use strict';
   const $ = (q) => document.querySelector(q);
   const TASKS_KEY='waynovo.tasks.v2', DRAFT_KEY='waynovo.draft.v1', THEME_KEY='waynovo.theme.v1';
-  const ENDPOINT_KEY='waynovo.ai.endpoint.session';
+  const ENDPOINT_KEY='waynovo.ai.endpoint.session', PROVIDER_KEY='waynovo.ai.provider.session', FALLBACK_KEY='waynovo.ai.fallback.session';
   const material=$('#material'), mode=$('#mode'), queue=$('#queueList');
   const labels={organize:'Organizar conteúdo',lesson:'Lição automática',summary:'Resumo estruturado',flashcards:'Flashcards',practice:'Prática inédita',checklist:'Checklist',review:'Revisão'};
   let tasks=[], toastTimer=null, currentResult='';
@@ -49,8 +49,8 @@
   $('#downloadLesson').addEventListener('click',()=>{if(!currentResult)return;const url=URL.createObjectURL(new Blob([currentResult],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='waynovo-estudo.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
   $('#saveLesson').addEventListener('click',()=>{if(!currentResult)return;addTask('Estudo: '+($('#lessonTitle').textContent||'Material'),currentResult,mode.value,'Normal');notify('Resultado guardado na fila.');});
 
-  try{$('#aiEndpoint').value=sessionStorage.getItem(ENDPOINT_KEY)||'';}catch(_){}
-  $('#saveAiConfig').addEventListener('click',()=>{try{const endpoint=$('#aiEndpoint').value.trim();if(endpoint)sessionStorage.setItem(ENDPOINT_KEY,endpoint);else sessionStorage.removeItem(ENDPOINT_KEY);$('#aiConfigStatus').textContent='Endpoint lembrado nesta sessão. Token não armazenado.';notify('Endpoint guardado; token fica apenas no campo.');}catch(_){$('#aiConfigStatus').textContent='Armazenamento de sessão indisponível.';}});
+  try{$('#aiEndpoint').value=sessionStorage.getItem(ENDPOINT_KEY)||'';$('#aiProvider').value=sessionStorage.getItem(PROVIDER_KEY)||'auto';$('#aiFallback').value=sessionStorage.getItem(FALLBACK_KEY)||'true';}catch(_){}
+  $('#saveAiConfig').addEventListener('click',()=>{try{const endpoint=$('#aiEndpoint').value.trim();if(endpoint)sessionStorage.setItem(ENDPOINT_KEY,endpoint);else sessionStorage.removeItem(ENDPOINT_KEY);sessionStorage.setItem(PROVIDER_KEY,$('#aiProvider').value);sessionStorage.setItem(FALLBACK_KEY,$('#aiFallback').value);$('#aiConfigStatus').textContent='Endpoint e preferência lembrados nesta sessão. Token não armazenado.';notify('Endpoint guardado; token fica apenas no campo.');}catch(_){$('#aiConfigStatus').textContent='Armazenamento de sessão indisponível.';}});
   $('#aiGenerateBtn').addEventListener('click',async()=>{
     const content=material.value.trim(),endpoint=$('#aiEndpoint').value.trim(),token=$('#aiToken').value.trim();
     if(!content){notify('Adicione material antes de gerar.');return;}
@@ -60,7 +60,7 @@
     const button=$('#aiGenerateBtn'),old=button.textContent,controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),60000);
     button.disabled=true;button.textContent='Gerando…';
     try{
-      const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:$('#aiTask').value,content,pageTitle:document.title}),signal:controller.signal});
+      const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:$('#aiTask').value,content,pageTitle:document.title,provider:$('#aiProvider').value,fallback:$('#aiFallback').value!=='false'}),signal:controller.signal});
       const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Gateway HTTP '+response.status);
       if(typeof data.text!=='string'||!data.text.trim())throw new Error('A IA retornou uma resposta vazia.');
       showResult('Waynovo IA · '+($('#aiTask').selectedOptions[0]?.textContent||'Resultado'),data.text.trim());$('#lessonResult').scrollIntoView({behavior:'smooth',block:'nearest'});notify('Resultado da IA pronto. Revise antes de usar.');
