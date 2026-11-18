@@ -83,7 +83,7 @@ Execute os testes com Node.js:
 ```bash
 node --check bookmarklet.js
 node --check app.js
-node --check worker.js
+node --input-type=module --check < worker.js
 node --test tests/*.test.js
 ```
 
