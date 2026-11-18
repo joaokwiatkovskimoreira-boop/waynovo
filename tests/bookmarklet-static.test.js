@@ -230,8 +230,8 @@ test('registered adapters are visible and included in queue audit metadata', () 
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.ok(app.includes('bookmarklet.js?v=4.0'));
-  assert.match(worker, /waynovo-shell-v10/);
+  assert.ok(app.includes('bookmarklet.js?v=5.0'));
+  assert.match(worker, /waynovo-shell-v11/);
 });
 
 
@@ -248,4 +248,27 @@ test('Smart Pipeline validates the source and enforces dependency order', () => 
   assert.match(source, /APROVADA PARA GERAÇÃO/);
   assert.match(source, /adapter\.validate/);
   assert.match(source, /Qualidade da fonte/);
+});
+
+
+test('Tutor routes study questions to the dedicated question task', () => {
+  assert.match(source, /<option value="question">Analisar questão/);
+  assert.match(source, /\$\('task'\)\.value='question'/);
+  assert.match(source, /localQuestionAnalysis\(\)/);
+  assert.match(source, /heurística lexical/);
+});
+
+test('Local question triage requires evidence and never claims semantic certainty', () => {
+  const start = source.indexOf('function localQuestionAnalysis(){');
+  const end = source.indexOf('function local(kind,s){', start);
+  assert.ok(start >= 0 && end > start);
+  const helper = new Function('$','terms',source.slice(start,end)+';return localQuestionAnalysis;');
+  const fields = {questionText:{value:'Qual processo explica a fotossíntese?'},questionChoices:{value:'A) Respiração celular\nB) Fotossíntese\nC) Fermentação'},questionEvidence:{value:''}};
+  const dollar = (id) => fields[id];
+  const run = helper(dollar,(s)=>String(s).toLowerCase().match(/[a-zá-ú]{4,}/g)||[]);
+  assert.match(run(),/Não há dados suficientes/);
+  fields.questionEvidence.value='A fotossíntese converte energia luminosa em energia química nas plantas.';
+  assert.match(run(),/Alternativa candidata: B\)/);
+  assert.match(run(),/Confiança: baixa/);
+  assert.match(run(),/heurística lexical/);
 });
