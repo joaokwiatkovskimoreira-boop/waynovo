@@ -132,13 +132,13 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 }
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 2.1 · ADAPTER ENGINE</div></div><div class="spacer"></div>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 4.0 · SMART ANSWER ENGINE</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
 <nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="autopilot">Autopilot</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
 <section class="view active" data-view="study"><div class="eyebrow">Laboratório de aprendizagem</div><div class="desc" id="pageInfo">Selecione um trecho visível ou cole seu material.</div>
 <label for="source">Material</label><textarea id="source" placeholder="Selecione um texto e toque em Capturar, ou cole aqui..."></textarea><div class="meta" id="count">0 palavras</div>
-<label for="mode">Ferramenta</label><select id="mode"><option value="lesson">Lição organizada</option><option value="summary">Resumo estruturado</option><option value="flashcards">Flashcards</option><option value="practice">Exercícios originais</option><option value="checklist">Checklist</option><option value="outline">Mapa de tópicos</option><option value="glossary">Glossário</option></select>
+<label for="mode">Ferramenta</label><select id="mode"><option value="lesson">Lição organizada</option><option value="summary">Resumo estruturado</option><option value="flashcards">Flashcards</option><option value="practice">Exercícios originais</option><option value="checklist">Checklist</option><option value="outline">Mapa de tópicos</option><option value="quality">Qualidade da fonte</option><option value="glossary">Glossário</option></select>
 <div class="row"><button class="btn primary" id="generate">Gerar localmente</button><button class="btn" id="capture">Capturar seleção</button></div>
 <label for="output">Resultado</label><textarea class="output" id="output" placeholder="Seu material aparecerá aqui."></textarea>
 <div class="row"><button class="btn primary" id="copy">Copiar</button><button class="btn" id="download">Salvar TXT</button></div><div class="status" id="studyStatus"></div>
@@ -210,7 +210,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <label for="questionEvidence">Material de apoio (opcional)</label><textarea id="questionEvidence" style="min-height:90px" placeholder="Trechos de apoio podem ser preenchidos automaticamente pelo Autopilot ou colados aqui..."></textarea>
 <div class="row"><button class="btn primary" id="prepareQuestion">Preparar análise</button><button class="btn" id="clearQuestion">Limpar</button></div>
 <div class="row"><button class="btn primary" id="analyzeQuestionAI">Analisar com IA</button></div>
-<div class="hint">A análise é para estudo: explica o raciocínio, compara alternativas e aponta incertezas. A IA só recebe o conteúdo quando você toca em Analisar com IA e o gateway está configurado.</div><div class="status" id="questionStatus"></div></section>
+<div class="hint">A IA indica a alternativa mais provável, explica o raciocínio, compara as opções e mostra o nível de confiança. Confira as evidências antes de usar. A IA só recebe o conteúdo quando você toca em Analisar com IA e o gateway está configurado.</div><div class="status" id="questionStatus"></div></section>
 <section class="view" data-view="automation"><div class="eyebrow">Motor de automação · sandbox</div><div class="desc">Monte e execute fluxos em um ambiente fictício isolado. Nenhuma ação é enviada à página ou a serviços externos.</div>
 <div class="box"><div style="font-size:11px;font-weight:800;margin-bottom:7px">Estado do ambiente simulado</div><div id="labState" style="font-size:10px;line-height:1.8;color:#b8c5df">Sessão: desconectada<br>Página: início<br>Progresso: 0%<br>Resposta: vazia</div></div>
 <label for="flowPreset">Fluxo de demonstração</label><select id="flowPreset"><option value="study">Sessão de estudo guiada</option><option value="navigation">Navegação entre páginas fictícias</option><option value="validation">Teste de validação local</option></select>
@@ -496,7 +496,7 @@ bypassLoadExample();
 function questionPayload(){
  const stem=$('questionText').value.trim(),choices=$('questionChoices').value.trim(),evidence=$('questionEvidence').value.trim();
  if(!stem)return '';
- return 'MODO DE ESTUDO: analise a questão e ensine o raciocínio usando o material fornecido. Não interaja com a plataforma de origem, não submeta respostas e não afirme certeza se faltar contexto.\n\nENUNCIADO:\n'+stem+(choices?'\n\nALTERNATIVAS:\n'+choices:'')+(evidence?'\n\nMATERIAL DE APOIO EXTRAÍDO DA PÁGINA:\n'+evidence:'')+'\n\nFORMATO DA RESPOSTA:\n1. Identifique o conceito cobrado.\n2. Explique o raciocínio passo a passo.\n3. Compare as alternativas, se houver.\n4. Indique a resposta mais provável apenas quando houver base suficiente; justifique e atribua confiança alta, média ou baixa.\n5. Separe evidências do material, inferências e pontos não verificáveis.\n6. Dê uma dica para resolver questões semelhantes.';
+ return 'MODO DE ESTUDO: analise a questão e ensine o raciocínio usando o material fornecido. Não interaja com a plataforma de origem, não submeta respostas e não afirme certeza se faltar contexto.\n\nENUNCIADO:\n'+stem+(choices?'\n\nALTERNATIVAS:\n'+choices:'')+(evidence?'\n\nMATERIAL DE APOIO EXTRAÍDO DA PÁGINA:\n'+evidence:'')+'\n\nFORMATO DA RESPOSTA:\n1. Identifique o conceito cobrado.\n2. Explique o raciocínio passo a passo.\n3. Compare as alternativas, se houver.\n4. Abra com um veredito: 'Alternativa mais provável: [letra e texto]' ou 'Não há dados suficientes para indicar uma alternativa'.\n5. Justifique por que a escolhida é melhor e por que as concorrentes relevantes perdem.\n6. Atribua confiança alta, média ou baixa e explique o que poderia mudar o veredito.\n7. Separe evidências do material, inferências e pontos não verificáveis.\n8. Termine com uma dica para reconhecer esse tipo de questão.';
 }
 $('prepareQuestion').addEventListener('click',()=>{
  const payload=questionPayload();if(!payload)return status('questionStatus','Cole o enunciado primeiro.');
@@ -895,9 +895,9 @@ const autoQueueData=(()=>{
   return {
    tasks,
    audit:Array.isArray(raw.audit)?raw.audit.slice(-160):[],
-   artifacts:raw.artifacts&&typeof raw.artifacts==='object'?raw.artifacts:{summary:'',practice:'',flashcards:[],glossary:'',outline:'',questions:[]}
+   artifacts:raw.artifacts&&typeof raw.artifacts==='object'?raw.artifacts:{summary:'',practice:'',flashcards:[],glossary:'',outline:'',quality:'',questions:[]}
   };
- }catch(_){return {tasks:[],audit:[],artifacts:{summary:'',practice:'',flashcards:[],glossary:'',outline:'',questions:[]}};}
+ }catch(_){return {tasks:[],audit:[],artifacts:{summary:'',practice:'',flashcards:[],glossary:'',outline:'',quality:'',questions:[]}};}
 })();
 let autoQueueRunning=false,autoQueueTimer=null;
 function autoQueuePersist(){
@@ -927,7 +927,7 @@ function autoQueueLog(action,task,detail){
  });
  if(autoQueueData.audit.length>160)autoQueueData.audit.splice(0,autoQueueData.audit.length-160);
 }
-function autoQueueAdd(type,title,payload){
+function autoQueueAdd(type,title,payload,dependsOn=[]){
  const fingerprint=autoHash(type+'|'+JSON.stringify(payload||{}));
  const id='job-'+type+'-'+fingerprint;
  if(autoQueueData.tasks.some(task=>task.id===id))return null;
@@ -936,7 +936,7 @@ function autoQueueAdd(type,title,payload){
   if(removable>=0)autoQueueData.tasks.splice(removable,1);
   else {status('autoStatus','Fila cheia: conclua ou limpe tarefas antes de adicionar novas.');return null;}
  }
- const task={id,type,title:String(title||type).slice(0,120),payload,status:'pending',createdAt:new Date().toISOString(),finishedAt:'',error:''};
+ const task={id,type,title:String(title||type).slice(0,120),payload,dependsOn:Array.isArray(dependsOn)?dependsOn.filter(x=>typeof x==='string').slice(0,8):[],status:'pending',createdAt:new Date().toISOString(),finishedAt:'',error:''};
  autoQueueData.tasks.push(task);autoQueueLog('queued',task,'Tarefa adicionada à fila local.');
  autoQueuePersist();autoQueueRender();return task;
 }
@@ -954,7 +954,8 @@ function autoQueueRender(){
  const counts=autoQueueCounts();
  const stateLabel=autoQueueRunning?'EXECUTANDO':counts.pending?'PENDENTE':counts.failed?'COM FALHAS':'EM DIA';
  $('autoQueueState').textContent=stateLabel;
- $('autoQueueProgress').textContent=counts.done+' concluídas · '+counts.pending+' pendentes · '+counts.failed+' falhas';
+ const blocked=autoQueueData.tasks.filter(x=>x.status==='pending'&&Array.isArray(x.dependsOn)&&x.dependsOn.some(id=>!autoQueueData.tasks.some(dep=>dep.id===id&&dep.status==='done'))).length;
+ $('autoQueueProgress').textContent=counts.done+' concluídas · '+counts.pending+' pendentes · '+blocked+' aguardando · '+counts.failed+' falhas';
  $('autoQueueAdapters').textContent=autoQueueListAdapters().length+' adaptadores locais · '+autoQueueListAdapters().map(x=>x.name).join(' · ');
  $('autoQueueBar').style.width=(counts.total?Math.round(counts.done/counts.total*100):0)+'%';
  $('autoQueueRun').disabled=autoQueueRunning||counts.pending===0;
@@ -985,12 +986,14 @@ function autoQueueRegisterAdapter(adapter){
  if(adapter.scope!=='owned-local')throw new Error('O escopo do adaptador precisa ser owned-local.');
  if(typeof adapter.execute!=='function')throw new TypeError('Adaptador precisa implementar execute(payload,context).');
  if(autoQueueAdapterRegistry.has(id))throw new Error('Adaptador já registrado: '+id);
+ if(adapter.validate!==undefined&&typeof adapter.validate!=='function')throw new TypeError('validate precisa ser uma função.');
  const record=Object.freeze({
   id,
   name:String(adapter.name||id).slice(0,90),
   description:String(adapter.description||'').slice(0,180),
   scope:'owned-local',
-  execute:adapter.execute
+  execute:adapter.execute,
+  validate:adapter.validate||((payload,context,result)=>typeof result==='string'&&result.trim().length>0)
  });
  autoQueueAdapterRegistry.set(id,record);
  return {id:record.id,name:record.name,description:record.description,scope:record.scope};
@@ -1006,8 +1009,26 @@ function autoQueueExecute(task){
  const context={local,pieces,state,save,drawCard,autoQueueData,autoHash};
  const result=adapter.execute(task.payload||{},context);
  if(typeof result!=='string'||!result.trim())throw new Error('O adaptador não retornou um resumo de execução.');
- return result.slice(0,220);
+ const validation=adapter.validate(task.payload||{},context,result);
+ if(validation!==true&&!(validation&&validation.valid===true))throw new Error(validation&&validation.message||'A validação automática do resultado falhou.');
+ return result.slice(0,220)+(validation&&validation.note?' · '+String(validation.note).slice(0,90):' · validado');
 }
+autoQueueRegisterAdapter({
+ id:'page-quality-check',name:'Controle de qualidade da fonte',scope:'owned-local',
+ description:'Valida tamanho, estrutura e repetição do material antes de gerar o pacote.',
+ execute:(payload,ctx)=>{
+  const content=String(payload.content||'').trim();
+  const paragraphs=content.split(/\n\s*\n/).filter(x=>x.trim());
+  const words=content.match(/[\p{L}\p{N}]+/gu)||[];
+  const uniqueParagraphs=new Set(paragraphs.map(x=>x.toLocaleLowerCase('pt-BR').replace(/\s+/g,' ').trim()));
+  const duplicateCount=paragraphs.length-uniqueParagraphs.size;
+  const report={characters:content.length,words:words.length,paragraphs:paragraphs.length,duplicateParagraphs:duplicateCount,sourceHash:ctx.autoHash(content)};
+  ctx.autoQueueData.artifacts.quality='CONTROLE DE QUALIDADE DA FONTE\nCaracteres: '+report.characters+'\nPalavras: '+report.words+'\nBlocos: '+report.paragraphs+'\nBlocos repetidos: '+report.duplicateParagraphs+'\nID local da fonte: '+report.sourceHash+'\nStatus: '+(report.characters>=80&&report.words>=12?'APROVADA PARA GERAÇÃO':'REVISAR FONTE');
+  if(report.characters<80||report.words<12)throw new Error('Material insuficiente: forneça ao menos 80 caracteres e 12 palavras.');
+  return 'Fonte aprovada · '+report.words+' palavras · '+report.paragraphs+' blocos.';
+ },
+ validate:(payload,ctx)=>ctx.autoQueueData.artifacts.quality.includes('APROVADA PARA GERAÇÃO')?{valid:true,note:'fonte aprovada'}:{valid:false,message:'A fonte não passou no controle de qualidade.'}
+});
 autoQueueRegisterAdapter({
  id:'page-summary',name:'Resumo local',scope:'owned-local',
  description:'Cria resumo estruturado a partir do texto visível.',
@@ -1083,10 +1104,11 @@ autoQueueRegisterAdapter({
 });
 function autoQueueTick(){
  if(!autoQueueRunning)return;
- const task=autoQueueData.tasks.find(x=>x.status==='pending');
+ const task=autoQueueData.tasks.find(x=>x.status==='pending'&&(!Array.isArray(x.dependsOn)||x.dependsOn.every(id=>autoQueueData.tasks.some(dep=>dep.id===id&&dep.status==='done'))));
  if(!task){
+  const waiting=autoQueueData.tasks.filter(x=>x.status==='pending');
   autoQueueRunning=false;autoQueueTimer=null;autoQueuePersist();autoQueueRender();autoQueueShowArtifact();
-  status('autoStatus','Fila local finalizada. Confira resultados e auditoria.');
+  status('autoStatus',waiting.length?'Pipeline pausado: '+waiting.length+' tarefa(s) aguardam dependência concluída. Revise falhas e use Repetir falhas.':'Fila local finalizada. Confira resultados e auditoria.');
   return;
  }
  task.status='running';autoQueueLog('started',task,'Executor local iniciou a tarefa.');
@@ -1118,28 +1140,34 @@ function autoQueuePause(){
 function autoQueueCreateFromText(){
  const content=String($('source').value||'').trim().slice(0,16000);
  if(content.length<80)return status('autoStatus','Cole pelo menos 80 caracteres na aba Estudo para gerar um pacote.');
- autoQueueAdd('page-summary','Resumo do texto colado',{content});
- autoQueueAdd('page-flashcards','Flashcards do texto colado',{content});
- autoQueueAdd('page-practice','Exercícios do texto colado',{content});
- autoQueueAdd('page-glossary','Glossário do texto colado',{content});
- autoQueueAdd('page-outline','Mapa de tópicos do texto colado',{content});
+ const gate=autoQueueAdd('page-quality-check','Validar fonte · texto colado',{content});
+ if(!gate)return status('autoStatus','Não foi possível adicionar o controle de qualidade.');
+ const deps=[gate.id];
+ autoQueueAdd('page-summary','Resumo do texto colado',{content},deps);
+ autoQueueAdd('page-flashcards','Flashcards do texto colado',{content},deps);
+ autoQueueAdd('page-practice','Exercícios do texto colado',{content},deps);
+ autoQueueAdd('page-glossary','Glossário do texto colado',{content},deps);
+ autoQueueAdd('page-outline','Mapa de tópicos do texto colado',{content},deps);
  autoQueueStart();
 }
 function autoQueueCreatePack(){
  const blocks=autoVisibleBlocks();
  const content=blocks.filter(x=>!autoIsQuestion(x)).join('\n\n').slice(0,16000);
  if(content.length<80)return status('autoStatus','Não há material visível suficiente para montar o pacote.');
- autoQueueAdd('page-summary','Resumo da página',{content});
- autoQueueAdd('page-flashcards','Flashcards da página',{content});
- autoQueueAdd('page-practice','Exercícios de prática da página',{content});
- autoQueueAdd('page-glossary','Glossário da página',{content});
- autoQueueAdd('page-outline','Mapa de tópicos da página',{content});
+ const gate=autoQueueAdd('page-quality-check','Validar fonte · página',{content});
+ if(!gate)return status('autoStatus','Não foi possível adicionar o controle de qualidade.');
+ const deps=[gate.id];
+ autoQueueAdd('page-summary','Resumo da página',{content},deps);
+ autoQueueAdd('page-flashcards','Flashcards da página',{content},deps);
+ autoQueueAdd('page-practice','Exercícios de prática da página',{content},deps);
+ autoQueueAdd('page-glossary','Glossário da página',{content},deps);
+ autoQueueAdd('page-outline','Mapa de tópicos da página',{content},deps);
  autoQueueStart();
 }
 function autoQueueExport(){
  const report={
   product:'Waynovo Task Queue',
-  version:'2.1',
+  version:'4.0',
   exportedAt:new Date().toISOString(),
   counts:autoQueueCounts(),
   adapters:autoQueueListAdapters(),
@@ -1168,7 +1196,7 @@ $('autoQueueRetry').addEventListener('click',()=>{
 });
 $('autoQueueClear').addEventListener('click',()=>{
  if(autoQueueRunning)autoQueuePause();
- autoQueueData.tasks=[];autoQueueData.audit=[];autoQueueData.artifacts={summary:'',practice:'',flashcards:[],glossary:'',outline:'',questions:[]};
+ autoQueueData.tasks=[];autoQueueData.audit=[];autoQueueData.artifacts={summary:'',practice:'',flashcards:[],glossary:'',outline:'',quality:'',questions:[]};
  autoQueuePersist();autoQueueRender();status('autoStatus','Fila e auditoria da sessão limpas.');
 });
 $('autoQueueAudit').addEventListener('click',autoQueueExport);
@@ -1182,6 +1210,7 @@ function autoQueueShowArtifact(){
  else if(kind==='flashcards')output=(a.flashcards||[]).map((x,i)=>(i+1)+'. '+x.front+'\n'+x.back).join('\n\n');
  else if(kind==='glossary')output=String(a.glossary||'');
  else if(kind==='outline')output=String(a.outline||'');
+ else if(kind==='quality')output=String(a.quality||'');
  else output=(a.questions||[]).map((x,i)=>(i+1)+'. '+x.question+'\n'+(x.options||[]).join('\n')+'\n'+x.draft+'\n'+x.note).join('\n\n---\n\n');
  $('autoQueueOutput').value=output||'Ainda não há saída deste tipo. Execute a fila ou gere um pacote da página.';
 }
