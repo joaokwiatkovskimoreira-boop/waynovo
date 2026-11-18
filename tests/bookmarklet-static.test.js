@@ -91,7 +91,7 @@ test('Task Queue 4.0 exposes controls, resumable state and audit export', () => 
 });
 
 test('Task Queue runtime parses and export omits raw page payloads', () => {
-  const start = source.indexOf('// Task Queue 2.0:');
+  const start = source.indexOf('// Task Queue 4.0:');
   const end = source.indexOf('function autoRender(){', start);
   assert.ok(start >= 0 && end > start);
   const queue = source.slice(start, end);
