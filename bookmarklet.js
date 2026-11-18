@@ -973,44 +973,94 @@ function autoQueueRender(){
   row.append(main,badge);list.append(row);
  });
 }
+const autoQueueAdapterRegistry=new Map();
+function autoQueueRegisterAdapter(adapter){
+ if(!adapter||typeof adapter!=='object')throw new TypeError('Adaptador de fila inválido.');
+ const id=String(adapter.id||'').trim();
+ if(!/^[a-z][a-z0-9-]{1,63}$/.test(id))throw new TypeError('ID de adaptador inválido.');
+ if(adapter.scope!=='owned-local')throw new Error('O escopo do adaptador precisa ser owned-local.');
+ if(typeof adapter.execute!=='function')throw new TypeError('Adaptador precisa implementar execute(payload,context).');
+ if(autoQueueAdapterRegistry.has(id))throw new Error('Adaptador já registrado: '+id);
+ const record=Object.freeze({
+  id,
+  name:String(adapter.name||id).slice(0,90),
+  description:String(adapter.description||'').slice(0,180),
+  scope:'owned-local',
+  execute:adapter.execute
+ });
+ autoQueueAdapterRegistry.set(id,record);
+ return {id:record.id,name:record.name,description:record.description,scope:record.scope};
+}
+function autoQueueListAdapters(){
+ return Array.from(autoQueueAdapterRegistry.values()).map(adapter=>({
+  id:adapter.id,name:adapter.name,description:adapter.description,scope:adapter.scope
+ }));
+}
 function autoQueueExecute(task){
- const payload=task.payload;
- if(task.type==='page-summary'){
-  autoQueueData.artifacts.summary=local('summary',String(payload.content||''));
-  return 'Resumo local preparado ('+autoQueueData.artifacts.summary.length+' caracteres).';
+ const adapter=autoQueueAdapterRegistry.get(String(task&&task.type||''));
+ if(!adapter)throw new Error('Nenhum adaptador registrado para '+String(task&&task.type||'tarefa')+'.');
+ const context={local,pieces,state,save,drawCard,autoQueueData,autoHash};
+ const result=adapter.execute(task.payload||{},context);
+ if(typeof result!=='string'||!result.trim())throw new Error('O adaptador não retornou um resumo de execução.');
+ return result.slice(0,220);
+}
+autoQueueRegisterAdapter({
+ id:'page-summary',name:'Resumo local',scope:'owned-local',
+ description:'Cria resumo estruturado a partir do texto visível.',
+ execute:(payload,ctx)=>{
+  ctx.autoQueueData.artifacts.summary=ctx.local('summary',String(payload.content||'').slice(0,16000));
+  return 'Resumo local preparado ('+ctx.autoQueueData.artifacts.summary.length+' caracteres).';
  }
- if(task.type==='page-practice'){
-  autoQueueData.artifacts.practice=local('practice',String(payload.content||''));
+});
+autoQueueRegisterAdapter({
+ id:'page-practice',name:'Prática original',scope:'owned-local',
+ description:'Cria exercícios inéditos para estudo.',
+ execute:(payload,ctx)=>{
+  ctx.autoQueueData.artifacts.practice=ctx.local('practice',String(payload.content||'').slice(0,16000));
   return 'Exercícios originais de prática preparados.';
  }
- if(task.type==='page-flashcards'){
-  const chunks=pieces(String(payload.content||'')).slice(0,10);
+});
+autoQueueRegisterAdapter({
+ id:'page-flashcards',name:'Flashcards',scope:'owned-local',
+ description:'Gera cartões de recuperação ativa e adiciona ao baralho local.',
+ execute:(payload,ctx)=>{
+  const chunks=ctx.pieces(String(payload.content||'').slice(0,16000)).slice(0,10);
+  const existing=new Set(ctx.state.cards.map(card=>card.id));
+  const incoming=new Set();
   const cards=chunks.map((part,index)=>({
-   id:'auto-'+autoHash(part+'|'+index),
+   id:'auto-'+ctx.autoHash(part+'|'+index),
    front:'Explique a ideia central do trecho '+(index+1)+'.',
    back:part
   }));
-  const existing=new Set(state.cards.map(card=>card.id));
-  const fresh=cards.filter(card=>!existing.has(card.id));
-  state.cards=[...fresh,...state.cards].slice(0,300);save();drawCard();
-  autoQueueData.artifacts.flashcards=fresh;
+  const fresh=cards.filter(card=>{
+   if(existing.has(card.id)||incoming.has(card.id))return false;
+   incoming.add(card.id);return true;
+  }).slice(0,Math.max(0,300-ctx.state.cards.length));
+  ctx.state.cards=[...fresh,...ctx.state.cards].slice(0,300);
+  if(fresh.length){ctx.save();ctx.drawCard();}
+  ctx.autoQueueData.artifacts.flashcards=fresh;
   return fresh.length+' flashcard(s) adicionados ao baralho local.';
  }
- if(task.type==='question-dossier'){
-  const item=payload||{};
+});
+autoQueueRegisterAdapter({
+ id:'question-dossier',name:'Dossiê de questão',scope:'owned-local',
+ description:'Agrupa enunciado, opções detectadas e evidências para o Tutor.',
+ execute:(payload,ctx)=>{
   const dossier={
-   id:task.id,
-   question:String(item.question||'').slice(0,1800),
-   options:Array.isArray(item.options)?item.options.slice(0,8):[],
-   evidence:Array.isArray(item.evidence)?item.evidence.slice(0,2):[],
-   draft:String(item.draft||'').slice(0,4000),
+   id:String(payload.id||'').slice(0,100),
+   question:String(payload.question||'').slice(0,1800),
+   options:Array.isArray(payload.options)?payload.options.filter(x=>typeof x==='string').slice(0,8):[],
+   evidence:Array.isArray(payload.evidence)?payload.evidence.filter(x=>x&&typeof x.text==='string').slice(0,2).map(x=>({text:x.text.slice(0,1200),score:Number(x.score)||0})):[],
+   draft:String(payload.draft||'').slice(0,4000),
    note:'Dossiê preparado para revisão no Tutor; nenhuma alternativa foi marcada ou submetida.'
   };
-  autoQueueData.artifacts.questions=[dossier,...(autoQueueData.artifacts.questions||[]).filter(x=>x.id!==dossier.id)].slice(0,30);
+  if(!dossier.question)throw new Error('Dossiê sem enunciado.');
+  ctx.autoQueueData.artifacts.questions=[
+   dossier,...(ctx.autoQueueData.artifacts.questions||[]).filter(x=>x.id!==dossier.id)
+  ].slice(0,30);
   return 'Dossiê da questão preparado com '+dossier.evidence.length+' trecho(s) de apoio.';
  }
- throw new Error('Tipo de tarefa desconhecido: '+task.type);
-}
+});
 function autoQueueTick(){
  if(!autoQueueRunning)return;
  const task=autoQueueData.tasks.find(x=>x.status==='pending');
