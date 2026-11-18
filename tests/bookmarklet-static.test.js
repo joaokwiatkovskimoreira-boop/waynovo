@@ -124,8 +124,9 @@ test('Task Queue executor and exported audit avoid network and submission action
   const end = source.indexOf('function autoRender(){', start);
   assert.ok(start >= 0 && end > start, 'queue runtime exists');
   const queue = source.slice(start, end);
-  assert.doesNotMatch(queue, /\\bfetch\\s*\\(/);
-  assert.doesNotMatch(queue, /form\\.submit\\s*\\(/);
+  assert.doesNotThrow(() => new Function(queue), 'queue block parses as JavaScript');
+  assert.doesNotMatch(queue, /\bfetch\s*\(/);
+  assert.doesNotMatch(queue, /form\.submit\s*\(/);
   const exportStart = queue.indexOf('function autoQueueExport(){');
   const exportEnd = queue.indexOf("$('autoQueueCreatePack')", exportStart);
   const exporter = queue.slice(exportStart, exportEnd);
