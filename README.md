@@ -1,10 +1,10 @@
-# Waynovo 5.3 — Unified Bookmarklet
+# Waynovo 5.4 — Portable Bookmarklet
 
-Workspace de estudo com bookmarklet portátil, revisão espaçada local e integração opcional com um gateway de IA.
+Bookmarklet portátil para estudo, organização, automação local e experimentação de políticas em laboratório, com revisão espaçada e IA opcional.
 
 ## Usar o Waynovo
 
-Abra a página publicada pelo GitHub Pages. O app funciona como site e pode ser instalado como PWA em navegadores compatíveis. Após a primeira visita, o shell da interface e o módulo de revisão ficam disponíveis offline.
+Abra a página de instalação publicada pelo GitHub Pages. Ela entrega o bookmarklet e os recursos do workspace; o painel portátil é o foco desta distribuição. Depois de copiar o favorito, ele executa localmente no navegador, sem exigir que o painel faça download de scripts.
 
 ## Bookmarklet unificado
 
@@ -59,24 +59,32 @@ A aba **Automação** inclui um motor de fluxos demonstrativo com etapas sequenc
 
 O sandbox não controla sites reais, não faz autenticação externa, não altera progresso de cursos e não envia respostas. Ele serve para desenvolver e testar a arquitetura de automação com segurança antes de conectar adaptadores a ambientes próprios ou explicitamente autorizados.
 
-## Bypass Engine — laboratório local
+## Bypass Engine — aba do bookmarklet
 
-A aba **Bypass Lab** adiciona um motor executável de políticas com adaptadores registrados no próprio bookmarklet. O laboratório roda integralmente no navegador, sem chamadas de rede e sem interagir com serviços externos.
+O produto principal desta etapa é o **bookmarklet portátil**. A aba **Bypass Lab** fica dentro do painel flutuante e não depende de um servidor para executar seus cenários. A página Waynovo serve como instalador/gerador do favorito; depois de copiado, o bookmarklet contém o código e roda localmente na aba atual. Sem IA, não há chamadas de rede nem custo de provedor.
 
-### Como testar
+### Cenários disponíveis
 
-1. Abra o bookmarklet e selecione **Bypass Lab**.
-2. No adaptador **Gate de recurso no cliente**, mantenha o JSON de exemplo e clique em **Executar baseline**. O resultado esperado é `DENY`.
-3. Clique em **Aplicar override QA**. O resultado esperado é `ALLOW`: esse adaptador é explicitamente `owned-lab`, declara autoridade do lado do cliente e exige uma fixture com `mode: "test"`.
-4. Troque para **Permissão baseada em fixture confiável** e clique em **Aplicar override QA**. O resultado continua `DENY`: essa política não aceita override e considera somente `fixture.grants`, ignorando campos como `role: "admin"` ou `qaOverride: true` vindos do payload do cliente.
-5. Para testar uma concessão válida, edite o JSON e inclua `"premium-reports"` no array `fixture.grants`; rode o baseline novamente. O resultado esperado é `ALLOW`.
-6. Clique em **Rodar suíte de testes** para executar os quatro casos automaticamente. **Exportar auditoria** salva os eventos em JSON.
+1. **Gate cliente:** compara a decisão normal de um sinalizador local com um override de QA.
+2. **Permissão confiável:** usa uma fixture separada do payload do cliente e demonstra por que `role: "admin"` enviado pelo navegador não deve conceder privilégios.
+3. **Rate limit:** testa contadores e limites fictícios, sem enviar requisições.
+4. **Tolerância a falhas:** injeta uma exceção local e verifica que o resultado termina em negação segura (*fail closed*).
 
-### Modelo de adaptadores
+O menu de cenários carrega oito exemplos prontos. Para cada um, edite o JSON, selecione o adaptador e execute o baseline ou a estratégia de QA. O override exige três condições: adaptador `owned-lab` de autoridade `client` com QA habilitado, ambiente `test` e a caixa **Autorizo override QA** marcada na interface. A autorização não pode ser habilitada apenas editando o JSON.
 
-Cada adaptador precisa ter um identificador único, `scope: "owned-lab"` e uma função `evaluate`. O override de QA só é elegível quando o adaptador também declara `authority: "client"` e `qaOverride: true`, e a fixture está em modo de teste. A decisão protegida usa uma fonte de permissões separada do payload do cliente.
+A suíte embutida executa **11 casos**: baseline permitido/negado, autorização explícita, bloqueio fora de test, payload forjado, grants confiáveis, limites de tentativas e falhas de dependência. A trilha de auditoria registra decisões e motivos, sem salvar o contexto JSON fornecido. O histórico permanece no `sessionStorage` da aba e pode ser exportado em JSON.
 
-Este recurso é uma bancada de engenharia e QA. Não deve ser conectado a serviços de terceiros para contornar autenticação, autorização, limites ou registros de progresso. Em integrações próprias, mantenha a autorização real no servidor; o override de QA deve existir apenas em ambientes de teste.
+### Testar o motor de referência
+
+O arquivo `bypass-engine.js` contém a implementação de referência testável em Node, e `bookmarklet.js` mantém uma versão embutida para continuar autônomo. Os cenários e as regras devem permanecer alinhados entre as duas versões.
+
+Execute os testes com Node.js:
+
+```bash
+node --test tests/bypass-engine.test.js
+```
+
+Este laboratório é para QA e engenharia em código e fixtures que você controla. Não se conecta a plataformas externas nem implementa contorno operacional de autenticação, autorização, limites, avaliações ou registros de progresso de terceiros. Em qualquer integração real própria, a decisão de autorização deve permanecer no servidor.
 
 ## Ferramentas
 
