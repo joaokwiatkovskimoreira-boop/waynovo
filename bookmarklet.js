@@ -241,7 +241,7 @@ const title=String(document.title||'Página').slice(0,140);
 $('pageInfo').textContent=title+' · '+location.hostname+' — selecione ou cole o trecho desejado.';
 $('site').textContent='Waynovo · '+location.hostname;
 $('source').value=selection();
-try{$('endpoint').value=sessionStorage.getItem(ENDPOINT)||'';$('provider').value=sessionStorage.getItem(PROVIDER)||'auto';$('fallback').value=sessionStorage.getItem(FALLBACK)||'true';}catch(_){}
+try{$('endpoint').value=sessionStorage.getItem(ENDPOINT)||'';$('provider').value=sessionStorage.getItem(PROVIDER)||'local';$('fallback').value=sessionStorage.getItem(FALLBACK)||'true';}catch(_){}
 $('provider').addEventListener('change',()=>{try{sessionStorage.setItem(PROVIDER,$('provider').value);}catch(_){}});
 $('fallback').addEventListener('change',()=>{try{sessionStorage.setItem(FALLBACK,$('fallback').value);}catch(_){}});
 const words=s=>s.trim()?s.trim().split(/\s+/).length:0;
@@ -847,7 +847,7 @@ function autoFindEvidence(question,blocks){
  if(!terms.length)return [];
  const matches=[];
  for(const block of blocks){
-  if(block===question||block.length<35)continue;
+  if(block===question||block.length<35||/^\\s*(?:\\([A-E]\\)|[A-E][).:\\-])\\s+/i.test(block))continue;
   const blockTerms=new Set(autoTokens(block));
   const hits=terms.filter(term=>blockTerms.has(term));
   const score=hits.length/Math.max(3,Math.min(terms.length,12));
