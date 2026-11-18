@@ -34,6 +34,9 @@ textarea{min-height:100px;resize:vertical;line-height:1.5}.output{min-height:135
 .noteinfo{min-width:0;flex:1}.notetitle{font-weight:800;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notedate{font-size:9px;color:#8795b1}
 .hint{border-left:2px solid #776be3;background:#1a2035;padding:8px 9px;border-radius:0 8px 8px 0;color:#b8c1d7;font-size:9px;line-height:1.5;margin-top:9px}
 footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px;display:flex;justify-content:space-between}
+.module-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.module-card{min-width:0;border:1px solid #2d3953;border-radius:11px;padding:10px;background:#151e30}.module-card b{font-size:11px}.module-card p{min-height:42px;margin:6px 0 9px;color:#9da9c2;font-size:9px;line-height:1.45}.module-card .btn{width:100%}
+:host([data-theme=light]) .module-card{background:white;border-color:#dce1ed}
+@media(max-width:360px){.module-grid{grid-template-columns:1fr}}
 .minimized nav,.minimized main,.minimized footer{display:none}
 :host([data-theme=light]){color-scheme:light;color:#20283a}
 :host([data-theme=light]) .panel{background:#f7f8fc;color:#20283a;border-color:#d8deeb}
@@ -48,7 +51,7 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
 <header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.0</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
-<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button></nav>
+<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button></nav>
 <main>
 <section class="view active" data-view="study"><div class="eyebrow">Laboratório de aprendizagem</div><div class="desc" id="pageInfo">Selecione um trecho visível ou cole seu material.</div>
 <label for="source">Material</label><textarea id="source" placeholder="Selecione um texto e toque em Capturar, ou cole aqui..."></textarea><div class="meta" id="count">0 palavras</div>
@@ -75,6 +78,16 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 <label for="task">Tarefa</label><select id="task"><option value="explain">Explicar conceitos</option><option value="summary">Resumo</option><option value="lesson">Criar lição</option><option value="flashcards">Flashcards</option><option value="practice">Exercícios originais</option><option value="plan">Plano de estudo</option><option value="checklist">Checklist</option><option value="translate">Traduzir</option></select>
 <div class="row"><button class="btn primary" id="askAI">Enviar material à IA</button><button class="btn" id="clearToken">Limpar token</button></div><div class="status" id="aiStatus"></div>
 <div class="hint">Digite somente o token do gateway. A chave Gemini/OpenAI é um secret do servidor. O material só é enviado quando você aciona o botão.</div></section>
+<section class="view" data-view="modules"><div class="eyebrow">Central de automações</div><div class="desc" id="moduleDetect">Detectando a página atual…</div>
+<div class="module-grid">
+<article class="module-card"><b>WaygroundX</b><p>Transforme enunciados selecionados em explicações e exercícios inéditos.</p><button class="btn primary" data-module="wayground">Analisar questão</button></article>
+<article class="module-card"><b>LeiaPR</b><p>Organize trechos de leitura, gere resumo e identifique termos para revisar.</p><button class="btn primary" data-module="leiapr">Guiar leitura</button></article>
+<article class="module-card"><b>Redação</b><p>Leve o texto selecionado ao editor para estruturar, revisar e guardar rascunhos.</p><button class="btn primary" data-module="redacao">Abrir editor</button></article>
+<article class="module-card"><b>Khan</b><p>Converta um conceito em uma lição curta e prática de recuperação ativa.</p><button class="btn primary" data-module="khan">Estudar conceito</button></article>
+<article class="module-card"><b>Alura</b><p>Crie notas de aula e um checklist pessoal a partir do trecho escolhido.</p><button class="btn primary" data-module="alura">Criar notas</button></article>
+<article class="module-card"><b>Fubanga · Hub</b><p>Gerencie os módulos internos do Waynovo. Nenhum script remoto será executado.</p><button class="btn primary" data-module="hub">Ver catálogo</button></article>
+</div><div class="status" id="moduleStatus">Escolha um módulo. O Waynovo usa somente o texto selecionado ou colado.</div>
+<div class="hint">Os módulos são independentes, mas compartilham cartões, notas, editor, temporizador e gateway de IA. Ações em páginas externas permanecem sob seu controle.</div></section>
 </main><footer><span id="site">Waynovo · local-first</span><span>Esc fecha</span></footer></section>
 `;
 const $=id=>root.getElementById(id);
@@ -130,6 +143,24 @@ try{$('endpoint').value=sessionStorage.getItem(ENDPOINT)||'';}catch(_){}
 $('endpoint').addEventListener('change',()=>{try{sessionStorage.setItem(ENDPOINT,$('endpoint').value.trim());}catch(_){}});
 $('clearToken').addEventListener('click',()=>{$('token').value='';status('aiStatus','Token apagado do campo.');});
 $('askAI').addEventListener('click',async()=>{const content=$('source').value.trim(),endpoint=$('endpoint').value.trim(),token=$('token').value.trim();if(!content)return status('aiStatus','Adicione material na aba Estudo.');if(!endpoint||!token)return status('aiStatus','Configure endpoint e token do gateway.');let u;try{u=new URL(endpoint);}catch(_){return status('aiStatus','Endpoint inválido.');}if(u.protocol!=='https:'&&u.hostname!=='localhost'&&u.hostname!=='127.0.0.1')return status('aiStatus','Use HTTPS, exceto em localhost.');const btn=$('askAI');btn.disabled=true;btn.textContent='Enviando…';const c=new AbortController(),t=setTimeout(()=>c.abort(),55000);try{const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:$('task').value,content:content,pageTitle:title}),signal:c.signal});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||'Gateway HTTP '+res.status);if(typeof data.text!=='string'||!data.text.trim())throw new Error('Resposta vazia do gateway.');$('output').value=data.text.trim();status('aiStatus','Resposta recebida · '+(data.provider||'gateway')+' / '+(data.model||'modelo')+'. Confira o resultado.');}catch(e){status('aiStatus',e.name==='AbortError'?'Tempo limite excedido.':e.message||'Falha no gateway.');}finally{clearTimeout(t);btn.disabled=false;btn.textContent='Enviar material à IA';}});
+const moduleNames={wayground:'WaygroundX',leiapr:'LeiaPR',redacao:'Redação',khan:'Khan',alura:'Alura'};
+const hostName=String(location.hostname||'').toLowerCase();
+const detected=hostName.includes('wayground')||hostName.includes('quizizz')?'WaygroundX':hostName.includes('leia')?'LeiaPR':hostName.includes('khanacademy')?'Khan':hostName.includes('alura')?'Alura':'';
+$('moduleDetect').textContent=detected?'Página reconhecida: '+detected+'. Selecione um módulo para trabalhar com o trecho desejado.':'Página: '+hostName+'. Módulos disponíveis em modo manual.';
+function activateTab(name){const b=root.querySelector('[data-tab="'+name+'"]');if(b)b.click();}
+root.querySelectorAll('[data-module]').forEach(btn=>btn.addEventListener('click',()=>{
+ const key=btn.dataset.module,selected=selection(),content=selected||$('source').value.trim();
+ if(key==='hub'){$('moduleStatus').textContent='Catálogo local: WaygroundX · LeiaPR · Redação · Khan · Alura. Os módulos são código interno do Waynovo; importação/execução de scripts remotos está desativada.';return;}
+ if(!content){$('moduleStatus').textContent='Selecione um trecho visível na página ou cole o material na aba Estudo primeiro.';activateTab('study');$('source').focus();return;}
+ if(key==='redacao'){$('editor').value=content;$('editor').dispatchEvent(new Event('input'));status('toolStatus','Texto enviado ao editor pelo módulo Redação.');activateTab('tools');$('editor').focus();$('moduleStatus').textContent='Rascunho carregado no editor local.';return;}
+ $('source').value=content;$('source').dispatchEvent(new Event('input'));
+ const config={wayground:{mode:'practice',task:'practice',message:'Enunciado preparado para explicação e prática inédita.'},leiapr:{mode:'summary',task:'summary',message:'Trecho preparado para resumo e leitura guiada.'},khan:{mode:'lesson',task:'explain',message:'Conceito preparado para uma lição de revisão.'},alura:{mode:'checklist',task:'checklist',message:'Trecho preparado para notas e checklist de aula.'}};
+ const item=config[key];if(!item)return;
+ $('mode').value=item.mode;$('task').value=item.task;$('output').value=local(item.mode,content);
+ status('studyStatus',item.message+' Revise o resultado com a fonte.');
+ $('moduleStatus').textContent=moduleNames[key]+' ativado · '+item.message;
+ activateTab('study');$('output').focus();
+}));
 root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));}));
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
 $('min').addEventListener('click',()=>{$('panel').classList.toggle('minimized');$('min').textContent=$('panel').classList.contains('minimized')?'+':'−';});
