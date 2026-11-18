@@ -14,13 +14,12 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="planner.css">
-  <link rel="stylesheet" href="bypass-lab.css">
 </head>
 <body>
   <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
   <header class="topbar">
     <a class="brand" href="#"><span class="brand-mark">W</span><span>waynovo<span class="brand-dot">.</span></span></a>
-    <nav><a class="nav-link active" href="#workspace">Workspace</a><a class="nav-link" href="#studyLab">Revisão</a><a class="nav-link" href="#planner">Progresso</a><a class="nav-link" href="#bypassLab">Bypass Lab</a><a class="nav-link" href="#bookmarklet">Bookmarklet</a><a class="nav-link" href="#features">Recursos</a></nav>
+    <nav><a class="nav-link active" href="#workspace">Workspace</a><a class="nav-link" href="#studyLab">Revisão</a><a class="nav-link" href="#planner">Progresso</a><a class="nav-link" href="#bookmarklet">Bookmarklet</a><a class="nav-link" href="#features">Recursos</a></nav>
     <div class="top-actions"><span class="status"><i></i> Sistema pronto</span><button class="install-app-btn" id="installAppBtn" type="button" hidden>Instalar app</button><button class="icon-btn" id="themeBtn" aria-label="Alternar tema">◐</button><span class="avatar">W</span></div>
   </header>
   <main>
@@ -142,52 +141,6 @@
       <p class="review-message" id="reviewMessage" role="status">Dica: tente responder antes de revelar o verso.</p>
     </section>
 
-    <section class="bypass-section" id="bypassLab">
-      <div class="bypass-head">
-        <div><div class="eyebrow muted">ENGENHARIA DE POLÍTICAS · OWNED LAB</div><h2>Bypass Engine.</h2><p>Experimente políticas, overrides de QA, falhas controladas e limites de tentativa em adaptadores locais. Cada execução gera uma trilha de auditoria.</p></div>
-        <span class="bypass-scope">LOCAL LAB · SEM REDE</span>
-      </div>
-      <div class="bypass-metrics" aria-live="polite">
-        <div class="bypass-metric"><strong id="bypassMetricTotal">0</strong><span>Execuções</span></div>
-        <div class="bypass-metric"><strong id="bypassMetricAllow">0</strong><span>ALLOW</span></div>
-        <div class="bypass-metric"><strong id="bypassMetricDeny">0</strong><span>DENY</span></div>
-        <div class="bypass-metric"><strong id="bypassMetricOverride">0</strong><span>Overrides QA</span></div>
-      </div>
-      <div class="bypass-grid">
-        <article class="bypass-card">
-          <h3>Executar política</h3>
-          <p>Escolha um cenário, edite a fixture e compare a decisão baseline com a estratégia de QA.</p>
-          <label for="bypassExample">Cenário pronto</label>
-          <select id="bypassExample"><option value="">Carregando cenários…</option></select>
-          <div class="bypass-form-grid">
-            <div><label for="bypassAdapterSelect">Adaptador</label><select id="bypassAdapterSelect"></select></div>
-            <div><label for="bypassStrategySelect">Estratégia</label><select id="bypassStrategySelect"><option value="baseline">Baseline</option><option value="qa-override">Override QA</option></select></div>
-          </div>
-          <div class="bypass-meta" id="bypassAdapterMeta">Carregando adaptadores…</div>
-          <label for="bypassEnvironment">Ambiente</label>
-          <select id="bypassEnvironment"><option value="test">Test fixture</option><option value="demo">Demo</option></select>
-          <label class="bypass-check"><input type="checkbox" id="bypassQaAuthorization"> Confirmo que estou autorizando um override no meu laboratório local de teste.</label>
-          <label for="bypassLabContext">Contexto JSON</label>
-          <textarea id="bypassLabContext" spellcheck="false" aria-label="Contexto JSON para o Bypass Engine"></textarea>
-          <div class="bypass-actions"><button class="bypass-primary" id="bypassRunBtn" type="button">Executar decisão</button><button id="bypassRunTestsBtn" type="button">Rodar 9 testes</button><button id="bypassExportBtn" type="button">Exportar auditoria</button></div>
-          <div class="bypass-result" id="bypassResult" aria-live="polite">Selecione um cenário e execute a política.</div>
-          <p id="bypassLabStatus" role="status"></p>
-          <div class="bypass-warning">O override é apenas uma ferramenta de QA do laboratório e depende de confirmação explícita, fixture de teste e adaptador elegível. A fixture que representa permissões confiáveis é uma simulação didática: em aplicações reais, a autorização precisa ser verificada no servidor.</div>
-        </article>
-        <article class="bypass-card">
-          <h3>Suíte automatizada</h3>
-          <p>Os testes cobrem autorização do override, payload forjado, rate limit simulado e comportamento fail-closed.</p>
-          <strong id="bypassTestSummary">Aguardando testes…</strong>
-          <div class="bypass-tests" id="bypassTestResults"></div>
-          <div class="bypass-warning">Os cenários usam somente fixtures locais. Nenhum teste faz login, envia formulários ou altera dados de serviços externos.</div>
-        </article>
-      </div>
-      <article class="bypass-card" style="margin-top:16px">
-        <div class="bypass-head" style="margin-bottom:8px"><div><h3>Trilha de auditoria</h3><p>Histórico local das últimas execuções; o conteúdo bruto do contexto não é armazenado.</p></div><button class="text-btn" id="bypassClearAudit" type="button">Limpar histórico</button></div>
-        <div class="bypass-audit-wrap"><table class="bypass-audit"><thead><tr><th>Hora</th><th>Adaptador</th><th>Estratégia</th><th>Decisão</th><th>Motivo</th></tr></thead><tbody id="bypassAuditList"><tr><td class="bypass-empty" colspan="5">Nenhuma execução registrada ainda.</td></tr></tbody></table></div>
-      </article>
-    </section>
-
     <section class="install-section" id="bookmarklet">
       <div class="install-copy">
         <div class="eyebrow muted">LEVE O WAYNOVO COM VOCÊ</div>
@@ -220,7 +173,5 @@
   <script src="app.js"></script>
   <script src="features.js"></script>
   <script src="planner.js"></script>
-  <script src="bypass-engine.js"></script>
-  <script src="bypass-lab.js"></script>
 </body>
 </html>
