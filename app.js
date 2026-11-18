@@ -63,7 +63,7 @@
       const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:$('#aiTask').value,content,pageTitle:document.title,provider:$('#aiProvider').value,fallback:$('#aiFallback').value!=='false'}),signal:controller.signal});
       const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Gateway HTTP '+response.status);
       if(typeof data.text!=='string'||!data.text.trim())throw new Error('A IA retornou uma resposta vazia.');
-      showResult('Waynovo IA · '+($('#aiTask').selectedOptions[0]?.textContent||'Resultado'),data.text.trim());$('#lessonResult').scrollIntoView({behavior:'smooth',block:'nearest'});notify('Resultado da IA pronto. Revise antes de usar.');
+      showResult('Waynovo IA · '+($('#aiTask').selectedOptions[0]?.textContent||'Resultado'),data.text.trim());$('#lessonResult').scrollIntoView({behavior:'smooth',block:'nearest'});const route=(data.provider||'provedor')+' / '+(data.model||'modelo');const backup=data.fallbackUsed?' · fallback usado':'';notify('Resposta via '+route+backup+'. Revise antes de usar.');
     }catch(error){notify(error.name==='AbortError'?'Tempo limite excedido.':(error.message||'Falha de conexão.'));}
     finally{clearTimeout(timeout);button.disabled=false;button.textContent=old;}
   });
