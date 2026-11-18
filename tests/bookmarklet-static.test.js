@@ -55,3 +55,28 @@ test('closing or toggling the bookmarklet cleans up Autopilot timers', () => {
   assert.match(close[0], /autoClockInterval/);
   assert.match(close[0], /autoObserver/);
 });
+
+test('Autopilot extracts inline and sibling A-E alternatives and bridges to Tutor', () => {
+  const start = source.indexOf('function autoCollectOptions(question,blocks){');
+  const end = source.indexOf('function autoFindEvidence(question,blocks){', start);
+  assert.ok(start >= 0 && end > start, 'option parser exists');
+  const parserSource = source.slice(start, end);
+  const collect = new Function('autoIsQuestion', parserSource + '; return autoCollectOptions;')((value) => /\\?/.test(value));
+  assert.deepEqual(
+    collect('Quanto é 2+2? A) 3 B) 4 C) 5', ['Quanto é 2+2? A) 3 B) 4 C) 5']),
+    ['A) 3', 'B) 4', 'C) 5']
+  );
+  assert.deepEqual(
+    collect('Quanto é 2+2?', ['Quanto é 2+2?', 'A) 3', 'B) 4', 'C) 5', 'Qual a capital?']),
+    ['A) 3', 'B) 4', 'C) 5']
+  );
+  assert.match(source, /Levar ao Tutor/);
+  assert.match(source, /\\$\\('questionChoices'\\)\\.value=/);
+});
+
+test('Android installer and service worker point to the current bookmarklet release', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
+  assert.match(app, /bookmarklet\\.js\\?v=1\\.7/);
+  assert.match(worker, /waynovo-shell-v4/);
+});
