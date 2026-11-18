@@ -11,7 +11,7 @@ const TASKS = {
 };
 
 const PROVIDERS = ["openai", "gemini", "groq", "openrouter"];
-const DEFAULT_ORDER = ["gemini", "groq", "openrouter"];
+const DEFAULT_ORDER = ["openrouter"];
 
 function out(data, status, headers) {
   return new Response(JSON.stringify(data), {
@@ -41,6 +41,23 @@ function cors(request, env) {
   };
 }
 
+function isFreeMode(env) {
+  return String(env.WAYNOVO_FREE_MODE == null ? "true" : env.WAYNOVO_FREE_MODE).toLowerCase() !== "false";
+}
+
+function freeProviderAllowlist(env) {
+  const configured = String(env.WAYNOVO_FREE_PROVIDERS || "openrouter")
+    .split(",")
+    .map(x => normalizeProvider(x))
+    .filter(x => ["gemini", "groq", "openrouter"].includes(x));
+  return [...new Set(configured)];
+}
+
+function isOpenRouterFreeModel(model) {
+  const value = String(model || "").trim();
+  return value === "openrouter/free" || value.endsWith(":free");
+}
+
 function normalizeProvider(value) {
   const provider = String(value || "").toLowerCase().trim();
   if (provider === "google" || provider === "google-gemini") return "gemini";
@@ -61,23 +78,24 @@ function legacyProvider(env) {
 }
 
 function providerOrder(env, requested, fallbackEnabled) {
-  const automatic = requested === "auto";
-  const allowPaidAuto = String(env.AI_ALLOW_PAID_OPENAI_AUTO || "").toLowerCase() === "true";
-  const orderText = String(env.AI_PROVIDER_ORDER || DEFAULT_ORDER.join(","));
+  const freeMode = isFreeMode(env);
+  const allowedProviders = freeMode ? freeProviderAllowlist(env) : PROVIDERS;
+  const orderText = String(env.AI_PROVIDER_ORDER || (freeMode ? allowedProviders.join(",") : DEFAULT_ORDER.join(",")));
   const configuredOrder = orderText.split(",").map(normalizeProvider)
-    .filter(provider => PROVIDERS.includes(provider) && (!automatic || provider !== "openai" || allowPaidAuto));
-  const baseOrder = configuredOrder.length ? configuredOrder : DEFAULT_ORDER;
-  let preferred = automatic
-    ? normalizeProvider(env.AI_PRIMARY_PROVIDER) || legacyProvider(env) || "gemini"
-    : normalizeProvider(requested);
-  // OpenAI API usage is billable. Automatic/fallback mode skips it unless
-  // the operator explicitly opts in at the Worker environment level.
-  if (automatic && preferred === "openai" && !allowPaidAuto) preferred = "gemini";
+    .filter(provider => allowedProviders.includes(provider) || (!freeMode && (PROVIDERS.includes(provider) || provider === "openai-compatible")));
+  const baseOrder = configuredOrder.length ? configuredOrder : (freeMode ? allowedProviders : DEFAULT_ORDER);
+  const requestedProvider = normalizeProvider(requested);
+  const preferredCandidate = requested === "auto"
+    ? normalizeProvider(env.AI_PRIMARY_PROVIDER) || legacyProvider(env) || (baseOrder[0] || "openrouter")
+    : requestedProvider;
+  const preferred = allowedProviders.includes(preferredCandidate) || (!freeMode && (PROVIDERS.includes(preferredCandidate) || preferredCandidate === "openai-compatible"))
+    ? preferredCandidate
+    : (baseOrder[0] || "openrouter");
   const order = [preferred, ...baseOrder].filter((provider, index, all) =>
-    (PROVIDERS.includes(provider) || provider === "openai-compatible") && all.indexOf(provider) === index
+    (allowedProviders.includes(provider) || (!freeMode && (PROVIDERS.includes(provider) || provider === "openai-compatible"))) &&
+    all.indexOf(provider) === index
   );
-  if (!fallbackEnabled) return order.slice(0, 1);
-  return order;
+  return fallbackEnabled ? order : order.slice(0, 1);
 }
 
 function providerConfig(provider, env) {
@@ -108,7 +126,7 @@ function providerConfig(provider, env) {
   if (provider === "openrouter") {
     return {
       key: env.OPENROUTER_API_KEY || (legacy === "openrouter" ? env.AI_API_KEY : ""),
-      model: env.OPENROUTER_MODEL || (legacy === "openrouter" ? env.AI_MODEL : ""),
+      model: env.OPENROUTER_MODEL || (isFreeMode(env) ? "openrouter/free" : (legacy === "openrouter" ? env.AI_MODEL : "")),
       base: "https://openrouter.ai/api/v1",
       kind: "compatible"
     };
@@ -150,6 +168,15 @@ function parseCompatibleText(data) {
 }
 
 async function requestProvider(provider, config, system, prompt, env) {
+  if (isFreeMode(env)) {
+    const allowedProviders = freeProviderAllowlist(env);
+    if (!allowedProviders.includes(provider)) {
+      return { ok: false, status: "blocked_in_free_mode", message: "Provedor desativado para impedir cobrança no modo grátis." };
+    }
+    if (provider === "openrouter" && !isOpenRouterFreeModel(config && config.model)) {
+      return { ok: false, status: "paid_model_blocked", message: "O modo grátis só aceita openrouter/free ou modelos terminados em :free." };
+    }
+  }
   if (!config || !config.key || !config.model) {
     return {
       ok: false,
@@ -343,17 +370,33 @@ export default {
       return out({ error: "Token do gateway inválido." }, 401, c.headers);
     }
     if (url.pathname === "/status") {
+      const freeMode = isFreeMode(env);
+      const allowedProviders = freeMode ? freeProviderAllowlist(env) : PROVIDERS;
       const providers = PROVIDERS.map(provider => {
         const config = providerConfig(provider, env);
+        const blocked = freeMode && !allowedProviders.includes(provider);
+        const paidOpenRouterModel = freeMode && provider === "openrouter" && !isOpenRouterFreeModel(config && config.model);
         const missing = [];
-        if (!config || !config.key) missing.push("api_key");
-        if (!config || !config.model) missing.push("model");
-        return { provider, configured: missing.length === 0, model: config && config.model ? String(config.model) : null, missing };
+        if (blocked) missing.push("disabled_by_free_mode");
+        else {
+          if (!config || !config.key) missing.push("api_key");
+          if (!config || !config.model) missing.push("model");
+          if (paidOpenRouterModel) missing.push("free_model_required");
+        }
+        return {
+          provider,
+          configured: !blocked && !paidOpenRouterModel && missing.length === 0,
+          model: config && config.model ? String(config.model) : null,
+          freeOnly: freeMode,
+          missing
+        };
       });
       return out({
-        service: "waynovo-ai-gateway", status: "ok", version: "1.1.0",
-        defaultProvider: normalizeProvider(env.AI_PRIMARY_PROVIDER) || "gemini",
-        automaticFallbackOrder: String(env.AI_PROVIDER_ORDER || DEFAULT_ORDER.join(",")),
+        service: "waynovo-ai-gateway", status: "ok", version: "1.2.0",
+        billingMode: freeMode ? "free-only" : "custom",
+        freeProviders: freeMode ? allowedProviders : PROVIDERS,
+        defaultProvider: providerOrder(env, "auto", true)[0] || "local",
+        automaticFallbackOrder: providerOrder(env, "auto", true).join(","),
         providerTimeoutMs: Number(env.AI_PROVIDER_TIMEOUT_MS) >= 8000 ? Math.min(Number(env.AI_PROVIDER_TIMEOUT_MS), 60000) : 45000,
         providers, tasks: Object.keys(TASKS)
       }, 200, c.headers);
