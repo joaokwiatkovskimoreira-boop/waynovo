@@ -132,7 +132,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 }
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 4.0 · SMART ANSWER ENGINE</div></div><div class="spacer"></div>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 5.0 · TUTOR INTELLIGENCE</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
 <nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="autopilot">Autopilot</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
@@ -165,7 +165,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <option value="openai" disabled>OpenAI API · paga e bloqueada no modo grátis</option>
 </select>
 <label for="fallback">Fallback automático</label><select id="fallback"><option value="true" selected>Ativado · tentar os outros provedores</option><option value="false">Desativado · somente o preferido</option></select>
-<label for="task">Tarefa</label><select id="task"><option value="explain">Explicar conceitos</option><option value="summary">Resumo</option><option value="lesson">Criar lição</option><option value="flashcards">Flashcards</option><option value="practice">Exercícios originais</option><option value="plan">Plano de estudo</option><option value="checklist">Checklist</option><option value="translate">Traduzir</option></select>
+<label for="task">Tarefa</label><select id="task"><option value="question">Analisar questão · indicar alternativa</option><option value="explain">Explicar conceitos</option><option value="summary">Resumo</option><option value="lesson">Criar lição</option><option value="flashcards">Flashcards</option><option value="practice">Exercícios originais</option><option value="plan">Plano de estudo</option><option value="checklist">Checklist</option><option value="translate">Traduzir</option></select>
 <div class="row"><button class="btn primary" id="askAI">Enviar material à IA</button><button class="btn" id="clearToken">Limpar token</button></div><div class="status" id="aiStatus"></div>
 <div class="hint">Digite o token do gateway. Configure GEMINI_API_KEY, GROQ_API_KEY e OPENROUTER_API_KEY como secrets no Worker. O conteúdo só é enviado ao clicar.</div></section>
 <section class="view" data-view="modules"><div class="eyebrow">Central de automações</div><div class="desc" id="moduleDetect">Detectando a página atual…</div>
@@ -274,6 +274,25 @@ $('source').addEventListener('input',()=>{$('count').textContent=words($('source
 $('source').dispatchEvent(new Event('input'));
 function pieces(s){const p=s.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);const q=s.split(/(?<=[.!?])\s+/).map(x=>x.trim()).filter(x=>x.length>25);return (p.length>1?p:q.length?q:[s]).slice(0,20);}
 function terms(s){const stop=new Set('sobre entre quando como para pela pelo pelos pelas uma umas uns dos das esse essa isso isto também então muito mais menos cada onde porque seus suas ser ter está são foi foram com sem que por das dos nos nas aos'.split(' '));const m=new Map();(s.toLocaleLowerCase('pt-BR').match(/[a-zÀ-ÿ]{4,}/g)||[]).forEach(w=>{if(!stop.has(w))m.set(w,(m.get(w)||0)+1);});return [...m].sort((a,b)=>b[1]-a[1]).slice(0,12).map(x=>x[0]);}
+function localQuestionAnalysis(){
+ const stem=$('questionText').value.trim(),rawChoices=$('questionChoices').value.trim(),evidence=$('questionEvidence').value.trim();
+ if(!stem)return 'Cole o enunciado para começar.';
+ const choices=rawChoices.split(/\n+/).map(x=>x.trim()).filter(Boolean).map(line=>{
+  const match=line.match(/^([A-E])\s*[).:\-]\s*(.+)$/i);
+  return match?{label:match[1].toUpperCase(),text:match[2].trim()}:null;
+ }).filter(Boolean).slice(0,8);
+ if(choices.length<2)return 'Não há dados suficientes para indicar uma alternativa.\n\nO modo local precisa de pelo menos duas alternativas identificadas como A), B), C) etc. Para uma análise semântica, configure o gateway de IA.';
+ if(!evidence)return 'Não há dados suficientes para indicar uma alternativa com segurança.\n\nO modo Local não é um modelo de linguagem: ele não consegue compreender o conteúdo como uma IA online. Cole material de apoio relevante ou selecione IA online no gateway para receber uma análise semântica.';
+ const evidenceTerms=new Set(terms(evidence)),stemTerms=new Set(terms(stem));
+ const scored=choices.map(choice=>{
+  const tokens=[...new Set(terms(choice.text))],hits=tokens.filter(token=>evidenceTerms.has(token)),stemHits=tokens.filter(token=>stemTerms.has(token));
+  return {...choice,hits,stemHits,score:hits.length/Math.max(1,tokens.length)};
+ }).sort((a,b)=>b.score-a.score||b.hits.length-a.hits.length);
+ const top=scored[0],second=scored[1],margin=top.score-(second?second.score:0);
+ const rows=scored.map(x=>x.label+') '+x.text+' — '+x.hits.length+' termo(s) coincidente(s) com o apoio').join('\n');
+ if(!top.hits.length||margin<0.12)return 'Não há dados suficientes para indicar uma alternativa.\n\nCOMPARAÇÃO LOCAL (heurística, não compreensão semântica):\n'+rows+'\n\nAs evidências não distinguem as opções com clareza. Use o gateway para uma análise semântica.';
+ return 'Alternativa candidata: '+top.label+') '+top.text+'\nConfiança: baixa (heurística lexical; não é uma resposta verificada).\n\nPor que apareceu primeiro: '+top.hits.join(', ')+'.\n\nCOMPARAÇÃO LOCAL:\n'+rows+'\n\nLimitação: coincidência de palavras não prova correção. Para uma justificativa conceitual, selecione IA online e analise novamente.';
+}
 function local(kind,s){const p=pieces(s),t=terms(s),h='WAYNOVO · '+title;
 if(kind==='summary')return [h,'',...p.slice(0,12).map((x,i)=>(i+1)+'. '+x),'','CONCEITOS-CHAVE',...t.map(x=>'• '+x),'','Confira a fidelidade à fonte.'].join('\n');
 if(kind==='flashcards')return [h,'',...p.slice(0,12).map((x,i)=>'CARTÃO '+(i+1)+'\nPergunta: Explique a ideia deste trecho com suas palavras.\nApoio: '+x)].join('\n\n');
@@ -507,8 +526,14 @@ $('prepareQuestion').addEventListener('click',()=>{
 $('clearQuestion').addEventListener('click',()=>{$('questionText').value='';$('questionChoices').value='';$('questionEvidence').value='';status('questionStatus','Campos limpos.');});
 $('analyzeQuestionAI').addEventListener('click',()=>{
  const payload=questionPayload();if(!payload)return status('questionStatus','Cole o enunciado primeiro.');
- $('source').value=payload;$('source').dispatchEvent(new Event('input'));$('task').value='explain';
- status('questionStatus','Conteúdo preparado. A solicitação só será enviada após seu clique; confira o gateway e os custos.');
+ $('source').value=payload;$('source').dispatchEvent(new Event('input'));
+ if($('provider').value==='local'){
+  $('output').value=localQuestionAnalysis();
+  status('questionStatus','Análise local concluída. É uma triagem lexical, não uma resposta de IA semântica.');
+  activateTab('study');return;
+ }
+ $('task').value='question';
+ status('questionStatus','Questão preparada. Revise o gateway e toque em Enviar material à IA para solicitar a análise.');
  activateTab('ai');$('askAI').click();
 });
 
