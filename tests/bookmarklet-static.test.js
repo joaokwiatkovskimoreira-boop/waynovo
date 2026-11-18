@@ -72,11 +72,14 @@ test('Autopilot extracts inline and sibling A-E alternatives and bridges to Tuto
   );
   assert.match(source, /Levar ao Tutor/);
   assert.ok(source.includes("$('questionChoices').value="));
+  assert.ok(source.includes("$('questionEvidence').value="));
+  assert.match(source, /MATERIAL DE APOIO EXTRAÍDO DA PÁGINA/);
+  assert.match(source, /confiança alta, média ou baixa/);
 });
 
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.ok(app.includes('bookmarklet.js?v=1.7'));
-  assert.match(worker, /waynovo-shell-v4/);
+  assert.ok(app.includes('bookmarklet.js?v=1.8'));
+  assert.match(worker, /waynovo-shell-v5/);
 });
