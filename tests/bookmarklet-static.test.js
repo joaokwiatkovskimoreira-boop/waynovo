@@ -75,7 +75,7 @@ test('Local AI is the default and external providers remain opt-in', () => {
   assert.ok(source.includes("$('provider').value=sessionStorage.getItem(PROVIDER)||'local'"));
 });
 
-test('Task Queue 2.1 exposes controls, resumable state and audit export', () => {
+test('Task Queue 4.0 exposes controls, resumable state and audit export', () => {
   for (const id of [
     'autoQueueState','autoQueueProgress','autoQueueAdapters','autoQueueList',
     'autoQueueCreatePack','autoQueueCreateFromText','autoQueueRun','autoQueuePause',
@@ -125,7 +125,7 @@ test('Task Queue registry registers six owned-local adapters and rejects invalid
       return (hash >>> 0).toString(36);
     }
   );
-  assert.equal(api.list().length, 6);
+  assert.equal(api.list().length, 7);
   assert.ok(api.list().every((adapter) => adapter.scope === 'owned-local'));
   assert.throws(() => api.register({id:'foreign-adapter',scope:'third-party',execute:()=> 'no'}), /owned-local/);
   assert.throws(() => api.register({id:'page-summary',scope:'owned-local',execute:()=> 'duplicate'}), /já registrado/);
@@ -176,7 +176,7 @@ test('queue capacity warning is explicit and the audit task title contains no qu
   assert.ok(source.includes("Fila cheia: conclua ou limpe tarefas antes de adicionar novas."));
   assert.match(source, /autoQueueAdd\('question-dossier','Questão detectada · '\+key,item\)/);
 
-  const start = source.indexOf('function autoQueueAdd(type,title,payload){');
+  const start = source.indexOf('function autoQueueAdd(type,title,payload,dependsOn=[]){');
   const end = source.indexOf('function autoQueueCounts(){', start);
   assert.ok(start >= 0 && end > start);
   const tasks = Array.from({length:60},(_,i)=>({id:'pending-'+i,status:'pending'}));
@@ -202,7 +202,7 @@ test('manual pasted-text pack enqueues five local task types and starts the queu
     source.slice(start,end) + ';return autoQueueCreateFromText;'
   )(fakeDollar,(type,title,payload)=>{added.push({type,title,payload});},()=>{started=true;},(id,message)=>{statusText=message;});
   run();
-  assert.deepEqual(added.map(x=>x.type),['page-summary','page-flashcards','page-practice','page-glossary','page-outline']);
+  assert.deepEqual(added.map(x=>x.type),['page-quality-check','page-summary','page-flashcards','page-practice','page-glossary','page-outline']);
   assert.ok(added.every(x=>x.payload.content === studySource.value));
   assert.equal(started,true);
   studySource.value='short';
@@ -230,6 +230,21 @@ test('registered adapters are visible and included in queue audit metadata', () 
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.ok(app.includes('bookmarklet.js?v=2.1'));
-  assert.match(worker, /waynovo-shell-v8/);
+  assert.ok(app.includes('bookmarklet.js?v=4.0'));
+  assert.match(worker, /waynovo-shell-v10/);
+});
+
+\ntest('Waynovo 4.0 keeps answer recommendation and evidence-based confidence in Tutor', () => {
+  assert.match(source, /Alternativa mais provável: \\[letra e texto\\]/);
+  assert.match(source, /Não há dados suficientes para indicar uma alternativa/);
+  assert.match(source, /confiança alta, média ou baixa/);
+  assert.match(source, /Atribua confiança alta, média ou baixa/);
+});
+
+test('Smart Pipeline validates the source and enforces dependency order', () => {
+  assert.match(source, /id:'page-quality-check'/);
+  assert.match(source, /dependsOn\.every/);
+  assert.match(source, /APROVADA PARA GERAÇÃO/);
+  assert.match(source, /adapter\.validate/);
+  assert.match(source, /Qualidade da fonte/);
 });
