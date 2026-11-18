@@ -47,11 +47,27 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 :host([data-theme=light]) .btn,:host([data-theme=light]) .icon{background:#eef0fa;color:#303950;border-color:#d7deeb}
 :host([data-theme=light]) .primary{background:#6858d6;color:white}
 @media(max-width:520px){:host{right:5px;bottom:5px}.panel{width:calc(100vw - 10px);max-height:88vh}}
+nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white-space:nowrap}
+.cog-card{border:1px solid #303d59;border-radius:12px;padding:11px;background:#151e30;margin-top:9px}
+.cog-step{border:1px solid #303d59;border-radius:10px;padding:9px;margin-top:7px;background:#111a2b}
+.cog-step.active{border-color:#8273ee;box-shadow:inset 3px 0 #8273ee}
+.cog-step.done{border-color:#38785f;background:#14271f}
+.cog-step-head{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:800}
+.cog-num{display:grid;place-items:center;flex:0 0 22px;height:22px;border-radius:7px;background:#2b3150;color:#dcd6ff}
+.cog-step p{margin:6px 0 0 29px;color:#aebad2;font-size:10px;line-height:1.5}
+.cog-why{margin-top:5px;color:#8292b1;font-size:9px;line-height:1.45}
+.cog-progress{height:7px;border-radius:9px;background:#27334c;overflow:hidden;margin-top:8px}.cog-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#8273ee,#55c6a1);transition:width .2s}
+.cog-memory{display:flex;align-items:center;gap:7px;padding:8px;margin-top:6px;border:1px solid #303d59;border-radius:9px;background:#121b2c}
+.cog-memory span{flex:1;min-width:0;font-size:10px;overflow-wrap:anywhere}.cog-memory button{flex:0 0 auto}
+.cog-label{font-size:9px;color:#9eabc7;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+:host([data-theme=light]) .cog-card,:host([data-theme=light]) .cog-step,:host([data-theme=light]) .cog-memory{background:#fff;border-color:#dce1ed}
+:host([data-theme=light]) .cog-step.done{background:#effaf4;border-color:#b5dfc8}
+@media(max-width:360px){.tab{min-width:54px;padding:8px 5px}.cog-memory{align-items:flex-start;flex-wrap:wrap}}
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
 <header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.1 · MULTI-IA</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
-<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="questions">Questões</button></nav>
+<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
 <section class="view active" data-view="study"><div class="eyebrow">Laboratório de aprendizagem</div><div class="desc" id="pageInfo">Selecione um trecho visível ou cole seu material.</div>
 <label for="source">Material</label><textarea id="source" placeholder="Selecione um texto e toque em Capturar, ou cole aqui..."></textarea><div class="meta" id="count">0 palavras</div>
@@ -101,7 +117,19 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 <label for="flowPreset">Fluxo de demonstração</label><select id="flowPreset"><option value="study">Sessão de estudo guiada</option><option value="navigation">Navegação entre páginas fictícias</option><option value="validation">Teste de validação local</option></select>
 <div class="row"><button class="btn primary" id="runFlow">Executar fluxo</button><button class="btn" id="resetLab">Reiniciar sandbox</button></div>
 <label>Registro de execução</label><textarea id="labLog" class="output" readonly placeholder="As etapas simuladas aparecerão aqui."></textarea>
-<div class="hint">O laboratório testa o motor de etapas, condições e estados usando somente dados em memória. Não realiza login, não altera progresso real e não interage com páginas de terceiros.</div></section>
+<div class="hint">O laboratório testa o motor de etapas, condições e estados usando somente dados em memória. Não realiza login, não altera progresso real e não interage com páginas de terceiros.</div><section class="view" data-view="cognitive"><div class="eyebrow">Cognitive Engine · planejamento local</div>
+<div class="desc">Dê um objetivo ao Waynovo. Ele organiza um plano, acompanha as etapas, registra memórias escolhidas por você e verifica critérios. O modo local usa regras transparentes; a análise por modelo é opcional.</div>
+<label for="cogGoal">Qual é o objetivo?</label><textarea id="cogGoal" style="min-height:76px" maxlength="1200" placeholder="Ex.: Quero aprender fotossíntese e conseguir explicar o processo com minhas palavras."></textarea>
+<label for="cogContext">Contexto ou material de apoio (opcional)</label><textarea id="cogContext" style="min-height:86px" maxlength="7000" placeholder="Cole informações relevantes, requisitos ou critérios de conclusão..."></textarea>
+<div class="row"><button class="btn" id="cogUseMaterial">Usar material da aba Estudo</button><button class="btn primary" id="cogPlan">Criar plano</button></div>
+<div class="cog-card"><div class="cog-label">Diagnóstico do objetivo</div><div id="cogRationale" style="font-size:10px;line-height:1.55;color:#c1cbe0;margin-top:6px">Seu diagnóstico aparecerá aqui.</div><div class="meta" id="cogEvidence">Nenhuma análise criada.</div></div>
+<div class="cog-card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:11px">Plano de execução</b><span class="meta" id="cogProgress">0 etapas</span></div><div class="cog-progress"><span id="cogProgressBar"></span></div><div id="cogSteps"><div class="meta">Crie um plano para ver as etapas.</div></div>
+<div class="row"><button class="btn primary" id="cogNext" disabled>Concluir etapa atual</button><button class="btn" id="cogReset" disabled>Reiniciar plano</button></div>
+<div class="row"><button class="btn" id="cogSaveMemory" disabled>Guardar na memória</button><button class="btn" id="cogCopyPlan" disabled>Copiar plano</button></div><div class="status" id="cogStatus"></div></div>
+<div class="cog-card"><div class="cog-label">Análise com modelo · opcional</div><div class="desc">Usa o endpoint e o token configurados na aba IA. O texto só é enviado quando você clicar; podem existir limites ou custos do provedor.</div><div class="row"><button class="btn primary" id="cogAskAI">Analisar objetivo com IA</button></div><textarea id="cogAIResult" class="output" readonly placeholder="A análise do gateway aparecerá aqui."></textarea></div>
+<div class="cog-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:11px">Memória deste navegador</b><button class="btn" id="cogClearMemory">Apagar memória</button></div><div class="desc">Nada é sincronizado. Somente planos salvos explicitamente aparecem aqui.</div><div id="cogMemories"><div class="meta">Nenhuma memória salva.</div></div></div>
+<div class="hint">Limite importante: o planejador local não é um modelo de linguagem e não executa ações em sites externos. Ele organiza o trabalho e acompanha o que você marca como concluído. Use adaptadores próprios e permissões explícitas para integrações futuras.</div></section>
+</section>
 </main><footer><span id="site">Waynovo · local-first</span><span>Esc fecha</span></footer></section>
 `;
 const $=id=>root.getElementById(id);
@@ -213,6 +241,178 @@ $('analyzeQuestionAI').addEventListener('click',()=>{
  status('questionStatus','Conteúdo preparado. A solicitação só será enviada após seu clique; confira o gateway e os custos.');
  activateTab('ai');$('askAI').click();
 });
+
+const COG_KEY='waynovo.cognitive.v1';
+let cogPlan=null,cogStepIndex=0,cogMemories=[];
+function cogReadMemories(){
+ try{
+  const value=JSON.parse(localStorage.getItem(COG_KEY)||'[]');
+  return Array.isArray(value)?value.filter(x=>x&&typeof x.goal==='string'&&Array.isArray(x.steps)).slice(0,30):[];
+ }catch(_){return [];}
+}
+function cogSaveMemories(){
+ try{localStorage.setItem(COG_KEY,JSON.stringify(cogMemories.slice(0,30)));return true;}
+ catch(_){status('cogStatus','Não foi possível salvar: armazenamento indisponível ou cheio.');return false;}
+}
+cogMemories=cogReadMemories();
+function cogCategory(goal){
+ const g=goal.toLocaleLowerCase('pt-BR');
+ if(/estud|aprender|revis|prova|mat[eé]ria|conceito|memor/.test(g))return 'aprendizagem';
+ if(/red[aã]ç|escrev|texto|artigo|relat[oó]rio|apresenta/.test(g))return 'produção de conteúdo';
+ if(/pesquis|investig|compara|analis|diagn[oó]st/.test(g))return 'pesquisa e análise';
+ if(/automat|fluxo|organizar|processo|rotina|planilha/.test(g))return 'organização e automação';
+ if(/program|c[oó]digo|site|aplicativo|script|bug|erro/.test(g))return 'desenvolvimento técnico';
+ return 'objetivo geral';
+}
+function cogMakePlan(goal,context){
+ const category=cogCategory(goal),hasContext=Boolean(context.trim()),steps=[];
+ let rationale='O objetivo foi tratado como uma tarefa geral porque não há detalhes suficientes para classificá-lo com mais precisão. O plano prioriza esclarecer o resultado, reunir evidências, produzir uma entrega e conferir o resultado.';
+ if(category==='aprendizagem')rationale='O objetivo envolve aprender ou revisar. Por isso, o plano começa identificando conhecimentos prévios, organiza o conteúdo em blocos e termina com recuperação ativa e verificação sem consulta.';
+ else if(category==='produção de conteúdo')rationale='O objetivo envolve produzir um texto ou apresentação. O plano separa definição do público e critérios, estrutura, elaboração, revisão factual e edição final.';
+ else if(category==='pesquisa e análise')rationale='O objetivo exige investigação. O plano separa pergunta, evidências, comparação de hipóteses, conclusão e limites para reduzir conclusões precipitadas.';
+ else if(category==='organização e automação')rationale='O objetivo envolve um processo. O plano identifica entradas, saídas, permissões e exceções antes de testar um fluxo pequeno e verificar seus resultados.';
+ else if(category==='desenvolvimento técnico')rationale='O objetivo envolve desenvolvimento técnico. O plano começa por requisitos reproduzíveis, isola a causa ou componente, propõe uma alteração pequena e exige testes antes de considerar concluído.';
+ const add=(title,detail,why)=>steps.push({title,detail,why});
+ add('Definir o resultado esperado','Reescreva o objetivo como uma entrega observável. Defina como saber que terminou e quais restrições não podem ser violadas.','Evita começar a executar sem um critério de sucesso claro.');
+ if(category==='aprendizagem'){
+  add('Mapear o que já sabe','Liste conhecimentos prévios, dúvidas e termos desconhecidos. Use o material de apoio, quando fornecido.','O ponto de partida ajuda a separar lacunas reais de conteúdo já dominado.');
+  add('Estudar em blocos pequenos','Divida o material em 3 a 6 tópicos. Para cada tópico, escreva uma explicação curta e um exemplo próprio.','Blocos pequenos facilitam compreensão e revisão.');
+  add('Praticar sem consultar','Responda perguntas próprias, explique o conceito em voz alta e compare a explicação com a fonte.','A recuperação ativa testa compreensão melhor do que apenas reler.');
+  add('Verificar e programar revisão','Corrija imprecisões com a fonte e agende revisões espaçadas. Registre o que ainda ficou incerto.','A checagem separa lembrança de compreensão e deixa explícitas as lacunas.');
+ }else if(category==='produção de conteúdo'){
+  add('Definir público e requisitos','Identifique público, finalidade, formato, tamanho e tom. Transforme cada requisito em um critério verificável.','Uma entrega é adequada quando atende à finalidade e ao público.');
+  add('Montar a estrutura','Crie título, seções e sequência lógica antes de escrever o texto completo.','A estrutura revela lacunas antes de investir na redação.');
+  add('Produzir um primeiro rascunho','Escreva uma versão completa, marcando afirmações que precisam de fonte ou confirmação.','Separar rascunho de revisão ajuda a manter o fluxo.');
+  add('Revisar conteúdo e linguagem','Confira fatos, fontes, coerência, clareza, ortografia e atendimento aos requisitos.','A revisão verifica precisão e legibilidade.');
+ }else if(category==='pesquisa e análise'){
+  add('Formular a pergunta de investigação','Defina escopo, período, termos principais e o que contaria como evidência suficiente.','Uma pergunta delimitada evita pesquisa dispersa.');
+  add('Reunir evidências confiáveis','Registre fontes, datas, dados e limitações. Diferencie observações de suposições.','A conclusão depende da qualidade e atualidade das evidências.');
+  add('Comparar hipóteses','Liste explicações alternativas, evidências favoráveis e contrárias e pontos ainda desconhecidos.','Comparar alternativas reduz o risco de confirmar apenas a primeira hipótese.');
+  add('Concluir com nível de confiança','Responda à pergunta, justifique a conclusão e declare incertezas ou dados ausentes.','A conclusão deve ser proporcional às evidências reunidas.');
+ }else if(category==='organização e automação'){
+  add('Mapear entradas, saídas e permissões','Liste dados de entrada, resultado esperado, ações permitidas, limites e situações que exigem confirmação humana.','Definir limites evita ações inesperadas.');
+  add('Desenhar o fluxo mínimo','Organize as etapas em sequência e acrescente condições para erros ou dados ausentes.','Um fluxo pequeno é mais fácil de testar e corrigir.');
+  add('Testar em ambiente seguro','Use dados fictícios ou ambiente próprio. Registre cada etapa e valide os resultados.','O teste isolado reduz impactos acidentais.');
+  add('Revisar exceções e documentar','Teste casos de erro, defina como desfazer mudanças e documente o comportamento esperado.','Um fluxo útil também precisa falhar de forma previsível.');
+ }else if(category==='desenvolvimento técnico'){
+  add('Registrar requisitos e reproduzir','Descreva comportamento esperado, comportamento atual, passos para reproduzir e ambiente.','Um problema reproduzível permite testar hipóteses.');
+  add('Isolar a causa provável','Examine o menor componente envolvido e compare hipóteses com evidências.','Isolar reduz alterações desnecessárias.');
+  add('Implementar uma mudança pequena','Faça uma alteração delimitada, mantenha cópia ou controle de versão e explique a intenção.','Mudanças pequenas facilitam revisão e reversão.');
+  add('Executar testes e revisar','Verifique o caso original, casos de borda e regressões; documente limitações conhecidas.','A alteração só deve ser considerada válida depois de testada.');
+ }else{
+  add('Reunir contexto e recursos','Liste informações disponíveis, dependências, restrições e dúvidas que bloqueiam o avanço.','O contexto reduz suposições escondidas.');
+  add('Dividir em etapas verificáveis','Quebre o objetivo em ações pequenas com uma saída observável para cada etapa.','Etapas verificáveis tornam o progresso mensurável.');
+  add('Produzir a primeira entrega','Execute a menor parte útil do plano e registre as escolhas feitas.','Uma primeira entrega permite avaliar o caminho cedo.');
+  add('Conferir o resultado','Compare a entrega com os critérios iniciais, procure erros e ajuste o que faltar.','A verificação fecha o ciclo e evita declarar sucesso prematuramente.');
+ }
+ add('Registrar conclusão e próximos passos','Resuma o que foi feito, o que foi verificado e o que permanece pendente.','Uma síntese clara preserva contexto para a próxima sessão.');
+ return {id:String(Date.now())+'-'+Math.random().toString(36).slice(2,8),goal,context:context.slice(0,7000),category,rationale,steps,createdAt:new Date().toISOString(),completed:0};
+}
+function cogRender(){
+ const list=$('cogSteps');list.replaceChildren();
+ if(!cogPlan){
+  list.textContent='Crie um plano para ver as etapas.';
+  $('cogRationale').textContent='Seu diagnóstico aparecerá aqui.';
+  $('cogEvidence').textContent='Nenhuma análise criada.';
+  $('cogProgress').textContent='0 etapas';$('cogProgressBar').style.width='0%';
+  $('cogNext').disabled=true;$('cogReset').disabled=true;$('cogSaveMemory').disabled=true;$('cogCopyPlan').disabled=true;
+  return;
+ }
+ $('cogRationale').textContent=cogPlan.rationale;
+ $('cogEvidence').textContent='Categoria: '+cogPlan.category+' · Contexto: '+(cogPlan.context?cogPlan.context.length+' caracteres fornecidos':'nenhum material adicional')+' · Plano local baseado no objetivo informado.';
+ const total=cogPlan.steps.length,done=Math.min(cogStepIndex,total),pct=Math.round(done/total*100);
+ $('cogProgress').textContent=done+' de '+total+' etapas · '+pct+'%';
+ $('cogProgressBar').style.width=pct+'%';
+ cogPlan.steps.forEach((step,i)=>{
+  const card=document.createElement('div');card.className='cog-step'+(i<done?' done':i===done?' active':'');
+  const head=document.createElement('div');head.className='cog-step-head';
+  const num=document.createElement('span');num.className='cog-num';num.textContent=i<done?'✓':String(i+1);
+  const name=document.createElement('span');name.textContent=step.title;
+  const stateLabel=document.createElement('span');stateLabel.className='meta';stateLabel.style.marginLeft='auto';stateLabel.textContent=i<done?'Concluída':i===done?'Atual':'Pendente';
+  head.append(num,name,stateLabel);
+  const detail=document.createElement('p');detail.textContent=step.detail;
+  const why=document.createElement('div');why.className='cog-why';why.textContent='Por que esta etapa: '+step.why;
+  card.append(head,detail,why);list.append(card);
+ });
+ $('cogNext').disabled=done>=total;$('cogNext').textContent=done>=total?'Plano concluído':'Concluir etapa atual';
+ $('cogReset').disabled=false;$('cogSaveMemory').disabled=false;$('cogCopyPlan').disabled=false;
+}
+function cogPlanText(){
+ if(!cogPlan)return '';
+ return 'WAYNOVO COGNITIVE PLAN\nObjetivo: '+cogPlan.goal+'\nCategoria: '+cogPlan.category+'\nJustificativa: '+cogPlan.rationale+'\n\n'+cogPlan.steps.map((s,i)=>(i+1)+'. '+s.title+'\n'+s.detail+'\nPor que: '+s.why).join('\n\n')+'\n\nProgresso marcado: '+Math.min(cogStepIndex,cogPlan.steps.length)+'/'+cogPlan.steps.length;
+}
+$('cogPlan').addEventListener('click',()=>{
+ const goal=$('cogGoal').value.trim(),context=$('cogContext').value.trim();
+ if(!goal)return status('cogStatus','Descreva um objetivo antes de criar o plano.');
+ cogPlan=cogMakePlan(goal,context);cogStepIndex=0;$('cogAIResult').value='';
+ cogRender();status('cogStatus','Plano criado localmente. Revise as etapas e marque cada uma quando realmente concluir.');
+});
+$('cogUseMaterial').addEventListener('click',()=>{
+ const material=$('source').value.trim();
+ if(!material)return status('cogStatus','Não há material na aba Estudo.');
+ $('cogContext').value=material.slice(0,7000);status('cogStatus','Material copiado para o contexto do Cognitive Engine.');
+});
+$('cogNext').addEventListener('click',()=>{
+ if(!cogPlan||cogStepIndex>=cogPlan.steps.length)return;
+ cogStepIndex++;cogRender();
+ status('cogStatus',cogStepIndex===cogPlan.steps.length?'Todas as etapas foram marcadas como concluídas. Confira os critérios e pendências antes de encerrar.':'Etapa marcada. A próxima etapa está destacada.');
+});
+$('cogReset').addEventListener('click',()=>{
+ if(!cogPlan)return;cogStepIndex=0;cogRender();status('cogStatus','Progresso do plano reiniciado; objetivo e etapas foram mantidos.');
+});
+$('cogSaveMemory').addEventListener('click',()=>{
+ if(!cogPlan)return;
+ const item={...cogPlan,completed:cogStepIndex};
+ cogMemories=[item,...cogMemories.filter(x=>x.id!==item.id)].slice(0,30);
+ if(cogSaveMemories()){cogRenderMemories();status('cogStatus','Plano salvo na memória local deste navegador.');}
+});
+$('cogCopyPlan').addEventListener('click',async()=>{
+ if(!cogPlan)return;status('cogStatus',await copy(cogPlanText())?'Plano copiado.':'Não foi possível copiar neste navegador.');
+});
+$('cogAskAI').addEventListener('click',async()=>{
+ const goal=$('cogGoal').value.trim(),context=$('cogContext').value.trim();
+ if(!goal)return status('cogStatus','Descreva um objetivo antes de solicitar análise.');
+ const endpoint=$('endpoint').value.trim(),token=$('token').value.trim();
+ if(!endpoint||!token){status('cogStatus','Configure endpoint e token na aba IA primeiro.');return;}
+ let url;try{url=new URL(endpoint);}catch(_){status('cogStatus','Endpoint inválido.');return;}
+ if(url.protocol!=='https:'&&url.hostname!=='localhost'&&url.hostname!=='127.0.0.1'){status('cogStatus','Use HTTPS, exceto em localhost.');return;}
+ const btn=$('cogAskAI'),old=btn.textContent,controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),55000);
+ const content='OBJETIVO DO USUÁRIO:\n'+goal+'\n\nCONTEXTO FORNECIDO:\n'+(context||'(não fornecido)')+'\n\nINSTRUÇÕES: crie um plano acionável em etapas; declare pressupostos; diferencie fatos do contexto e inferências; inclua critérios de verificação, riscos e próximos passos. Explique concisamente por que cada etapa existe. Não afirme que realizou ações. Não revele cadeia interna de pensamento; forneça apenas justificativas resumidas e verificáveis.';
+ btn.disabled=true;btn.textContent='Analisando…';
+ try{
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({task:'plan',content,pageTitle:title}),signal:controller.signal});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||'Gateway HTTP '+response.status);
+  if(typeof data.text!=='string'||!data.text.trim())throw new Error('A IA retornou resposta vazia.');
+  $('cogAIResult').value=data.text.trim();
+  status('cogStatus','Análise recebida pelo gateway · '+(data.provider||'provedor')+' / '+(data.model||'modelo')+'. Compare com o contexto e verifique as sugestões.');
+ }catch(error){status('cogStatus',error.name==='AbortError'?'Tempo limite excedido.':error.message||'Falha ao acessar o gateway.');}
+ finally{clearTimeout(timeout);btn.disabled=false;btn.textContent=old;}
+});
+$('cogClearMemory').addEventListener('click',()=>{
+ if(!cogMemories.length)return status('cogStatus','A memória já está vazia.');
+ if(!confirm('Apagar todos os planos salvos na memória local deste navegador?'))return;
+ cogMemories=[];cogSaveMemories();cogRenderMemories();status('cogStatus','Memória local apagada.');
+});
+function cogRenderMemories(){
+ const list=$('cogMemories');list.replaceChildren();
+ if(!cogMemories.length){const empty=document.createElement('div');empty.className='meta';empty.textContent='Nenhuma memória salva.';list.append(empty);return;}
+ cogMemories.slice(0,8).forEach(item=>{
+  const row=document.createElement('div');row.className='cog-memory';
+  const label=document.createElement('span');
+  const date=new Date(item.createdAt||Date.now());
+  label.textContent=item.goal+' · '+(Number(item.completed)||0)+'/'+item.steps.length+' etapas · '+date.toLocaleDateString('pt-BR');
+  const open=document.createElement('button');open.className='btn';open.textContent='Reabrir';
+  open.addEventListener('click',()=>{
+   cogPlan={...item};cogStepIndex=Math.min(Number(item.completed)||0,cogPlan.steps.length);
+   $('cogGoal').value=item.goal;$('cogContext').value=item.context||'';$('cogAIResult').value='';
+   cogRender();status('cogStatus','Memória recuperada. Continue o plano ou reinicie o progresso.');
+  });
+  row.append(label,open);list.append(row);
+ });
+}
+cogRenderMemories();cogRender();
+
 root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));}));
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
 $('min').addEventListener('click',()=>{$('panel').classList.toggle('minimized');$('min').textContent=$('panel').classList.contains('minimized')?'+':'−';});
