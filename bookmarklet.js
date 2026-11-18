@@ -847,7 +847,7 @@ function autoFindEvidence(question,blocks){
  if(!terms.length)return [];
  const matches=[];
  for(const block of blocks){
-  if(block===question||block.length<35||/^\\s*(?:\\([A-E]\\)|[A-E][).:\\-])\\s+/i.test(block))continue;
+  if(block===question||block.length<35||/^\s*(?:\([A-E]\)|[A-E][).:\-])\s+/i.test(block))continue;
   const blockTerms=new Set(autoTokens(block));
   const hits=terms.filter(term=>blockTerms.has(term));
   const score=hits.length/Math.max(3,Math.min(terms.length,12));
