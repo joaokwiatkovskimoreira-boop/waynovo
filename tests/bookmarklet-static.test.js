@@ -134,6 +134,58 @@ test('Task Queue executor and exported audit avoid network and submission action
   assert.doesNotMatch(exporter, /payload/);
 });
 
+
+test('Task Queue registry registers four owned-local adapters and rejects invalid scopes', () => {
+  const start = source.indexOf('const autoQueueAdapterRegistry=new Map();');
+  const end = source.indexOf('function autoQueueTick(){', start);
+  assert.ok(start >= 0 && end > start, 'adapter registry exists');
+  const state = { cards: [] };
+  const artifacts = { summary: '', practice: '', flashcards: [], questions: [] };
+  let saves = 0, draws = 0;
+  const api = new Function(
+    'local','pieces','state','save','drawCard','autoQueueData','autoHash',
+    source.slice(start, end) + '; return {register:autoQueueRegisterAdapter,list:autoQueueListAdapters,run:autoQueueExecute};'
+  )(
+    (kind, text) => kind + ':' + text,
+    (text) => String(text).split('|').filter(Boolean),
+    state, () => { saves++; }, () => { draws++; }, { artifacts },
+    (value) => 'h' + String(value).length
+  );
+  assert.equal(api.list().length, 4);
+  assert.ok(api.list().every((adapter) => adapter.scope === 'owned-local'));
+  assert.throws(() => api.register({id:'foreign-adapter',scope:'third-party',execute:()=> 'no'}), /owned-local/);
+  assert.throws(() => api.register({id:'page-summary',scope:'owned-local',execute:()=> 'duplicate'}), /já registrado/);
+  assert.throws(() => api.run({type:'missing-adapter'}), /Nenhum adaptador/);
+  assert.match(api.run({type:'page-summary',payload:{content:'material'}}), /Resumo local/);
+  assert.equal(artifacts.summary,'summary:material');
+  assert.match(api.run({type:'page-practice',payload:{content:'material'}}), /Exercícios/);
+  assert.equal(artifacts.practice,'practice:material');
+  assert.match(api.run({type:'page-flashcards',payload:{content:'one|two'}}), /flashcard/);
+  assert.equal(state.cards.length,2);
+  assert.equal(saves,1);
+  assert.equal(draws,1);
+  assert.match(api.run({type:'question-dossier',payload:{id:'q1',question:'Q?',options:['A) 1'],evidence:[{text:'source',score:0.8}],draft:'review'}}), /Dossiê/);
+  assert.equal(artifacts.questions.length,1);
+});
+
+test('Task Queue flashcards are idempotent and respect the local deck limit', () => {
+  const start = source.indexOf('const autoQueueAdapterRegistry=new Map();');
+  const end = source.indexOf('function autoQueueTick(){', start);
+  const state = { cards: [] }, artifacts = {summary:'',practice:'',flashcards:[],questions:[]};
+  let saves = 0;
+  const api = new Function('local','pieces','state','save','drawCard','autoQueueData','autoHash',
+    source.slice(start,end)+';return autoQueueExecute;'
+  )((kind,text)=>kind+':'+text,(text)=>String(text).split('|').filter(Boolean),state,()=>saves++,()=>{}, {artifacts},(value)=>String(value.length));
+  const task={type:'page-flashcards',payload:{content:'alpha|beta'}};
+  api(task);
+  api(task);
+  assert.equal(state.cards.length,2,'replaying the same task does not duplicate cards');
+  assert.equal(saves,1,'only the first execution writes new cards');
+  state.cards=Array.from({length:300},(_,i)=>({id:'existing-'+i,front:'f',back:'b'}));
+  api({type:'page-flashcards',payload:{content:'gamma|delta'}});
+  assert.equal(state.cards.length,300,'deck cap is preserved');
+});
+
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
