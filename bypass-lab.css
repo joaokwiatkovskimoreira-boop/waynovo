@@ -1,0 +1,48 @@
+.bypass-section{max-width:1180px;margin:0 auto;padding:76px 5vw}
+.bypass-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:24px}
+.bypass-head h2{font:700 clamp(28px,4vw,42px) 'Space Grotesk',sans-serif;letter-spacing:-1.6px;margin:6px 0}
+.bypass-head p{color:var(--muted);max-width:680px;line-height:1.6;margin:0}
+.bypass-scope{border:1px solid #6a56bd66;background:#211b3a;color:#d9d0ff;padding:8px 12px;border-radius:99px;font-size:11px;font-weight:800;white-space:nowrap}
+.bypass-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:16px}
+.bypass-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;min-width:0}
+.bypass-card h3{font:700 16px 'Space Grotesk',sans-serif;margin:0 0 7px}
+.bypass-card>p{color:var(--muted);font-size:12px;line-height:1.6;margin:0 0 16px}
+.bypass-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.bypass-metric{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:13px}
+.bypass-metric strong{display:block;font:700 24px 'Space Grotesk',sans-serif}
+.bypass-metric span{font-size:10px;color:var(--muted)}
+.bypass-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bypass-section label{display:block;color:var(--muted);font-size:11px;font-weight:700;margin:12px 0 6px}
+.bypass-section select,.bypass-section textarea{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px;font:12px 'DM Sans',sans-serif}
+.bypass-section textarea{min-height:205px;resize:vertical;font:11px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
+.bypass-meta{font-size:10px;color:var(--muted);margin-top:7px;line-height:1.5}
+.bypass-check{display:flex!important;align-items:center;gap:9px;color:var(--text)!important;font-weight:500!important;line-height:1.4}
+.bypass-check input{width:16px;height:16px;accent-color:var(--purple)}
+.bypass-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.bypass-actions button{border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);padding:10px 13px;font:700 11px 'DM Sans',sans-serif;cursor:pointer}
+.bypass-actions .bypass-primary{background:linear-gradient(110deg,#7661dc,#5745b7);border-color:#8875ea;color:#fff}
+.bypass-result{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);min-height:88px}
+.bypass-result p{font-size:12px;line-height:1.55;margin:7px 0;color:var(--text)}
+.bypass-result small{font-size:10px;color:var(--muted)}
+.bypass-warning{margin-top:14px;padding:12px 14px;border-left:3px solid #b58e45;background:#332a1838;border-radius:0 10px 10px 0;color:var(--muted);font-size:11px;line-height:1.6}
+.bypass-tests{display:grid;gap:7px;margin-top:10px}
+.bypass-test-row{display:flex;gap:9px;align-items:flex-start;padding:9px 10px;border:1px solid var(--line);border-radius:10px;font-size:11px;line-height:1.5}
+.bypass-test-row strong{font-size:9px;letter-spacing:.5px}
+.bypass-test-row.passed strong,.is-allow{color:var(--mint)}
+.bypass-test-row.failed strong,.is-deny{color:#ff8b94}
+#bypassTestSummary{display:inline-block;margin:7px 0;font-size:11px;color:#ffbd80}
+#bypassTestSummary.all-passed{color:var(--mint)}
+.bypass-audit-wrap{overflow:auto;margin-top:10px}
+.bypass-audit{width:100%;border-collapse:collapse;font-size:10px;min-width:630px}
+.bypass-audit th,.bypass-audit td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.bypass-audit th{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.bypass-audit td:last-child{max-width:360px;line-height:1.45;color:var(--muted)}
+.bypass-empty{text-align:center!important;color:var(--muted);padding:24px!important}
+#bypassLabStatus{min-height:17px;margin-top:9px;color:var(--mint);font-size:11px}
+body.light .bypass-card,body.light .bypass-metric{background:#fff;border-color:#dce1ed}
+body.light .bypass-section select,body.light .bypass-section textarea{background:#f7f8fc;color:#20283a;border-color:#d0d7e6}
+body.light .bypass-metric{background:#f4f5fa}
+body.light .bypass-warning{background:#fff7e8;color:#695c44}
+body.light .bypass-actions button{background:#eef0fa;color:#303950;border-color:#d7deeb}
+@media(max-width:850px){.bypass-grid{grid-template-columns:1fr}.bypass-head{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.bypass-section{padding:55px 5vw}.bypass-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.bypass-form-grid{grid-template-columns:1fr}.bypass-card{padding:15px}}
