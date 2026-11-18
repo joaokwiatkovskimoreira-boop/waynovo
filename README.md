@@ -42,15 +42,17 @@ A implementação aproveita a ideia geral de análise de questões com IA, mas n
 
 ## Cognitive Engine — aba Cérebro
 
-A aba **Cérebro** acrescenta um planejador local ao bookmarklet. Informe um objetivo e, opcionalmente, contexto: o motor classifica o tipo de tarefa por regras simples, cria etapas, explica por que cada etapa foi sugerida e permite marcar o progresso manualmente.
+A aba **Cérebro** combina um planejador local com um executor assistido por IA. Informe um objetivo e, opcionalmente, contexto: o motor classifica o tipo de tarefa por regras simples, cria etapas, explica por que cada etapa foi sugerida, acompanha o progresso e mantém o plano ativo no navegador.
 
 - **Planejamento local:** cria planos para aprendizagem, produção de conteúdo, pesquisa/análise, organização/automação, desenvolvimento técnico e objetivos gerais.
 - **Verificação:** cada etapa inclui uma razão e o fluxo termina com conferência de critérios e pendências.
 - **Memória local explícita:** planos só entram na memória quando você toca em Guardar na memória. É possível reabrir ou apagar os registros.
+- **Execução assistida:** o Action Lab produz uma entrega para a etapa atual; Auditar resultado solicita uma segunda revisão crítica. Ambas exigem clique explícito e usam o provedor/fallback escolhido na aba IA.
+- **Continuidade:** o plano ativo, a última entrega e a auditoria são recuperados no mesmo navegador.
 - **Análise opcional por IA:** usa o endpoint e o token já configurados na aba IA; o envio só acontece após o clique em Analisar objetivo com IA.
 - **Privacidade:** memória e planos ficam no armazenamento local do navegador e não são sincronizados.
 
-O planejador local **não é um modelo de linguagem**: usa heurísticas transparentes e não verifica fatos sozinho. A análise pelo gateway depende do provedor configurado, pode ter custos/limites e deve ser conferida. Marcar uma etapa significa apenas registrar manualmente que ela foi concluída; o mecanismo não executa ações em sites externos.
+O planejador local **não é um modelo de linguagem**: usa heurísticas transparentes e não verifica fatos sozinho. A execução assistida produz rascunhos e análises com o modelo configurado; a auditoria é uma segunda opinião, não uma garantia de correção. O gateway aceita a tarefa `verify` e valida o tamanho real do corpo JSON em bytes. Provedores podem ter custos/limites e os resultados devem ser conferidos. Marcar uma etapa significa apenas registrar manualmente que ela foi concluída; o motor não executa ações em sites externos.
 ## Motor de automação e sandbox
 
 A aba **Automação** inclui um motor de fluxos demonstrativo com etapas sequenciais, condições e estado isolado em memória. Há três cenários: sessão de estudo fictícia, navegação entre páginas de exemplo e validação local de estado. O registro mostra o resultado de cada etapa e o ambiente pode ser reiniciado.
