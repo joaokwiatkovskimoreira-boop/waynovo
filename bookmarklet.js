@@ -934,7 +934,7 @@ function autoQueueAdd(type,title,payload){
  if(autoQueueData.tasks.length>=60){
   const removable=autoQueueData.tasks.findIndex(task=>task.status==='done'||task.status==='failed');
   if(removable>=0)autoQueueData.tasks.splice(removable,1);
-  else return null;
+  else {status('autoStatus','Fila cheia: conclua ou limpe tarefas antes de adicionar novas.');return null;}
  }
  const task={id,type,title:String(title||type).slice(0,120),payload,status:'pending',createdAt:new Date().toISOString(),finishedAt:'',error:''};
  autoQueueData.tasks.push(task);autoQueueLog('queued',task,'Tarefa adicionada à fila local.');
@@ -1251,7 +1251,7 @@ function autoScan(force){
    const draft=autoMakeDraft(question,evidence);
    const item={id:key,question,options,evidence,draft};
    autoDrafts.unshift(item);
-   autoQueueAdd('question-dossier','Questão detectada · '+question.slice(0,72),item);
+   autoQueueAdd('question-dossier','Questão detectada · '+key,item);
    if(!autoQueueRunning)autoQueueStart();
   }else{
    if(options.length)previous.options=options;
