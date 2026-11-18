@@ -32,6 +32,18 @@ textarea{min-height:100px;resize:vertical;line-height:1.5}.output{min-height:135
 .auto-stat{border:1px solid #303d59;border-radius:10px;padding:10px;background:#111a2b;min-width:0}
 .auto-num{font-size:22px;font-weight:850;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
 .auto-item{border:1px solid #303d59;border-radius:10px;padding:10px;background:#151e30;margin-top:8px}
+.auto-queue{border:1px solid #303d59;border-radius:12px;background:#151e30;padding:11px;margin-top:10px}
+.auto-queue-row{display:flex;gap:8px;align-items:flex-start;border-top:1px solid #303d59;padding:8px 0}
+.auto-queue-row:first-child{border-top:0}
+.auto-queue-main{flex:1;min-width:0}
+.auto-queue-title{font-size:10px;font-weight:800;overflow-wrap:anywhere}
+.auto-queue-meta{font-size:9px;color:#8797b4;margin-top:3px}
+.auto-queue-badge{font-size:9px;font-weight:800;padding:3px 6px;border:1px solid #475676;border-radius:999px;white-space:nowrap}
+.auto-queue-bar{height:6px;background:#28334a;border-radius:9px;overflow:hidden;margin-top:7px}
+.auto-queue-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#8273ee,#55c6a1)}
+:host([data-theme=light]) .auto-queue{background:#fff;border-color:#dce1ed}
+:host([data-theme=light]) .auto-queue-row{border-color:#e2e6ef}
+:host([data-theme=light]) .auto-queue-meta{color:#66748e}
 .auto-question{font-size:11px;font-weight:800;line-height:1.5;overflow-wrap:anywhere}
 .auto-answer{margin-top:7px;color:#c2cce1;font-size:10px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
 .auto-evidence{margin-top:6px;color:#8fa0bf;font-size:9px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -176,6 +188,14 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <div class="auto-stat"><div class="auto-num" id="autoDrafts">0</div><div class="meta">Rascunhos sugeridos</div></div>
 </div></div>
 <div class="row"><button class="btn primary" id="autoScanNow">Varredura agora</button><button class="btn" id="autoToggle">Pausar robô</button><button class="btn" id="autoCopy">Copiar rascunhos</button></div>
+<div class="auto-queue">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:11px">Task Queue · execução local</b><span class="auto-queue-badge" id="autoQueueState">AGUARDANDO</span></div>
+ <div class="auto-queue-meta" id="autoQueueProgress">0 concluídas · 0 pendentes · 0 falhas</div>
+ <div class="auto-queue-bar"><span id="autoQueueBar"></span></div>
+ <div class="row"><button class="btn primary" id="autoQueueCreatePack">Gerar pacote da página</button><button class="btn" id="autoQueueRun">Executar fila</button></div>
+ <div class="row"><button class="btn" id="autoQueuePause">Pausar fila</button><button class="btn" id="autoQueueAudit">Baixar auditoria</button><button class="btn" id="autoQueueClear">Limpar fila</button></div>
+ <div id="autoQueueList"><div class="meta">Questões detectadas entram automaticamente. Gere um pacote para processar o restante da página.</div></div>
+</div>
 <label>Questões encontradas e sugestões</label><div id="autoResults"><div class="meta">O monitor está iniciando a primeira varredura…</div></div>
 <div class="hint">O modo local não usa API nem cobra nada. As sugestões são extraídas de trechos visíveis da própria página e precisam ser conferidas. O contador registra questões detectadas, não respostas submetidas ou avaliações concluídas. Conteúdo oculto, campos privados, iframes isolados e botões de resposta são ignorados.</div>
 <div class="status" id="autoStatus" aria-live="polite">Inicializando monitor…</div></section>
@@ -860,6 +880,200 @@ function autoMakeDraft(question,evidence){
  if(!evidence.length)return 'Ainda não encontrei evidência suficiente no texto visível desta página. O enunciado foi detectado, mas precisa de contexto ou pesquisa adicional.';
  return 'Rascunho sugerido com base no conteúdo encontrado na página:\n'+evidence.map((item,i)=>(i+1)+'. '+item.text).join('\n')+'\n\nConfira se esses trechos realmente respondem ao enunciado antes de usar.';
 }
+// Task Queue 2.0: execução local, retomável e auditável.
+const AUTO_QUEUE_KEY='waynovo.autopilot.queue.v1';
+const autoQueueData=(()=>{
+ try{
+  const raw=JSON.parse(sessionStorage.getItem(AUTO_QUEUE_KEY)||'{}');
+  const tasks=Array.isArray(raw.tasks)?raw.tasks.filter(x=>x&&typeof x.id==='string').slice(-60):[];
+  tasks.forEach(task=>{if(task.status==='running')task.status='pending';});
+  return {
+   tasks,
+   audit:Array.isArray(raw.audit)?raw.audit.slice(-160):[],
+   artifacts:raw.artifacts&&typeof raw.artifacts==='object'?raw.artifacts:{summary:'',practice:'',flashcards:[],questions:[]}
+  };
+ }catch(_){return {tasks:[],audit:[],artifacts:{summary:'',practice:'',flashcards:[],questions:[]}};}
+})();
+let autoQueueRunning=false,autoQueueTimer=null;
+function autoQueuePersist(){
+ try{
+  sessionStorage.setItem(AUTO_QUEUE_KEY,JSON.stringify({
+   tasks:autoQueueData.tasks.slice(-60),
+   audit:autoQueueData.audit.slice(-160),
+   artifacts:{
+    summary:String(autoQueueData.artifacts.summary||'').slice(0,14000),
+    practice:String(autoQueueData.artifacts.practice||'').slice(0,14000),
+    flashcards:Array.isArray(autoQueueData.artifacts.flashcards)?autoQueueData.artifacts.flashcards.slice(-30):[],
+    questions:Array.isArray(autoQueueData.artifacts.questions)?autoQueueData.artifacts.questions.slice(-30):[]
+   }
+  }));
+ }catch(_){status('autoStatus','A fila não pôde ser salva nesta sessão; exporte a auditoria para guardar o registro.');}
+}
+function autoQueueLog(action,task,detail){
+ autoQueueData.audit.push({
+  at:new Date().toISOString(),
+  action:String(action||'event').slice(0,40),
+  taskId:task&&task.id||'',
+  type:task&&task.type||'',
+  title:task&&task.title||'',
+  detail:String(detail||'').slice(0,220)
+ });
+ if(autoQueueData.audit.length>160)autoQueueData.audit.splice(0,autoQueueData.audit.length-160);
+}
+function autoQueueAdd(type,title,payload){
+ const fingerprint=autoHash(type+'|'+JSON.stringify(payload||{}));
+ const id='job-'+type+'-'+fingerprint;
+ if(autoQueueData.tasks.some(task=>task.id===id))return null;
+ if(autoQueueData.tasks.length>=60){
+  const removable=autoQueueData.tasks.findIndex(task=>task.status==='done'||task.status==='failed');
+  if(removable>=0)autoQueueData.tasks.splice(removable,1);
+  else return null;
+ }
+ const task={id,type,title:String(title||type).slice(0,120),payload,status:'pending',createdAt:new Date().toISOString(),finishedAt:'',error:''};
+ autoQueueData.tasks.push(task);autoQueueLog('queued',task,'Tarefa adicionada à fila local.');
+ autoQueuePersist();autoQueueRender();return task;
+}
+function autoQueueCounts(){
+ const tasks=autoQueueData.tasks;
+ return {
+  pending:tasks.filter(x=>x.status==='pending').length,
+  running:tasks.filter(x=>x.status==='running').length,
+  done:tasks.filter(x=>x.status==='done').length,
+  failed:tasks.filter(x=>x.status==='failed').length,
+  total:tasks.length
+ };
+}
+function autoQueueRender(){
+ const counts=autoQueueCounts();
+ const stateLabel=autoQueueRunning?'EXECUTANDO':counts.pending?'PENDENTE':counts.failed?'COM FALHAS':'EM DIA';
+ $('autoQueueState').textContent=stateLabel;
+ $('autoQueueProgress').textContent=counts.done+' concluídas · '+counts.pending+' pendentes · '+counts.failed+' falhas';
+ $('autoQueueBar').style.width=(counts.total?Math.round(counts.done/counts.total*100):0)+'%';
+ $('autoQueueRun').disabled=autoQueueRunning||counts.pending===0;
+ $('autoQueuePause').disabled=!autoQueueRunning;
+ const list=$('autoQueueList');list.replaceChildren();
+ if(!counts.total){
+  const empty=document.createElement('div');empty.className='meta';
+  empty.textContent='Questões detectadas entram automaticamente. Gere um pacote para processar o restante da página.';
+  list.append(empty);return;
+ }
+ autoQueueData.tasks.slice(-8).reverse().forEach(task=>{
+  const row=document.createElement('div');row.className='auto-queue-row';
+  const main=document.createElement('div');main.className='auto-queue-main';
+  const title=document.createElement('div');title.className='auto-queue-title';title.textContent=task.title;
+  const meta=document.createElement('div');meta.className='auto-queue-meta';meta.textContent=task.type+' · '+new Date(task.createdAt).toLocaleTimeString('pt-BR');
+  main.append(title,meta);
+  const badge=document.createElement('span');badge.className='auto-queue-badge';
+  badge.textContent=task.status==='done'?'CONCLUÍDA':task.status==='failed'?'FALHOU':task.status==='running'?'RODANDO':'NA FILA';
+  row.append(main,badge);list.append(row);
+ });
+}
+function autoQueueExecute(task){
+ const payload=task.payload;
+ if(task.type==='page-summary'){
+  autoQueueData.artifacts.summary=local('summary',String(payload.content||''));
+  return 'Resumo local preparado ('+autoQueueData.artifacts.summary.length+' caracteres).';
+ }
+ if(task.type==='page-practice'){
+  autoQueueData.artifacts.practice=local('practice',String(payload.content||''));
+  return 'Exercícios originais de prática preparados.';
+ }
+ if(task.type==='page-flashcards'){
+  const chunks=pieces(String(payload.content||'')).slice(0,10);
+  const cards=chunks.map((part,index)=>({
+   id:'auto-'+autoHash(part+'|'+index),
+   front:'Explique a ideia central do trecho '+(index+1)+'.',
+   back:part
+  }));
+  const existing=new Set(state.cards.map(card=>card.id));
+  const fresh=cards.filter(card=>!existing.has(card.id));
+  state.cards=[...fresh,...state.cards].slice(0,300);save();drawCard();
+  autoQueueData.artifacts.flashcards=fresh;
+  return fresh.length+' flashcard(s) adicionados ao baralho local.';
+ }
+ if(task.type==='question-dossier'){
+  const item=payload||{};
+  const dossier={
+   id:task.id,
+   question:String(item.question||'').slice(0,1800),
+   options:Array.isArray(item.options)?item.options.slice(0,8):[],
+   evidence:Array.isArray(item.evidence)?item.evidence.slice(0,2):[],
+   draft:String(item.draft||'').slice(0,4000),
+   note:'Dossiê preparado para revisão no Tutor; nenhuma alternativa foi marcada ou submetida.'
+  };
+  autoQueueData.artifacts.questions=[dossier,...(autoQueueData.artifacts.questions||[]).filter(x=>x.id!==dossier.id)].slice(0,30);
+  return 'Dossiê da questão preparado com '+dossier.evidence.length+' trecho(s) de apoio.';
+ }
+ throw new Error('Tipo de tarefa desconhecido: '+task.type);
+}
+function autoQueueTick(){
+ if(!autoQueueRunning)return;
+ const task=autoQueueData.tasks.find(x=>x.status==='pending');
+ if(!task){
+  autoQueueRunning=false;autoQueueTimer=null;autoQueuePersist();autoQueueRender();
+  status('autoStatus','Fila local finalizada. Confira resultados e auditoria.');
+  return;
+ }
+ task.status='running';autoQueueLog('started',task,'Executor local iniciou a tarefa.');
+ autoQueuePersist();autoQueueRender();
+ try{
+  const detail=autoQueueExecute(task);
+  task.status='done';task.finishedAt=new Date().toISOString();task.payload=null;
+  autoQueueLog('completed',task,detail);
+ }catch(error){
+  task.status='failed';task.finishedAt=new Date().toISOString();task.error=String(error&&error.message||error).slice(0,180);
+  autoQueueLog('failed',task,task.error);
+ }
+ autoQueuePersist();autoQueueRender();
+ autoQueueTimer=setTimeout(autoQueueTick,120);
+}
+function autoQueueStart(){
+ if(autoQueueRunning)return;
+ if(!autoQueueCounts().pending)return status('autoStatus','Não há tarefas pendentes na fila.');
+ autoQueueRunning=true;autoQueueLog('resumed',null,'Execução da fila iniciada/retomada.');
+ autoQueuePersist();autoQueueRender();autoQueueTick();
+ status('autoStatus','Task Queue executando tarefas locais em sequência.');
+}
+function autoQueuePause(){
+ autoQueueRunning=false;
+ if(autoQueueTimer){clearTimeout(autoQueueTimer);autoQueueTimer=null;}
+ autoQueueLog('paused',null,'Execução pausada pelo usuário.');
+ autoQueuePersist();autoQueueRender();status('autoStatus','Fila pausada; tarefas pendentes serão retomadas quando solicitado.');
+}
+function autoQueueCreatePack(){
+ const blocks=autoVisibleBlocks();
+ const content=blocks.filter(x=>!autoIsQuestion(x)).join('\n\n').slice(0,16000);
+ if(content.length<80)return status('autoStatus','Não há material visível suficiente para montar o pacote.');
+ autoQueueAdd('page-summary','Resumo da página',{content});
+ autoQueueAdd('page-flashcards','Flashcards da página',{content});
+ autoQueueAdd('page-practice','Exercícios de prática da página',{content});
+ autoQueueStart();
+}
+function autoQueueExport(){
+ const report={
+  product:'Waynovo Task Queue',
+  version:'2.0',
+  exportedAt:new Date().toISOString(),
+  counts:autoQueueCounts(),
+  tasks:autoQueueData.tasks.map(({id,type,title,status,createdAt,finishedAt,error})=>({id,type,title,status,createdAt,finishedAt,error})),
+  audit:autoQueueData.audit
+ };
+ const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
+ const anchor=document.createElement('a');anchor.href=url;anchor.download='waynovo-task-audit.json';anchor.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ status('autoStatus','Auditoria JSON exportada sem incluir o conteúdo integral das páginas.');
+}
+$('autoQueueCreatePack').addEventListener('click',autoQueueCreatePack);
+$('autoQueueRun').addEventListener('click',autoQueueStart);
+$('autoQueuePause').addEventListener('click',autoQueuePause);
+$('autoQueueClear').addEventListener('click',()=>{
+ if(autoQueueRunning)autoQueuePause();
+ autoQueueData.tasks=[];autoQueueData.audit=[];autoQueueData.artifacts={summary:'',practice:'',flashcards:[],questions:[]};
+ autoQueuePersist();autoQueueRender();status('autoStatus','Fila e auditoria da sessão limpas.');
+});
+$('autoQueueAudit').addEventListener('click',autoQueueExport);
+autoQueueRender();
+
 function autoRender(){
  $('autoTime').textContent=autoClock(autoStats.seconds);
  $('autoScans').textContent=String(autoStats.scans);
@@ -916,7 +1130,11 @@ function autoScan(force){
   const previous=autoDrafts.find(item=>item.id===key);
   if(!previous){
    added++;
-   autoDrafts.unshift({id:key,question,options,evidence,draft:autoMakeDraft(question,evidence)});
+   const draft=autoMakeDraft(question,evidence);
+   const item={id:key,question,options,evidence,draft};
+   autoDrafts.unshift(item);
+   autoQueueAdd('question-dossier','Questão detectada · '+question.slice(0,72),item);
+   if(!autoQueueRunning)autoQueueStart();
   }else{
    if(options.length)previous.options=options;
    if(evidence.length)previous.evidence=evidence;
@@ -973,7 +1191,7 @@ autoStart();
 root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));if(touchLayout())b.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}));
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
 $('min').addEventListener('click',()=>{$('panel').classList.toggle('minimized');$('min').textContent=$('panel').classList.contains('minimized')?'+':'−';});
-function close(){if(interval)clearInterval(interval);if(autoScannerInterval)clearInterval(autoScannerInterval);if(autoClockInterval)clearInterval(autoClockInterval);if(autoObserver)autoObserver.disconnect();if(autoDebounce)clearTimeout(autoDebounce);autoPersist();host.remove();}
+function close(){if(interval)clearInterval(interval);if(autoQueueTimer)clearTimeout(autoQueueTimer);if(autoScannerInterval)clearInterval(autoScannerInterval);if(autoClockInterval)clearInterval(autoClockInterval);if(autoObserver)autoObserver.disconnect();if(autoDebounce)clearTimeout(autoDebounce);autoPersist();host.remove();}
 host.__waynovoCleanup=close;
 $('close').addEventListener('click',close);root.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
 let drag=null;const touchLayout=()=>window.matchMedia&&window.matchMedia('(pointer: coarse), (max-width: 640px)').matches;$('drag').addEventListener('pointerdown',e=>{if(touchLayout()||e.target.closest('button'))return;const r=host.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};$('drag').setPointerCapture(e.pointerId);});
