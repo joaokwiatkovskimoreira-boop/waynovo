@@ -133,7 +133,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <section class="view" data-view="focus"><div class="eyebrow">Sessão de foco</div><div class="desc">Organize blocos de estudo com um temporizador simples.</div>
 <label for="duration">Duração</label><select id="duration"><option value="15">15 minutos</option><option value="25" selected>25 minutos</option><option value="35">35 minutos</option><option value="45">45 minutos</option><option value="50">50 minutos</option></select>
 <div class="timer" id="timer">25:00</div><div class="meta center" id="timerStatus">Pronto para começar</div><div class="row"><button class="btn primary" id="toggleTimer">Iniciar</button><button class="btn" id="resetTimer">Reiniciar</button></div></section>
-<section class="view" data-view="ai"><div class="eyebrow">Assistente opcional</div><div class="desc">Gateway multi-provedor: OpenAI Responses API, Gemini, Groq e OpenRouter. As chaves ficam nos secrets do Worker.</div>
+<section class="view" data-view="ai"><div class="eyebrow">Assistente opcional</div><div class="desc">Local gratuito por padrão. IA online opcional somente por modelos gratuitos permitidos no gateway.</div>
 <label for="endpoint">Endpoint do gateway</label><input id="endpoint" type="url" placeholder="https://seu-worker.workers.dev/generate" autocomplete="off">
 <label for="token">Token de acesso do gateway</label><input id="token" type="password" placeholder="Token temporário" autocomplete="off">
 <label for="provider">Provedor preferido</label><div class="hint">Local gratuito não precisa de internet, token nem conta. OpenRouter Free é opcional, exige uma chave no gateway e tem limite de uso. OpenAI API é paga e fica bloqueada neste modo.</div><select id="provider">
