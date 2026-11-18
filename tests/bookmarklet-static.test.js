@@ -105,7 +105,7 @@ test('Task Queue runtime parses and export omits raw page payloads', () => {
   assert.doesNotMatch(exporter, /payload/);
 });
 
-test('Task Queue registry registers six owned-local adapters and rejects invalid scopes', () => {
+test('Task Queue registry registers seven owned-local adapters and rejects invalid scopes', () => {
   const start = source.indexOf('const autoQueueAdapterRegistry=new Map();');
   const end = source.indexOf('function autoQueueTick(){', start);
   assert.ok(start >= 0 && end > start);
@@ -190,7 +190,7 @@ test('queue capacity warning is explicit and the audit task title contains no qu
   assert.match(notice,/Fila cheia/);
 });
 
-test('manual pasted-text pack enqueues five local task types and starts the queue', () => {
+test('manual pasted-text pack enqueues a validated six-step pipeline and starts the queue', () => {
   const start = source.indexOf('function autoQueueCreateFromText(){');
   const end = source.indexOf('function autoQueueCreatePack(){', start);
   assert.ok(start >= 0 && end > start);
@@ -200,7 +200,7 @@ test('manual pasted-text pack enqueues five local task types and starts the queu
   const fakeDollar = (id) => id === 'source' ? studySource : null;
   const run = new Function('$','autoQueueAdd','autoQueueStart','status',
     source.slice(start,end) + ';return autoQueueCreateFromText;'
-  )(fakeDollar,(type,title,payload)=>{added.push({type,title,payload});},()=>{started=true;},(id,message)=>{statusText=message;});
+  )(fakeDollar,(type,title,payload)=>{added.push({type,title,payload});return {id:'job-'+type};},()=>{started=true;},(id,message)=>{statusText=message;});
   run();
   assert.deepEqual(added.map(x=>x.type),['page-quality-check','page-summary','page-flashcards','page-practice','page-glossary','page-outline']);
   assert.ok(added.every(x=>x.payload.content === studySource.value));
@@ -236,7 +236,7 @@ test('Android installer and service worker point to the current bookmarklet rele
 
 
 test('Waynovo 4.0 keeps answer recommendation and evidence-based confidence in Tutor', () => {
-  assert.match(source, /Alternativa mais provável: \\[letra e texto\\]/);
+  assert.match(source, /Alternativa mais provável: \[letra e texto\]/);
   assert.match(source, /Não há dados suficientes para indicar uma alternativa/);
   assert.match(source, /confiança alta, média ou baixa/);
   assert.match(source, /Atribua confiança alta, média ou baixa/);
