@@ -94,31 +94,6 @@ test('Task Queue 2.0 exposes controls, resumable state and audit export', () => 
   assert.match(source, /waynovo-task-audit\.json/);
 });
 
-test('Task Queue executes page tasks locally and stores question dossiers', () => {
-  const start = source.indexOf('function autoQueueExecute(task){');
-  const end = source.indexOf('function autoQueueTick(){', start);
-  assert.ok(start >= 0 && end > start, 'queue executor exists');
-  const body = source.slice(start, end);
-  const store = { cards: [] };
-  const artifacts = { summary: '', practice: '', flashcards: [], questions: [] };
-  let saved = 0, drawn = 0;
-  const execute = new Function('local','pieces','state','save','drawCard','autoQueueData','autoHash',
-    body + '; return autoQueueExecute;'
-  )((kind, content) => kind + ':' + content, (value) => value.split('|').filter(Boolean),
-    store, () => { saved++; }, () => { drawn++; }, { artifacts }, (value) => String(value.length));
-  assert.match(execute({type:'page-summary',payload:{content:'page text'}}), /Resumo local/);
-  assert.equal(artifacts.summary, 'summary:page text');
-  assert.match(execute({type:'page-practice',payload:{content:'page text'}}), /Exercícios originais/);
-  assert.equal(artifacts.practice, 'practice:page text');
-  assert.match(execute({type:'page-flashcards',payload:{content:'first|second'}}), /flashcard/);
-  assert.equal(store.cards.length, 2);
-  assert.equal(saved, 1);
-  assert.equal(drawn, 1);
-  assert.match(execute({type:'question-dossier',payload:{question:'Q?',options:['A) 1'],evidence:[{text:'Source'}],draft:'Review'}}), /Dossiê/);
-  assert.equal(artifacts.questions.length, 1);
-  assert.match(artifacts.questions[0].note, /nenhuma alternativa foi marcada/);
-});
-
 test('Task Queue executor and exported audit avoid network and submission actions', () => {
   const start = source.indexOf('// Task Queue 2.0:');
   const end = source.indexOf('function autoRender(){', start);
@@ -135,12 +110,12 @@ test('Task Queue executor and exported audit avoid network and submission action
 });
 
 
-test('Task Queue registry registers four owned-local adapters and rejects invalid scopes', () => {
+test('Task Queue registry registers six owned-local adapters and rejects invalid scopes', () => {
   const start = source.indexOf('const autoQueueAdapterRegistry=new Map();');
   const end = source.indexOf('function autoQueueTick(){', start);
   assert.ok(start >= 0 && end > start, 'adapter registry exists');
   const state = { cards: [] };
-  const artifacts = { summary: '', practice: '', flashcards: [], questions: [] };
+  const artifacts = { summary: '', practice: '', flashcards: [], glossary: '', outline: '', questions: [] };
   let saves = 0, draws = 0;
   const api = new Function(
     'local','pieces','state','save','drawCard','autoQueueData','autoHash',
@@ -175,7 +150,7 @@ test('Task Queue registry registers four owned-local adapters and rejects invali
 test('Task Queue flashcards are idempotent and respect the local deck limit', () => {
   const start = source.indexOf('const autoQueueAdapterRegistry=new Map();');
   const end = source.indexOf('function autoQueueTick(){', start);
-  const state = { cards: [] }, artifacts = {summary:'',practice:'',flashcards:[],questions:[]};
+  const state = { cards: [] }, artifacts = {summary:'',practice:'',flashcards:[],glossary:'',outline:'',questions:[]};
   let saves = 0;
   const api = new Function('local','pieces','state','save','drawCard','autoQueueData','autoHash',
     source.slice(start,end)+';return autoQueueExecute;'
@@ -200,6 +175,6 @@ test('registered adapters are visible and included in queue audit metadata', () 
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.ok(app.includes('bookmarklet.js?v=2.0'));
-  assert.match(worker, /waynovo-shell-v7/);
+  assert.ok(app.includes('bookmarklet.js?v=2.1'));
+  assert.match(worker, /waynovo-shell-v8/);
 });
