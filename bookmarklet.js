@@ -210,7 +210,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <label for="questionEvidence">Material de apoio (opcional)</label><textarea id="questionEvidence" style="min-height:90px" placeholder="Trechos de apoio podem ser preenchidos automaticamente pelo Autopilot ou colados aqui..."></textarea>
 <div class="row"><button class="btn primary" id="prepareQuestion">Preparar análise</button><button class="btn" id="clearQuestion">Limpar</button></div>
 <div class="row"><button class="btn primary" id="analyzeQuestionAI">Analisar com IA</button></div>
-<div class="hint">A IA indica a alternativa mais provável, explica o raciocínio, compara as opções e mostra o nível de confiança. Confira as evidências antes de usar. A IA só recebe o conteúdo quando você toca em Analisar com IA e o gateway está configurado.</div><div class="status" id="questionStatus"></div></section>
+<div class="hint">Com gateway online, o Tutor indica a alternativa mais provável, compara opções e justifica a confiança. No modo Local, o resultado é apenas uma triagem lexical transparente — não uma IA semântica. O conteúdo só sai do navegador após sua ação explícita e com gateway configurado.</div><div class="status" id="questionStatus"></div></section>
 <section class="view" data-view="automation"><div class="eyebrow">Motor de automação · sandbox</div><div class="desc">Monte e execute fluxos em um ambiente fictício isolado. Nenhuma ação é enviada à página ou a serviços externos.</div>
 <div class="box"><div style="font-size:11px;font-weight:800;margin-bottom:7px">Estado do ambiente simulado</div><div id="labState" style="font-size:10px;line-height:1.8;color:#b8c5df">Sessão: desconectada<br>Página: início<br>Progresso: 0%<br>Resposta: vazia</div></div>
 <label for="flowPreset">Fluxo de demonstração</label><select id="flowPreset"><option value="study">Sessão de estudo guiada</option><option value="navigation">Navegação entre páginas fictícias</option><option value="validation">Teste de validação local</option></select>
@@ -530,6 +530,7 @@ $('analyzeQuestionAI').addEventListener('click',()=>{
  if($('provider').value==='local'){
   $('output').value=localQuestionAnalysis();
   status('questionStatus','Análise local concluída. É uma triagem lexical, não uma resposta de IA semântica.');
+  status('studyStatus','Triagem local concluída. Veja a candidata e as evidências no resultado; use o gateway para análise semântica.');
   activateTab('study');return;
  }
  $('task').value='question';
