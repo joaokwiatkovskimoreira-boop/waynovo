@@ -51,7 +51,7 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
 <header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.0</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
-<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button></nav>
+<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="questions">Questões</button></nav>
 <main>
 <section class="view active" data-view="study"><div class="eyebrow">Laboratório de aprendizagem</div><div class="desc" id="pageInfo">Selecione um trecho visível ou cole seu material.</div>
 <label for="source">Material</label><textarea id="source" placeholder="Selecione um texto e toque em Capturar, ou cole aqui..."></textarea><div class="meta" id="count">0 palavras</div>
@@ -88,6 +88,12 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 <article class="module-card"><b>Fubanga · Hub</b><p>Gerencie os módulos internos do Waynovo. Nenhum script remoto será executado.</p><button class="btn primary" data-module="hub">Ver catálogo</button></article>
 </div><div class="status" id="moduleStatus">Escolha um módulo. O Waynovo usa somente o texto selecionado ou colado.</div>
 <div class="hint">Os módulos são independentes, mas compartilham cartões, notas, editor, temporizador e gateway de IA. Ações em páginas externas permanecem sob seu controle.</div></section>
+<section class="view" data-view="questions"><div class="eyebrow">Assistente de questões · WaygroundX-inspired</div><div class="desc">Cole o enunciado e as alternativas para receber uma explicação guiada. O assistente não lê nem responde diretamente em plataformas externas.</div>
+<label for="questionText">Enunciado</label><textarea id="questionText" placeholder="Cole aqui o enunciado da questão..."></textarea>
+<label for="questionChoices">Alternativas (opcional)</label><textarea id="questionChoices" style="min-height:78px" placeholder="A) ...&#10;B) ...&#10;C) ..."></textarea>
+<div class="row"><button class="btn primary" id="prepareQuestion">Preparar análise</button><button class="btn" id="clearQuestion">Limpar</button></div>
+<div class="row"><button class="btn primary" id="analyzeQuestionAI">Analisar com IA</button></div>
+<div class="hint">A análise é para estudo: explica o raciocínio, compara alternativas e aponta incertezas. A IA só recebe o conteúdo quando você toca em Analisar com IA e o gateway está configurado.</div><div class="status" id="questionStatus"></div></section>
 <section class="view" data-view="automation"><div class="eyebrow">Motor de automação · sandbox</div><div class="desc">Monte e execute fluxos em um ambiente fictício isolado. Nenhuma ação é enviada à página ou a serviços externos.</div>
 <div class="box"><div style="font-size:11px;font-weight:800;margin-bottom:7px">Estado do ambiente simulado</div><div id="labState" style="font-size:10px;line-height:1.8;color:#b8c5df">Sessão: desconectada<br>Página: início<br>Progresso: 0%<br>Resposta: vazia</div></div>
 <label for="flowPreset">Fluxo de demonstração</label><select id="flowPreset"><option value="study">Sessão de estudo guiada</option><option value="navigation">Navegação entre páginas fictícias</option><option value="validation">Teste de validação local</option></select>
@@ -185,6 +191,24 @@ function runLab(){
 $('runFlow').addEventListener('click',runLab);
 $('resetLab').addEventListener('click',()=>{lab.session=false;lab.page='início';lab.progress=0;lab.answer='';$('labLog').value='Sandbox reiniciado. Nenhuma alteração externa foi realizada.';drawLab();});
 drawLab();
+function questionPayload(){
+ const stem=$('questionText').value.trim(),choices=$('questionChoices').value.trim();
+ if(!stem)return '';
+ return 'MODO DE ESTUDO: analise a questão e ensine o raciocínio. Não interaja com a plataforma de origem, não submeta respostas e não afirme certeza se faltar contexto.\n\nENUNCIADO:\n'+stem+(choices?'\n\nALTERNATIVAS:\n'+choices:'')+'\n\nFORMATO DA RESPOSTA:\n1. Identifique o conceito cobrado.\n2. Explique o raciocínio passo a passo.\n3. Compare as alternativas, se houver.\n4. Indique a resposta mais provável e justifique, sinalizando incertezas.\n5. Dê uma dica para resolver questões semelhantes.';
+}
+$('prepareQuestion').addEventListener('click',()=>{
+ const payload=questionPayload();if(!payload)return status('questionStatus','Cole o enunciado primeiro.');
+ $('source').value=payload;$('source').dispatchEvent(new Event('input'));
+ $('mode').value='practice';$('output').value='GUIA DE ANÁLISE\n\n'+payload;
+ status('questionStatus','Questão organizada. Revise o guia ou solicite análise ao gateway de IA.');
+});
+$('clearQuestion').addEventListener('click',()=>{$('questionText').value='';$('questionChoices').value='';status('questionStatus','Campos limpos.');});
+$('analyzeQuestionAI').addEventListener('click',()=>{
+ const payload=questionPayload();if(!payload)return status('questionStatus','Cole o enunciado primeiro.');
+ $('source').value=payload;$('source').dispatchEvent(new Event('input'));$('task').value='explain';
+ status('questionStatus','Conteúdo preparado. A solicitação só será enviada após seu clique; confira o gateway e os custos.');
+ activateTab('ai');$('askAI').click();
+});
 root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));}));
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
 $('min').addEventListener('click',()=>{$('panel').classList.toggle('minimized');$('min').textContent=$('panel').classList.contains('minimized')?'+':'−';});
