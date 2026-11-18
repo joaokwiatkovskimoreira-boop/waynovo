@@ -114,9 +114,11 @@
   $('#timerReset').addEventListener('click',resetTimer);drawTimer();
 
   let bookmarklet = '';
+  const mobileBookmarklet = "javascript:(()=>{const id='waynovo-mobile-loader';if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src='https://raw.githubusercontent.com/joaokwiatkovskimoreira-boop/waynovo/main/bookmarklet.js?v=1.4';s.onload=()=>s.remove();s.onerror=()=>{s.remove();alert('Waynovo: não foi possível carregar o painel. Confira a conexão ou a política de segurança do site.')};(document.head||document.documentElement).appendChild(s)})()";
   async function loadBookmarklet() {
     const link = $('#bookmarkletLink');
     const code = $('#bookmarkletCode');
+    const mobileCode = $('#mobileBookmarkletCode');
     try {
       const response = await fetch('./bookmarklet.js', { cache: 'no-store' });
       if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -125,16 +127,23 @@
       bookmarklet = 'javascript:' + encodeURIComponent(source.trim());
       link.href = bookmarklet;
       code.textContent = bookmarklet;
+      if (mobileCode) mobileCode.textContent = mobileBookmarklet;
     } catch (error) {
       link.removeAttribute('href');
       code.textContent = 'Não foi possível carregar bookmarklet.js: ' + (error.message || 'erro desconhecido');
+      if (mobileCode) mobileCode.textContent = mobileBookmarklet;
     }
   }
   loadBookmarklet();
   $('#copyBookmarklet').addEventListener('click', async () => {
     if (!bookmarklet) await loadBookmarklet();
-    if (bookmarklet) notify(await copyText(bookmarklet) ? 'Bookmarklet copiado.' : 'Não foi possível copiar; selecione o código.');
+    if (bookmarklet) notify(await copyText(bookmarklet) ? 'Bookmarklet completo copiado.' : 'Não foi possível copiar; selecione o código.');
     else notify('Bookmarklet indisponível. Verifique bookmarklet.js.');
+  });
+  const mobileCopyButton = $('#copyMobileBookmarklet');
+  if (mobileCopyButton) mobileCopyButton.addEventListener('click', async () => {
+    const ok = await copyText(mobileBookmarklet);
+    notify(ok ? 'Código curto para Android copiado.' : 'Não foi possível copiar; selecione o código curto.');
   });
   const now=new Date();$('#today').textContent=now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});$('#year').textContent=now.getFullYear();
   render();
