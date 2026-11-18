@@ -209,7 +209,7 @@
         : { allowed: false, reason: 'O sinalizador local featureEnabled está desativado.', evidence: 'client-feature-flag' }
     });
     engine.register({
-      id: 'trusted-entitlement-lab',
+      id: 'trusted-entitlement',
       name: 'Permissão simulada do servidor',
       description: 'Usa uma fixture confiável separada do payload editável do cliente.',
       scope: 'owned-lab',
@@ -228,7 +228,7 @@
       }
     });
     engine.register({
-      id: 'rate-limit-lab',
+      id: 'rate-limit',
       name: 'Janela de tentativas simulada',
       description: 'Exercita limites de tentativa usando contadores da fixture de laboratório.',
       scope: 'owned-lab',
@@ -250,7 +250,7 @@
       }
     });
     engine.register({
-      id: 'fault-tolerance-lab',
+      id: 'fault-tolerance',
       name: 'Falha de dependência controlada',
       description: 'Verifica que exceções de avaliação terminam em negação segura.',
       scope: 'owned-lab',
@@ -286,7 +286,7 @@
       {
         id: 'trusted-spoof',
         name: 'Permissão · payload forjado',
-        adapterId: 'trusted-entitlement-lab',
+        adapterId: 'trusted-entitlement',
         strategy: 'baseline',
         expected: 'DENY',
         context: { environment: 'test', fixture: { trustedGrants: [] }, clientPayload: { role: 'admin', qaOverride: true, featureEnabled: true } }
@@ -294,7 +294,7 @@
       {
         id: 'trusted-grant',
         name: 'Permissão · grant de fixture',
-        adapterId: 'trusted-entitlement-lab',
+        adapterId: 'trusted-entitlement',
         strategy: 'baseline',
         expected: 'ALLOW',
         context: { environment: 'test', fixture: { trustedGrants: ['premium-reports'] }, clientPayload: { role: 'free' } }
@@ -302,7 +302,7 @@
       {
         id: 'rate-limit',
         name: 'Tentativas · limite atingido',
-        adapterId: 'rate-limit-lab',
+        adapterId: 'rate-limit',
         strategy: 'baseline',
         expected: 'DENY',
         context: { environment: 'test', fixture: { attempts: 3, limit: 3 }, clientPayload: { attempts: 0 } }
@@ -310,7 +310,7 @@
       {
         id: 'fault-fail-closed',
         name: 'Dependência · falha segura',
-        adapterId: 'fault-tolerance-lab',
+        adapterId: 'fault-tolerance',
         strategy: 'baseline',
         expected: 'DENY',
         context: { environment: 'test', fixture: { simulateFailure: true }, clientPayload: {} }
@@ -323,13 +323,15 @@
     const cases = [
       { name: 'Gate de cliente nega quando flag está desligada.', adapter: 'client-feature-gate', strategy: 'baseline', expected: false, context: { environment: 'test', clientPayload: { featureEnabled: false } } },
       { name: 'Gate de cliente permite flag local ligada.', adapter: 'client-feature-gate', strategy: 'baseline', expected: true, context: { environment: 'test', clientPayload: { featureEnabled: true } } },
+      { name: 'Override QA sem autorização é recusado.', adapter: 'client-feature-gate', strategy: 'qa-override', expected: false, context: { environment: 'test', authorization: { qaOverride: false }, clientPayload: { featureEnabled: false } } },
       { name: 'Override QA exige autorização e fixture test.', adapter: 'client-feature-gate', strategy: 'qa-override', expected: true, context: { environment: 'test', authorization: { qaOverride: true }, clientPayload: { featureEnabled: false } } },
       { name: 'Override QA é recusado fora de test.', adapter: 'client-feature-gate', strategy: 'qa-override', expected: false, context: { environment: 'demo', authorization: { qaOverride: true }, clientPayload: { featureEnabled: false } } },
-      { name: 'Payload cliente não forja grants.', adapter: 'trusted-entitlement-lab', strategy: 'baseline', expected: false, context: { environment: 'test', fixture: { trustedGrants: [] }, clientPayload: { role: 'admin', qaOverride: true } } },
-      { name: 'Grant confiável da fixture permite acesso.', adapter: 'trusted-entitlement-lab', strategy: 'baseline', expected: true, context: { environment: 'test', fixture: { trustedGrants: ['premium-reports'] } } },
-      { name: 'Rate limit nega ao atingir o limite.', adapter: 'rate-limit-lab', strategy: 'baseline', expected: false, context: { environment: 'test', fixture: { attempts: 3, limit: 3 }, clientPayload: { attempts: 0 } } },
-      { name: 'Exceção do adaptador termina em negação segura.', adapter: 'fault-tolerance-lab', strategy: 'baseline', expected: false, context: { environment: 'test', fixture: { simulateFailure: true } } },
-      { name: 'Override QA é recusado para autoridade de fixture.', adapter: 'trusted-entitlement-lab', strategy: 'qa-override', expected: false, context: { environment: 'test', authorization: { qaOverride: true }, fixture: { trustedGrants: [] } } }
+      { name: 'Payload cliente não forja grants.', adapter: 'trusted-entitlement', strategy: 'baseline', expected: false, context: { environment: 'test', fixture: { trustedGrants: [] }, clientPayload: { role: 'admin', qaOverride: true } } },
+      { name: 'Grant confiável da fixture permite acesso.', adapter: 'trusted-entitlement', strategy: 'baseline', expected: true, context: { environment: 'test', fixture: { trustedGrants: ['premium-reports'] } } },
+      { name: 'Rate limit nega ao atingir o limite.', adapter: 'rate-limit', strategy: 'baseline', expected: false, context: { environment: 'test', fixture: { attempts: 3, limit: 3 }, clientPayload: { attempts: 0 } } },
+      { name: 'Rate limit permite abaixo do limite.', adapter: 'rate-limit', strategy: 'baseline', expected: true, context: { environment: 'test', fixture: { attempts: 1, limit: 3 }, clientPayload: { attempts: 99 } } },
+      { name: 'Exceção do adaptador termina em negação segura.', adapter: 'fault-tolerance', strategy: 'baseline', expected: false, context: { environment: 'test', fixture: { simulateFailure: true } } },
+      { name: 'Dependência saudável permite a execução de teste.', adapter: 'fault-tolerance', strategy: 'baseline', expected: true, context: { environment: 'test', fixture: { healthy: true } } }
     ];
     const results = cases.map((test) => {
       const record = engine.run(test.adapter, test.context, test.strategy);
