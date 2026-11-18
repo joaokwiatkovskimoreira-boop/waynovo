@@ -190,7 +190,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <div class="row"><button class="btn primary" id="autoScanNow">Varredura agora</button><button class="btn" id="autoToggle">Pausar robô</button><button class="btn" id="autoCopy">Copiar rascunhos</button></div>
 <div class="auto-queue">
  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:11px">Task Queue · execução local</b><span class="auto-queue-badge" id="autoQueueState">AGUARDANDO</span></div>
- <div class="auto-queue-meta" id="autoQueueProgress">0 concluídas · 0 pendentes · 0 falhas</div>
+ <div class="auto-queue-meta" id="autoQueueAdapters">4 adaptadores locais</div><div class="auto-queue-meta" id="autoQueueProgress">0 concluídas · 0 pendentes · 0 falhas</div>
  <div class="auto-queue-bar"><span id="autoQueueBar"></span></div>
  <div class="row"><button class="btn primary" id="autoQueueCreatePack">Gerar pacote da página</button><button class="btn" id="autoQueueRun">Executar fila</button></div>
  <div class="row"><button class="btn" id="autoQueuePause">Pausar fila</button><button class="btn" id="autoQueueRetry">Repetir falhas</button><button class="btn" id="autoQueueAudit">Baixar auditoria</button><button class="btn" id="autoQueueClear">Limpar fila</button></div>
@@ -952,6 +952,7 @@ function autoQueueRender(){
  const stateLabel=autoQueueRunning?'EXECUTANDO':counts.pending?'PENDENTE':counts.failed?'COM FALHAS':'EM DIA';
  $('autoQueueState').textContent=stateLabel;
  $('autoQueueProgress').textContent=counts.done+' concluídas · '+counts.pending+' pendentes · '+counts.failed+' falhas';
+ $('autoQueueAdapters').textContent=autoQueueListAdapters().length+' adaptadores locais · '+autoQueueListAdapters().map(x=>x.name).join(' · ');
  $('autoQueueBar').style.width=(counts.total?Math.round(counts.done/counts.total*100):0)+'%';
  $('autoQueueRun').disabled=autoQueueRunning||counts.pending===0;
  $('autoQueuePause').disabled=!autoQueueRunning;
@@ -1110,6 +1111,7 @@ function autoQueueExport(){
   version:'2.0',
   exportedAt:new Date().toISOString(),
   counts:autoQueueCounts(),
+  adapters:autoQueueListAdapters(),
   tasks:autoQueueData.tasks.map(({id,type,title,status,createdAt,finishedAt,error})=>({id,type,title,status,createdAt,finishedAt,error})),
   audit:autoQueueData.audit
  };
