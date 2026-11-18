@@ -110,7 +110,7 @@ A aba **Autopilot** agora possui uma fila local de tarefas sequenciais:
 - **Gerar pacote da página** cria cinco tarefas: resumo, flashcards, exercícios originais, glossário e mapa de tópicos a partir do texto visível. **Gerar pacote do texto colado** faz o mesmo a partir do material na aba Estudo.
 - O estado de cada tarefa é registrado como pendente, em execução, concluída ou falha. A fila executa uma tarefa por vez e permite pausar, retomar e repetir falhas.
 - Tarefas pendentes são recuperadas ao reabrir o bookmarklet na mesma aba. A fila e os artefatos ficam em sessionStorage; os flashcards gerados também entram no baralho local.
-- **Visualizar saída** permite consultar o resumo, exercícios, flashcards, glossário, mapa de tópicos e dossiês produzidos. **Baixar auditoria** exporta JSON com estados e eventos, sem incluir o conteúdo integral da página.
+- **Visualizar saída** permite consultar o resumo, exercícios, flashcards, glossário, mapa de tópicos e dossiês produzidos. **Baixar auditoria** exporta JSON com estados e eventos, sem incluir o conteúdo integral da página. Os títulos das tarefas usam rótulos genéricos/identificadores, não trechos do enunciado; o JSON exportado contém somente metadados e eventos, sem payloads do material.
 
 A fila utiliza seis adaptadores registrados — resumo, prática, flashcards, glossário, mapa de tópicos e dossiê de questão — com escopo `owned-local`, lista de adaptadores e validação de contrato. Flashcards são deduplicados e respeitam o limite de 300 cartões. A fila executa somente transformações locais do Waynovo. Ela não usa a IA online por padrão, não envia conteúdo ao site, não clica em alternativas, não preenche formulários e não marca tarefas externas como concluídas.
 
