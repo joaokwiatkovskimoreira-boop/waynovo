@@ -1,6 +1,6 @@
 'use strict';
-const CACHE = 'waynovo-shell-v4';
-const CORE = ['./', './index.html', './styles.css', './app.js', './bookmarklet.js', './features.js', './planner.js', './planner.css', './bypass-engine.js', './bypass-lab.js', './bypass-lab.css', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'waynovo-shell-v3';
+const CORE = ['./', './index.html', './styles.css', './app.js', './bookmarklet.js', './features.js', './planner.js', './planner.css', './manifest.webmanifest', './icon.svg'];
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting()));
 });
