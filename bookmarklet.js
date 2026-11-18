@@ -28,6 +28,16 @@ textarea{min-height:100px;resize:vertical;line-height:1.5}.output{min-height:135
 .soft{background:#292344;border-color:#514879;color:#ded7ff}
 .status{min-height:16px;margin-top:7px;color:#8fe0bd;font-size:10px;white-space:pre-wrap;overflow-wrap:anywhere}
 .meta{font-size:9px;color:#8592ad;margin-top:5px}
+.auto-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.auto-stat{border:1px solid #303d59;border-radius:10px;padding:10px;background:#111a2b;min-width:0}
+.auto-num{font-size:22px;font-weight:850;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.auto-item{border:1px solid #303d59;border-radius:10px;padding:10px;background:#151e30;margin-top:8px}
+.auto-question{font-size:11px;font-weight:800;line-height:1.5;overflow-wrap:anywhere}
+.auto-answer{margin-top:7px;color:#c2cce1;font-size:10px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.auto-evidence{margin-top:6px;color:#8fa0bf;font-size:9px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+:host([data-theme=light]) .auto-stat,:host([data-theme=light]) .auto-item{background:#fff;border-color:#dce1ed}
+:host([data-theme=light]) .auto-answer{color:#34415a}
+:host([data-theme=light]) .auto-evidence{color:#66748e}
 .box{border:1px solid #2d3953;border-radius:11px;padding:11px;background:#151e30;margin-top:9px}
 .timer{font-size:43px;font-weight:850;text-align:center;margin:14px 0 3px;font-variant-numeric:tabular-nums}.center{text-align:center}
 .noteitem{display:flex;align-items:center;gap:6px;border:1px solid #2c3851;border-radius:9px;padding:7px;margin-top:6px;background:#141e30}
@@ -110,9 +120,9 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 }
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.5 · FREE LOCAL FIRST</div></div><div class="spacer"></div>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.6 · AUTOPILOT</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
-<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
+<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="autopilot">Autopilot</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
 <section class="view active" data-view="study"><div class="eyebrow">Laboratório de aprendizagem</div><div class="desc" id="pageInfo">Selecione um trecho visível ou cole seu material.</div>
 <label for="source">Material</label><textarea id="source" placeholder="Selecione um texto e toque em Capturar, ou cole aqui..."></textarea><div class="meta" id="count">0 palavras</div>
@@ -156,6 +166,19 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <article class="module-card"><b>Fubanga · Hub</b><p>Gerencie os módulos internos do Waynovo. Nenhum script remoto será executado.</p><button class="btn primary" data-module="hub">Ver catálogo</button></article>
 </div><div class="status" id="moduleStatus">Escolha um módulo. O Waynovo usa somente o texto selecionado ou colado.</div>
 <div class="hint">Os módulos são independentes, mas compartilham cartões, notas, editor, temporizador e gateway de IA. Ações em páginas externas permanecem sob seu controle.</div></section>
+<section class="view" data-view="autopilot"><div class="eyebrow">Autopilot · monitor automático</div>
+<div class="desc">Ao abrir o Waynovo, o monitor começa a observar o texto renderizado e visível nesta página. Ele identifica enunciados, procura evidências no próprio conteúdo e monta rascunhos locais sem enviar nada à página.</div>
+<div class="box"><div id="autoState" style="font-size:11px;font-weight:850">ROBÔ ATIVO · varredura local</div><div class="meta">Os números abaixo são desta aba/sessão.</div>
+<div class="auto-stats">
+<div class="auto-stat"><div class="auto-num" id="autoTime">00:00</div><div class="meta">Tempo com Waynovo aberto</div></div>
+<div class="auto-stat"><div class="auto-num" id="autoScans">0</div><div class="meta">Varreduras realizadas</div></div>
+<div class="auto-stat"><div class="auto-num" id="autoQuestions">0</div><div class="meta">Questões visíveis detectadas</div></div>
+<div class="auto-stat"><div class="auto-num" id="autoDrafts">0</div><div class="meta">Rascunhos sugeridos</div></div>
+</div></div>
+<div class="row"><button class="btn primary" id="autoScanNow">Varredura agora</button><button class="btn" id="autoToggle">Pausar robô</button><button class="btn" id="autoCopy">Copiar rascunhos</button></div>
+<label>Questões encontradas e sugestões</label><div id="autoResults"><div class="meta">O monitor está iniciando a primeira varredura…</div></div>
+<div class="hint">O modo local não usa API nem cobra nada. As sugestões são extraídas de trechos visíveis da própria página e precisam ser conferidas. O contador registra questões detectadas, não respostas submetidas ou avaliações concluídas. Conteúdo oculto, campos privados, iframes isolados e botões de resposta são ignorados.</div>
+<div class="status" id="autoStatus" aria-live="polite">Inicializando monitor…</div></section>
 <section class="view" data-view="questions"><div class="eyebrow">Assistente de questões · WaygroundX-inspired</div><div class="desc">Cole o enunciado e as alternativas para receber uma explicação guiada. O assistente não lê nem responde diretamente em plataformas externas.</div>
 <label for="questionText">Enunciado</label><textarea id="questionText" placeholder="Cole aqui o enunciado da questão..."></textarea>
 <label for="questionChoices">Alternativas (opcional)</label><textarea id="questionChoices" style="min-height:78px" placeholder="A) ...&#10;B) ...&#10;C) ..."></textarea>
@@ -722,10 +745,181 @@ function cogRenderMemories(){
 }
 cogRestoreActive();cogRenderMemories();cogRender();
 
+// Autopilot: monitor automático somente do conteúdo renderizado e visível.
+const AUTO_SESSION_KEY='waynovo.autopilot.session.v1';
+const autoStats=(()=>{
+ try{
+  const raw=JSON.parse(sessionStorage.getItem(AUTO_SESSION_KEY)||'{}');
+  return {
+   seconds:Number.isFinite(Number(raw.seconds))?Math.max(0,Number(raw.seconds)):0,
+   scans:Number.isFinite(Number(raw.scans))?Math.max(0,Number(raw.scans)):0,
+   drafts:Number.isFinite(Number(raw.drafts))?Math.max(0,Number(raw.drafts)):0,
+   seen:Array.isArray(raw.seen)?raw.seen.filter(x=>typeof x==='string').slice(-500):[]
+  };
+ }catch(_){return {seconds:0,scans:0,drafts:0,seen:[]};}
+})();
+const autoSeen=new Set(autoStats.seen);
+let autoDrafts=[];
+let autoRunning=true;
+let autoObserver=null,autoScannerInterval=null,autoClockInterval=null,autoDebounce=null;
+let autoLastTick=Date.now();
+function autoPersist(){
+ try{sessionStorage.setItem(AUTO_SESSION_KEY,JSON.stringify({...autoStats,seen:[...autoSeen].slice(-500)}));}catch(_){}
+}
+function autoClock(value){
+ const seconds=Math.max(0,Math.floor(value));
+ const h=Math.floor(seconds/3600),m=Math.floor((seconds%3600)/60),s=seconds%60;
+ return h?String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'):String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function autoHash(value){
+ let hash=2166136261;
+ for(let i=0;i<value.length;i++){hash^=value.charCodeAt(i);hash=Math.imul(hash,16777619);}
+ return (hash>>>0).toString(36);
+}
+function autoVisibleBlocks(){
+ const selector='[role="question"],[data-testid*="question" i],[class*="question" i],p,li,article,h1,h2,h3,h4,div';
+ const nodes=Array.from(document.querySelectorAll(selector));
+ const seenText=new Set(),blocks=[];
+ for(const el of nodes){
+  if(host.contains(el))continue;
+  const tag=String(el.tagName||'').toUpperCase();
+  if(['SCRIPT','STYLE','NOSCRIPT','SVG','BUTTON','INPUT','TEXTAREA','SELECT','OPTION','NAV','HEADER','FOOTER'].includes(tag))continue;
+  if(!el.getClientRects||!el.getClientRects().length)continue;
+  let style;try{style=getComputedStyle(el);}catch(_){continue;}
+  if(style.display==='none'||style.visibility==='hidden'||Number(style.opacity)===0)continue;
+  const marker=String(el.className||'')+' '+String(el.getAttribute('data-testid')||'');
+  const isMarked=/question/i.test(marker)||el.getAttribute('role')==='question';
+  if(tag==='DIV'&&!isMarked&&el.querySelector('p,li,article,[role="question"],[class*="question" i],[data-testid*="question" i]'))continue;
+  const text=String(el.innerText||el.textContent||'').replace(/\s+/g,' ').trim();
+  if(text.length<18||text.length>1600)continue;
+  const key=text.toLocaleLowerCase('pt-BR');
+  if(seenText.has(key))continue;
+  seenText.add(key);blocks.push(text);
+  if(blocks.length>=500)break;
+ }
+ return blocks;
+}
+const autoStop=new Set('a ao aos as com como da das de do dos e ela ele elas eles em entre era essa esse esta este eu foi foram há isso isto já lhe lhes mais mas me mesmo na nas não nem no nos nós o os ou para pela pelo pelas pelos por porque qual quais quando quanto quantos que quem se sem ser seu sua suas também tem ter teu tua um uma umas uns você vocês'.split(' '));
+function autoTokens(text){
+ const normalized=String(text||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ return [...new Set((normalized.match(/[a-z0-9]{3,}/g)||[]).filter(x=>!autoStop.has(x)))].slice(0,60);
+}
+function autoIsQuestion(text){
+ return /[?¿？]/.test(text)||/^(?:qual|quais|quem|quando|onde|por que|porque|como|quanto|quantos|explique|descreva|calcule|determine|identifique|assinale|selecione|marque|compare|cite|defina|resolva)\b/i.test(text);
+}
+function autoFindEvidence(question,blocks){
+ const terms=autoTokens(question);
+ if(!terms.length)return [];
+ const matches=[];
+ for(const block of blocks){
+  if(block===question||block.length<35)continue;
+  const blockTerms=new Set(autoTokens(block));
+  const hits=terms.filter(term=>blockTerms.has(term));
+  const score=hits.length/Math.max(3,Math.min(terms.length,12));
+  if(score>=0.16)matches.push({text:block,score,hits});
+ }
+ matches.sort((a,b)=>b.score-a.score||b.hits.length-a.hits.length);
+ return matches.slice(0,2);
+}
+function autoMakeDraft(question,evidence){
+ if(!evidence.length)return 'Ainda não encontrei evidência suficiente no texto visível desta página. O enunciado foi detectado, mas precisa de contexto ou pesquisa adicional.';
+ return 'Rascunho sugerido com base no conteúdo encontrado na página:\n'+evidence.map((item,i)=>(i+1)+'. '+item.text).join('\n')+'\n\nConfira se esses trechos realmente respondem ao enunciado antes de usar.';
+}
+function autoRender(){
+ $('autoTime').textContent=autoClock(autoStats.seconds);
+ $('autoScans').textContent=String(autoStats.scans);
+ $('autoQuestions').textContent=String(autoSeen.size);
+ $('autoDrafts').textContent=String(autoStats.drafts);
+ $('autoState').textContent=autoRunning?'ROBÔ ATIVO · observando conteúdo visível':'ROBÔ PAUSADO · clique em Retomar para continuar';
+ $('autoToggle').textContent=autoRunning?'Pausar robô':'Retomar robô';
+ const list=$('autoResults');list.replaceChildren();
+ if(!autoDrafts.length){
+  const empty=document.createElement('div');empty.className='meta';
+  empty.textContent=autoSeen.size?'As questões já encontradas nesta sessão não têm rascunho recente nesta abertura. Faça uma nova varredura.':'Nenhuma questão visível detectada ainda. Mantenha esta aba aberta ou toque em Varredura agora.';
+  list.append(empty);return;
+ }
+ autoDrafts.slice(0,25).forEach((item,index)=>{
+  const card=document.createElement('article');card.className='auto-item';
+  const heading=document.createElement('div');heading.className='auto-question';heading.textContent=(index+1)+'. '+item.question;
+  const answer=document.createElement('div');answer.className='auto-answer';answer.textContent=item.draft;
+  const evidence=document.createElement('div');evidence.className='auto-evidence';
+  evidence.textContent=item.evidence.length?'Evidência · correspondência textual: '+Math.round(item.evidence[0].score*100)+'%':'Evidência · nenhum trecho relacionado encontrado';
+  const actions=document.createElement('div');actions.className='row';
+  const open=document.createElement('button');open.className='btn';open.textContent='Abrir no Estudo';
+  open.addEventListener('click',()=>{
+   $('source').value='ENUNCIADO:\n'+item.question+'\n\nRASCUNHO:\n'+item.draft;
+   $('source').dispatchEvent(new Event('input'));
+   $('output').value=item.draft;
+   status('studyStatus','Rascunho do Autopilot enviado para revisão. Confira a fonte.');
+   activateTab('study');
+  });
+  actions.append(open);card.append(heading,answer,evidence,actions);list.append(card);
+ });
+}
+function autoScan(force){
+ if(!autoRunning&&!force)return;
+ const blocks=autoVisibleBlocks();
+ autoStats.scans++;
+ let added=0;
+ blocks.filter(autoIsQuestion).forEach(question=>{
+  const key=autoHash(question.toLocaleLowerCase('pt-BR').replace(/\s+/g,' ').trim());
+  if(autoSeen.has(key))return;
+  autoSeen.add(key);added++;
+  const evidence=autoFindEvidence(question,blocks);
+  autoDrafts.unshift({id:key,question,evidence,draft:autoMakeDraft(question,evidence)});
+  autoStats.drafts++;
+ });
+ autoDrafts=autoDrafts.slice(0,25);
+ autoPersist();autoRender();
+ status('autoStatus',added
+  ?added+' nova(s) questão(ões) detectada(s); rascunhos locais preparados.'
+  :'Varredura concluída · '+blocks.length+' bloco(s) de texto visível(is) analisado(s), sem novas questões.');
+}
+function autoScheduleScan(){
+ if(!autoRunning||autoDebounce)return;
+ autoDebounce=setTimeout(()=>{autoDebounce=null;autoScan(false);},1200);
+}
+function autoStart(){
+ autoRunning=true;
+ if(autoObserver)autoObserver.disconnect();
+ if(typeof MutationObserver==='function'&&document.body){
+  autoObserver=new MutationObserver(records=>{
+   if(records.every(record=>host.contains(record.target)))return;
+   autoScheduleScan();
+  });
+  autoObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
+ }
+ if(autoScannerInterval)clearInterval(autoScannerInterval);
+ autoScannerInterval=setInterval(()=>autoScan(false),6000);
+ autoRender();autoScan(true);
+}
+function autoPause(){
+ autoRunning=false;
+ if(autoObserver){autoObserver.disconnect();autoObserver=null;}
+ if(autoScannerInterval){clearInterval(autoScannerInterval);autoScannerInterval=null;}
+ if(autoDebounce){clearTimeout(autoDebounce);autoDebounce=null;}
+ autoRender();status('autoStatus','Monitor pausado. O cronômetro continua contando enquanto o Waynovo estiver aberto.');
+}
+$('autoScanNow').addEventListener('click',()=>autoScan(true));
+$('autoToggle').addEventListener('click',()=>{if(autoRunning)autoPause();else autoStart();});
+$('autoCopy').addEventListener('click',async()=>{
+ if(!autoDrafts.length)return status('autoStatus','Ainda não há rascunhos para copiar.');
+ const text=autoDrafts.map((item,i)=>(i+1)+'. '+item.question+'\n'+item.draft).join('\n\n---\n\n');
+ status('autoStatus',await copy(text)?'Rascunhos copiados.':'Não foi possível copiar neste navegador.');
+});
+autoClockInterval=setInterval(()=>{
+ const now=Date.now();
+ if(!document.hidden)autoStats.seconds+=Math.max(0,Math.min(3,Math.round((now-autoLastTick)/1000)));
+ autoLastTick=now;autoRender();
+ if(autoStats.seconds%5===0)autoPersist();
+},1000);
+document.addEventListener('visibilitychange',()=>{autoLastTick=Date.now();});
+autoStart();
+
 root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));if(touchLayout())b.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}));
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
 $('min').addEventListener('click',()=>{$('panel').classList.toggle('minimized');$('min').textContent=$('panel').classList.contains('minimized')?'+':'−';});
-function close(){if(interval)clearInterval(interval);host.remove();}
+function close(){if(interval)clearInterval(interval);if(autoScannerInterval)clearInterval(autoScannerInterval);if(autoClockInterval)clearInterval(autoClockInterval);if(autoObserver)autoObserver.disconnect();if(autoDebounce)clearTimeout(autoDebounce);autoPersist();host.remove();}
 $('close').addEventListener('click',close);root.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
 let drag=null;const touchLayout=()=>window.matchMedia&&window.matchMedia('(pointer: coarse), (max-width: 640px)').matches;$('drag').addEventListener('pointerdown',e=>{if(touchLayout()||e.target.closest('button'))return;const r=host.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};$('drag').setPointerCapture(e.pointerId);});
 $('drag').addEventListener('pointermove',e=>{if(!drag)return;host.style.left=Math.max(0,Math.min(innerWidth-host.offsetWidth,e.clientX-drag.x))+'px';host.style.top=Math.max(0,Math.min(innerHeight-48,e.clientY-drag.y))+'px';host.style.right='auto';host.style.bottom='auto';});
