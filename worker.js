@@ -61,13 +61,21 @@ function legacyProvider(env) {
 }
 
 function providerOrder(env, requested, fallbackEnabled) {
+  const automatic = requested === "auto";
+  const allowPaidAuto = String(env.AI_ALLOW_PAID_OPENAI_AUTO || "").toLowerCase() === "true";
   const orderText = String(env.AI_PROVIDER_ORDER || DEFAULT_ORDER.join(","));
-  const configuredOrder = orderText.split(",").map(normalizeProvider).filter(x => PROVIDERS.includes(x));
+  const configuredOrder = orderText.split(",").map(normalizeProvider)
+    .filter(provider => PROVIDERS.includes(provider) && (!automatic || provider !== "openai" || allowPaidAuto));
   const baseOrder = configuredOrder.length ? configuredOrder : DEFAULT_ORDER;
-  const preferred = requested === "auto"
+  let preferred = automatic
     ? normalizeProvider(env.AI_PRIMARY_PROVIDER) || legacyProvider(env) || "gemini"
     : normalizeProvider(requested);
-  const order = [preferred, ...baseOrder].filter((x, i, a) => (PROVIDERS.includes(x) || x === "openai-compatible") && a.indexOf(x) === i);
+  // OpenAI API usage is billable. Automatic/fallback mode skips it unless
+  // the operator explicitly opts in at the Worker environment level.
+  if (automatic && preferred === "openai" && !allowPaidAuto) preferred = "gemini";
+  const order = [preferred, ...baseOrder].filter((provider, index, all) =>
+    (PROVIDERS.includes(provider) || provider === "openai-compatible") && all.indexOf(provider) === index
+  );
   if (!fallbackEnabled) return order.slice(0, 1);
   return order;
 }
@@ -405,8 +413,7 @@ export default {
           ...(result.requestId ? { requestId: result.requestId } : {}),
           ...(result.completionStatus ? { completionStatus: result.completionStatus } : {}),
           ...(result.incompleteReason ? { incompleteReason: result.incompleteReason } : {}),
-          attempts,
-          ...(result.usage ? { usage: result.usage } : {})
+          attempts
         }, 200, c.headers);
       }
     }
