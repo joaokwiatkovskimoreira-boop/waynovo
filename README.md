@@ -1,6 +1,6 @@
-# Waynovo 5.4 — Portable Bookmarklet
+# Waynovo 5.5 — Portable Bookmarklet
 
-Bookmarklet portátil para estudo, organização, automação local e experimentação de políticas em laboratório, com revisão espaçada e IA opcional.
+Bookmarklet portátil gratuito para estudo, organização, automação local, monitoramento automático de páginas visíveis e experimentação de políticas em laboratório, com revisão espaçada e IA opcional.
 
 ## Usar o Waynovo
 
@@ -16,10 +16,10 @@ O bookmarklet usa Shadow DOM para isolar o visual, não importa bibliotecas/CDNs
 
 1. Abra a seção Bookmarklet na página do Waynovo.
 2. Arraste **Waynovo · abrir painel** para a barra de favoritos ou copie o código para a URL de um novo favorito.
-3. Em uma página de curso, artigo ou documentação, selecione o texto visível e clique no favorito.
-4. Escolha uma ferramenta local ou use seu gateway de IA configurado. Se a página bloquear bookmarklets ou o texto estiver dentro de um iframe isolado, copie o trecho para o painel manualmente.
+3. Abra o favorito na página que deseja estudar. O **Autopilot** começa a varredura do texto renderizado e visível automaticamente.
+4. Confira a aba **Autopilot** para ver tempo de uso, varreduras, questões detectadas e rascunhos sugeridos. Se a página bloquear bookmarklets ou o conteúdo estiver dentro de um iframe isolado, cole o trecho manualmente.
 
-O bookmarklet é autônomo: não carrega bibliotecas por CDN. Usa somente a seleção visível ou texto colado. Não percorre a página, não lê conteúdo oculto nem envia formulários.
+O bookmarklet não carrega bibliotecas por CDN nem executa código remoto. O Autopilot percorre apenas texto renderizado em elementos visíveis da página atual; ignora conteúdo oculto, campos de entrada, botões e iframes isolados. O monitor extrai enunciados e evidências textuais localmente, sem enviar formulários nem clicar em respostas.
 
 ## Módulos do bookmarklet
 
@@ -81,10 +81,26 @@ O arquivo `bypass-engine.js` contém a implementação de referência testável 
 Execute os testes com Node.js:
 
 ```bash
-node --test tests/bypass-engine.test.js
+node --check bookmarklet.js
+node --check app.js
+node --check worker.js
+node --test tests/*.test.js
 ```
 
 Este laboratório é para QA e engenharia em código e fixtures que você controla. Não se conecta a plataformas externas nem implementa contorno operacional de autenticação, autorização, limites, avaliações ou registros de progresso de terceiros. Em qualquer integração real própria, a decisão de autorização deve permanecer no servidor.
+
+## Autopilot — varredura e rascunhos automáticos
+
+Ao abrir o bookmarklet, o Autopilot inicia automaticamente um monitor local da página atual. Ele faz uma primeira varredura e repete a análise em intervalos curtos; mudanças no DOM visível também agendam uma nova varredura.
+
+- **Tempo de uso:** conta o tempo em que o Waynovo permanece aberto e a aba está visível.
+- **Varreduras:** conta as leituras locais da estrutura visível da página.
+- **Questões detectadas:** conta enunciados únicos reconhecidos durante a sessão.
+- **Rascunhos sugeridos:** cruza palavras do enunciado com trechos visíveis da própria página e reúne evidências textuais para revisão.
+- **Operação local:** não usa API, não exige token e não envia o conteúdo para fora do navegador.
+- **Controles:** é possível pausar, retomar, forçar uma varredura e copiar os rascunhos.
+
+Os rascunhos são extração e correspondência textual, não respostas verificadas por um modelo. O contador mede questões detectadas e rascunhos preparados; não afirma que uma avaliação foi concluída ou que uma resposta foi submetida. O Autopilot não lê conteúdo oculto, campos privados ou documentos de iframes isolados, e não clica em alternativas nem envia respostas a serviços externos. Para automações que alteram dados, use apenas ambientes próprios e adaptadores autorizados.
 
 ## Ferramentas
 
