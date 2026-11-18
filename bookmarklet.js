@@ -66,7 +66,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 @media(max-width:360px){.tab{min-width:54px;padding:8px 5px}.cog-memory{align-items:flex-start;flex-wrap:wrap}}
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.2 · COGNITIVE AUTOPILOT</div></div><div class="spacer"></div>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 1.3 · COGNITIVE AUTOPILOT</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
 <nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
@@ -119,19 +119,22 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <div class="row"><button class="btn primary" id="runFlow">Executar fluxo</button><button class="btn" id="resetLab">Reiniciar sandbox</button></div>
 <label>Registro de execução</label><textarea id="labLog" class="output" readonly placeholder="As etapas simuladas aparecerão aqui."></textarea>
 <div class="hint">O laboratório testa o motor de etapas, condições e estados usando somente dados em memória. Não realiza login, não altera progresso real e não interage com páginas de terceiros.</div></section><section class="view" data-view="bypass"><div class="eyebrow">Bypass Engine · laboratório controlado</div>
-<div class="desc">Motor executável de políticas para adaptadores registrados do próprio laboratório. Compare a decisão normal, um override de QA autorizado e uma política protegida que ignora dados forjados pelo cliente.</div>
-<div class="box"><div style="font-size:11px;font-weight:800">Ambiente ativo</div><div class="meta">LOCAL LAB · sem chamadas de rede · sem leitura ou escrita em serviços externos</div><div id="bypassSummary" style="font-size:10px;line-height:1.7;color:#b8c5df;margin-top:7px">2 adaptadores registrados · auditoria em memória</div></div>
-<label for="bypassAdapter">Adaptador de política</label><select id="bypassAdapter"><option value="client-feature-gate">Gate de recurso no cliente · vulnerável por projeto</option><option value="trusted-entitlement">Permissão baseada em fixture confiável · protegido</option></select>
+<div class="desc">Teste estratégias de QA, políticas de autorização, limites e falhas em adaptadores locais. O painel é independente e roda sem servidor.</div>
+<div class="box"><div style="font-size:11px;font-weight:800">Motor local ativo</div><div class="meta">SEM REDE · SEM SCRIPT REMOTO · APENAS FIXTURES DE TESTE</div><div id="bypassSummary" style="font-size:10px;line-height:1.7;color:#b8c5df;margin-top:7px">4 adaptadores registrados · auditoria da sessão</div></div>
+<label for="bypassExample">Cenário rápido</label><select id="bypassExample"><option value="client-deny">Gate cliente · negar baseline</option><option value="client-override">Gate cliente · override QA</option><option value="trusted-spoof">Permissão · payload forjado</option><option value="trusted-grant">Permissão · grant da fixture</option><option value="rate-hit">Limite · tentativas excedidas</option><option value="rate-ok">Limite · abaixo da janela</option><option value="fault-fail">Dependência · falha simulada</option><option value="fault-ok">Dependência · saudável</option></select>
+<label for="bypassAdapter">Adaptador de política</label><select id="bypassAdapter"><option value="client-feature-gate">Gate de recurso no cliente · QA elegível</option><option value="trusted-entitlement">Permissão por fixture confiável · protegido</option><option value="rate-limit">Limite de tentativas · fixture</option><option value="fault-tolerance">Tolerância a falhas · fail-closed</option></select>
+<label for="bypassEnvironment">Ambiente da fixture</label><select id="bypassEnvironment"><option value="test">Test fixture</option><option value="demo">Demo</option></select>
 <label for="bypassContext">Contexto JSON do caso de teste</label><textarea id="bypassContext" style="min-height:112px" spellcheck="false">{
-  "fixture": {"mode":"test","grants":[]},
-  "clientPayload": {"featureEnabled":false,"role":"free","qaOverride":false}
+  "fixture": {"mode":"test","trustedGrants":[]},
+  "clientPayload": {"featureEnabled":false,"role":"free"}
 }</textarea>
+<label style="display:flex;align-items:center;gap:7px;font-weight:650"><input id="bypassQaAuthorization" type="checkbox" style="width:auto;margin:0"> Autorizo override QA nesta fixture local de teste</label>
 <div class="row"><button class="btn primary" id="bypassBaseline">Executar baseline</button><button class="btn soft" id="bypassOverride">Aplicar override QA</button></div>
 <div class="row"><button class="btn primary" id="bypassSuite">Rodar suíte de testes</button><button class="btn" id="bypassExport">Exportar auditoria</button></div>
 <label for="bypassLog">Resultado e trilha de auditoria</label><textarea id="bypassLog" class="output" readonly placeholder="As decisões e os testes executados aparecerão aqui."></textarea>
-<div class="row"><button class="btn" id="bypassClear">Limpar auditoria</button><button class="btn" id="bypassResetContext">Restaurar exemplo</button></div>
+<div class="row"><button class="btn" id="bypassClear">Limpar auditoria</button><button class="btn" id="bypassResetContext">Restaurar cenário</button></div>
 <div class="status" id="bypassStatus"></div>
-<div class="hint">O override só é aceito por um adaptador <b>owned-lab</b> explicitamente marcado para QA, com fixture em modo test e autoridade do lado do cliente. O adaptador protegido consulta somente grants da fixture confiável e ignora role/override enviados pelo payload do cliente. Para integrar um sistema real, crie um adaptador no código que você controla e mantenha a decisão de autorização no servidor.</div></section>
+<div class="hint">O override QA só é aceito por um adaptador <b>owned-lab</b> explicitamente elegível, em ambiente test e após marcar a autorização. Adaptadores de fixture confiável ignoram privilégios enviados pelo cliente. Nenhum adaptador faz chamadas de rede ou toca em serviços externos.</div></section>
 <section class="view" data-view="cognitive"><div class="eyebrow">Cognitive Engine · planejamento local</div>
 <div class="desc">Dê um objetivo ao Waynovo. Ele organiza um plano, acompanha as etapas, registra memórias escolhidas por você e verifica critérios. O modo local usa regras transparentes; a análise por modelo é opcional.</div>
 <label for="cogGoal">Qual é o objetivo?</label><textarea id="cogGoal" style="min-height:76px" maxlength="1200" placeholder="Ex.: Quero aprender fotossíntese e conseguir explicar o processo com minhas palavras."></textarea>
@@ -247,106 +250,123 @@ $('resetLab').addEventListener('click',()=>{lab.session=false;lab.page='início'
 drawLab();
 
 const bypassEngine = (() => {
- const registry = new Map();
- const audit = [];
+ const registry=new Map(),audit=[];
+ const MAX_CONTEXT=16384,MAX_AUDIT=300;
+ function clone(value){return JSON.parse(JSON.stringify(value));}
+ function freeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.keys(value).forEach(k=>freeze(value[k]));Object.freeze(value);}return value;}
  function register(adapter){
-  if(!adapter||typeof adapter.id!=='string'||!adapter.id||typeof adapter.evaluate!=='function')throw new Error('Adaptador inválido.');
-  if(adapter.scope!=='owned-lab')throw new Error('Somente adaptadores owned-lab podem ser registrados.');
-  if(registry.has(adapter.id))throw new Error('ID de adaptador duplicado: '+adapter.id);
-  registry.set(adapter.id,Object.freeze({...adapter}));
+  if(!adapter||typeof adapter!=='object'||adapter.scope!=='owned-lab'||typeof adapter.evaluate!=='function')throw new Error('Adaptador inválido: somente owned-lab com evaluate(context).');
+  if(!/^[a-z0-9][a-z0-9-]{1,63}$/.test(String(adapter.id||'')))throw new Error('ID de adaptador inválido.');
+  if(registry.has(adapter.id))throw new Error('Adaptador duplicado: '+adapter.id);
+  if(!['client','fixture'].includes(adapter.authority))throw new Error('Autoridade de adaptador inválida.');
+  registry.set(adapter.id,Object.freeze({id:adapter.id,name:String(adapter.name||adapter.id),scope:adapter.scope,authority:adapter.authority,qaOverride:adapter.qaOverride===true,risk:adapter.risk||'medium',evaluate:adapter.evaluate}));
  }
  function normalize(context){
-  if(!context||typeof context!=='object'||Array.isArray(context))throw new Error('O contexto precisa ser um objeto JSON.');
-  const fixture=context.fixture&&typeof context.fixture==='object'&&!Array.isArray(context.fixture)?context.fixture:{};
-  const clientPayload=context.clientPayload&&typeof context.clientPayload==='object'&&!Array.isArray(context.clientPayload)?context.clientPayload:{};
-  return {fixture,clientPayload};
+  if(!context||typeof context!=='object'||Array.isArray(context))throw new Error('Contexto precisa ser um objeto JSON.');
+  const raw=JSON.stringify(context);if(raw.length>MAX_CONTEXT)throw new Error('Contexto excede 16 KB.');
+  const copy=JSON.parse(raw);copy.environment=copy.environment||'test';
+  if(!['test','demo'].includes(copy.environment))throw new Error('Ambiente precisa ser test ou demo.');
+  if(!copy.fixture||typeof copy.fixture!=='object'||Array.isArray(copy.fixture))copy.fixture={};
+  if(!copy.clientPayload||typeof copy.clientPayload!=='object'||Array.isArray(copy.clientPayload))copy.clientPayload={};
+  if(!copy.authorization||typeof copy.authorization!=='object'||Array.isArray(copy.authorization))copy.authorization={};
+  return freeze(copy);
  }
  function run(adapterId,context,strategy){
-  const adapter=registry.get(adapterId);
-  if(!adapter)throw new Error('Adaptador não encontrado: '+adapterId);
-  const safe=normalize(context),mode=strategy||'baseline';
-  let baseline;
+  const adapter=registry.get(adapterId);if(!adapter)throw new Error('Adaptador não encontrado.');
+  const mode=strategy||'baseline';if(mode!=='baseline'&&mode!=='qa-override')throw new Error('Estratégia desconhecida.');
+  const safe=normalize(context);let baseline,errorMessage='';
   try{
-   baseline=adapter.evaluate(safe);
-   if(!baseline||typeof baseline.allowed!=='boolean')throw new Error('O adaptador não retornou uma decisão booleana.');
-  }catch(error){baseline={allowed:false,reason:'Falha segura na avaliação: '+String(error&&error.message||error)};}
-  let decision={allowed:baseline.allowed,reason:String(baseline.reason||'Sem justificativa fornecida.'),overridden:false};
+   const result=adapter.evaluate(safe);if(!result||typeof result.allowed!=='boolean')throw new Error('evaluate deve retornar allowed booleano.');
+   baseline={allowed:result.allowed,reason:String(result.reason||'Sem justificativa.'),evidence:String(result.evidence||''),obligations:Array.isArray(result.obligations)?result.obligations.slice(0,8):[]};
+  }catch(error){errorMessage=String(error&&error.message||'Erro desconhecido').slice(0,180);baseline={allowed:false,reason:'Falha segura: avaliação interrompida; acesso negado.',evidence:'evaluation-error',obligations:[]};}
+  let allowed=baseline.allowed,reason=baseline.reason,overridden=false,overrideRefusal='';
   if(mode==='qa-override'){
-   const eligible=adapter.scope==='owned-lab'&&adapter.authority==='client'&&adapter.qaOverride===true&&safe.fixture.mode==='test';
-   if(eligible)decision={allowed:true,reason:'Override de QA aplicado pelo Bypass Engine em fixture local de teste.',overridden:true};
-   else decision={allowed:baseline.allowed,reason:String(baseline.reason||'Sem justificativa fornecida.')+' · override recusado: adaptador ou ambiente não elegível.',overridden:false};
-  }else if(mode!=='baseline')throw new Error('Estratégia desconhecida.');
-  const record={timestamp:new Date().toISOString(),adapterId,strategy:mode,baselineAllowed:baseline.allowed,allowed:decision.allowed,overridden:decision.overridden,reason:decision.reason};
-  audit.push(record);if(audit.length>200)audit.shift();
-  return record;
+   const eligible=adapter.scope==='owned-lab'&&adapter.authority==='client'&&adapter.qaOverride===true&&safe.environment==='test'&&safe.authorization.qaOverride===true;
+   if(eligible){allowed=true;overridden=!baseline.allowed;reason='Override QA local aplicado em fixture test com autorização explícita.';}
+   else{overrideRefusal='Override recusado: exige adaptador elegível, ambiente test e autorização explícita.';reason+=' '+overrideRefusal;}
+  }
+  const record={id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),timestamp:new Date().toISOString(),adapterId:adapter.id,adapterName:adapter.name,strategy:mode,environment:safe.environment,baselineAllowed:baseline.allowed,allowed,outcome:allowed?'ALLOW':'DENY',overridden,overrideRefusal,reason:reason.slice(0,360),evidence:baseline.evidence.slice(0,100),obligations:baseline.obligations.map(x=>String(x).slice(0,100)),evaluationError:errorMessage,durationMs:0,risk:adapter.risk};
+  audit.push(record);if(audit.length>MAX_AUDIT)audit.splice(0,audit.length-MAX_AUDIT);
+  return clone(record);
  }
- register({
-  id:'client-feature-gate',scope:'owned-lab',authority:'client',qaOverride:true,
-  evaluate:({clientPayload})=>clientPayload.featureEnabled===true
-   ?{allowed:true,reason:'O estado local featureEnabled está ativo.'}
-   :{allowed:false,reason:'Gate de cliente negou: featureEnabled não está ativo.'}
- });
- register({
-  id:'trusted-entitlement',scope:'owned-lab',authority:'fixture',qaOverride:false,
-  evaluate:({fixture})=>Array.isArray(fixture.grants)&&fixture.grants.includes('premium-reports')
-   ?{allowed:true,reason:'A fixture confiável contém o grant premium-reports.'}
-   :{allowed:false,reason:'Grant ausente na fixture confiável; campos enviados pelo cliente não são considerados.'}
- });
- function runSuite(){
-  const cases=[
-   {name:'Gate cliente · baseline nega',id:'client-feature-gate',strategy:'baseline',context:{fixture:{mode:'test'},clientPayload:{featureEnabled:false}},expected:false},
-   {name:'Gate cliente · override QA local',id:'client-feature-gate',strategy:'qa-override',context:{fixture:{mode:'test'},clientPayload:{featureEnabled:false}},expected:true},
-   {name:'Gate protegido · payload forjado não concede acesso',id:'trusted-entitlement',strategy:'baseline',context:{fixture:{mode:'test',grants:[]},clientPayload:{role:'admin',qaOverride:true,featureEnabled:true}},expected:false},
-   {name:'Gate protegido · grant confiável concede acesso',id:'trusted-entitlement',strategy:'baseline',context:{fixture:{mode:'test',grants:['premium-reports']},clientPayload:{role:'free'}},expected:true}
-  ];
-  const results=cases.map(test=>{
-   const actual=run(test.id,test.context,test.strategy);
-   return {name:test.name,expected:test.expected,actual:actual.allowed,passed:actual.allowed===test.expected,reason:actual.reason};
-  });
-  return {passed:results.filter(x=>x.passed).length,total:results.length,results};
- }
- return {register,run,runSuite,getAudit:()=>audit.slice(),clearAudit:()=>{audit.length=0;},list:()=>[...registry.keys()]};
+ function restoreAudit(items){if(!Array.isArray(items))return;items.slice(-MAX_AUDIT).forEach(item=>{if(item&&typeof item.timestamp==='string'&&typeof item.adapterId==='string'&&typeof item.allowed==='boolean'&&typeof item.reason==='string')audit.push({...item});});if(audit.length>MAX_AUDIT)audit.splice(0,audit.length-MAX_AUDIT);}
+ function list(){return [...registry.values()].map(a=>({id:a.id,name:a.name,authority:a.authority,qaOverride:a.qaOverride,risk:a.risk}));}
+ function getAudit(){return clone(audit);}
+ function clearAudit(){audit.length=0;}
+ function exportAudit(){return JSON.stringify({product:'Waynovo Bypass Engine',version:'1.3',environment:'local-lab',exportedAt:new Date().toISOString(),events:getAudit()},null,2);}
+ const suiteCases=[
+  {name:'Gate cliente nega quando flag está desligada',id:'client-feature-gate',strategy:'baseline',expected:false,context:{environment:'test',clientPayload:{featureEnabled:false}}},
+  {name:'Gate cliente permite quando flag local está ligada',id:'client-feature-gate',strategy:'baseline',expected:true,context:{environment:'test',clientPayload:{featureEnabled:true}}},
+  {name:'Override exige autorização explícita',id:'client-feature-gate',strategy:'qa-override',expected:false,context:{environment:'test',authorization:{qaOverride:false},clientPayload:{featureEnabled:false}}},
+  {name:'Override autorizado só em test',id:'client-feature-gate',strategy:'qa-override',expected:true,context:{environment:'test',authorization:{qaOverride:true},clientPayload:{featureEnabled:false}}},
+  {name:'Override é recusado em demo',id:'client-feature-gate',strategy:'qa-override',expected:false,context:{environment:'demo',authorization:{qaOverride:true},clientPayload:{featureEnabled:false}}},
+  {name:'Payload cliente não forja grant confiável',id:'trusted-entitlement',strategy:'baseline',expected:false,context:{environment:'test',fixture:{trustedGrants:[]},clientPayload:{role:'admin',qaOverride:true}}},
+  {name:'Grant da fixture confiável autoriza',id:'trusted-entitlement',strategy:'baseline',expected:true,context:{environment:'test',fixture:{trustedGrants:['premium-reports']},clientPayload:{role:'free'}}},
+  {name:'Rate limit nega ao atingir limite',id:'rate-limit',strategy:'baseline',expected:false,context:{environment:'test',fixture:{attempts:3,limit:3},clientPayload:{attempts:0}}},
+  {name:'Rate limit permite abaixo do limite',id:'rate-limit',strategy:'baseline',expected:true,context:{environment:'test',fixture:{attempts:1,limit:3},clientPayload:{attempts:99}}},
+  {name:'Falha de dependência termina em negação segura',id:'fault-tolerance',strategy:'baseline',expected:false,context:{environment:'test',fixture:{simulateFailure:true}}},
+  {name:'Dependência saudável passa',id:'fault-tolerance',strategy:'baseline',expected:true,context:{environment:'test',fixture:{healthy:true}}}
+ ];
+ function runSuite(){const results=suiteCases.map(test=>{const actual=run(test.id,test.context,test.strategy);return {name:test.name,expected:test.expected?'ALLOW':'DENY',actual:actual.outcome,passed:actual.allowed===test.expected,reason:actual.reason};});return {passed:results.filter(x=>x.passed).length,total:results.length,results};}
+ register({id:'client-feature-gate',name:'Gate de recurso no cliente',scope:'owned-lab',authority:'client',qaOverride:true,risk:'high',evaluate:({clientPayload})=>({allowed:clientPayload.featureEnabled===true,reason:clientPayload.featureEnabled===true?'A flag local está ativa.':'A flag local está desligada.',evidence:'client-feature-flag'})});
+ register({id:'trusted-entitlement',name:'Permissão por fixture confiável',scope:'owned-lab',authority:'fixture',qaOverride:false,risk:'low',evaluate:({fixture})=>{const grants=Array.isArray(fixture.trustedGrants)?fixture.trustedGrants:[];const allowed=grants.includes('premium-reports');return {allowed,reason:allowed?'Grant premium-reports encontrado na fixture.':'Grant ausente; role e flags do cliente são ignorados.',evidence:'trusted-fixture'};}});
+ register({id:'rate-limit',name:'Janela de tentativas simulada',scope:'owned-lab',authority:'fixture',qaOverride:false,risk:'medium',evaluate:({fixture})=>{const attempts=Number(fixture.attempts),limit=Number(fixture.limit);const a=Number.isFinite(attempts)&&attempts>=0?attempts:0;const l=Number.isFinite(limit)&&limit>0?Math.min(limit,1000):3;const allowed=a<l;return {allowed,reason:allowed?'Abaixo do limite da fixture.':'Limite da fixture atingido.',evidence:'rate-limit-fixture',obligations:allowed?['Contabilizar tentativa no laboratório']:['Aguardar a janela configurada']};}});
+ register({id:'fault-tolerance',name:'Falha de dependência controlada',scope:'owned-lab',authority:'fixture',qaOverride:false,risk:'low',evaluate:({fixture})=>{if(fixture.simulateFailure===true)throw new Error('Falha injetada intencionalmente no laboratório.');const allowed=fixture.healthy===true;return {allowed,reason:allowed?'Dependência de teste saudável.':'Dependência de teste indisponível.',evidence:'fault-fixture'};}});
+ return {register,run,runSuite,getAudit,clearAudit,restoreAudit,exportAudit,list};
 })();
-
-const bypassDefaultContext=JSON.stringify({fixture:{mode:'test',grants:[]},clientPayload:{featureEnabled:false,role:'free',qaOverride:false}},null,2);
+const BYPASS_AUDIT_KEY='waynovo.bypass.audit.v1';
+try{bypassEngine.restoreAudit(JSON.parse(sessionStorage.getItem(BYPASS_AUDIT_KEY)||'[]'));}catch(_){}
+const bypassExamples={
+ 'client-deny':{adapter:'client-feature-gate',strategy:'baseline',environment:'test',context:{fixture:{},clientPayload:{featureEnabled:false}}},
+ 'client-override':{adapter:'client-feature-gate',strategy:'qa-override',environment:'test',authorized:true,context:{fixture:{},clientPayload:{featureEnabled:false}}},
+ 'trusted-spoof':{adapter:'trusted-entitlement',strategy:'baseline',environment:'test',context:{fixture:{trustedGrants:[]},clientPayload:{role:'admin',qaOverride:true,featureEnabled:true}}},
+ 'trusted-grant':{adapter:'trusted-entitlement',strategy:'baseline',environment:'test',context:{fixture:{trustedGrants:['premium-reports']},clientPayload:{role:'free'}}},
+ 'rate-hit':{adapter:'rate-limit',strategy:'baseline',environment:'test',context:{fixture:{attempts:3,limit:3},clientPayload:{attempts:0}}},
+ 'rate-ok':{adapter:'rate-limit',strategy:'baseline',environment:'test',context:{fixture:{attempts:1,limit:3},clientPayload:{attempts:99}}},
+ 'fault-fail':{adapter:'fault-tolerance',strategy:'baseline',environment:'test',context:{fixture:{simulateFailure:true}}},
+ 'fault-ok':{adapter:'fault-tolerance',strategy:'baseline',environment:'test',context:{fixture:{healthy:true}}}
+};
+function bypassPersistAudit(){try{sessionStorage.setItem(BYPASS_AUDIT_KEY,JSON.stringify(bypassEngine.getAudit().slice(-100)));}catch(_){}}
 function bypassReadContext(){
- let parsed;try{parsed=JSON.parse($('bypassContext').value);}catch(_){throw new Error('JSON inválido. Revise vírgulas, aspas e chaves.');}
- if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('O JSON precisa começar com um objeto.');
+ let parsed;try{parsed=JSON.parse($('bypassContext').value);}catch(_){throw new Error('JSON inválido. Revise aspas, vírgulas e chaves.');}
+ if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('Contexto precisa ser um objeto JSON.');
+ parsed.environment=$('bypassEnvironment').value;
+ parsed.authorization=parsed.authorization&&typeof parsed.authorization==='object'?parsed.authorization:{};
+ parsed.authorization.qaOverride=$('bypassQaAuthorization').checked;
  return parsed;
 }
-function bypassAppend(lines){
- const current=$('bypassLog').value;
- $('bypassLog').value=(current?current+'\n':'')+lines.join('\n');
- $('bypassLog').scrollTop=$('bypassLog').scrollHeight;
-}
+function bypassAppend(lines){const current=$('bypassLog').value;$('bypassLog').value=(current?current+'\n':'')+lines.join('\n');$('bypassLog').scrollTop=$('bypassLog').scrollHeight;}
 function bypassRun(strategy){
  try{
-  const adapterId=$('bypassAdapter').value,record=bypassEngine.run(adapterId,bypassReadContext(),strategy);
-  bypassAppend([
-   '['+record.timestamp+'] '+record.adapterId+' · '+record.strategy,
-   'Decisão: '+(record.allowed?'ALLOW':'DENY')+' · baseline: '+(record.baselineAllowed?'ALLOW':'DENY')+' · override: '+(record.overridden?'aplicado':'não aplicado'),
-   'Motivo: '+record.reason,''
-  ]);
-  status('bypassStatus','Execução concluída. Decisão final: '+(record.allowed?'ALLOW':'DENY')+'.');
+  const record=bypassEngine.run($('bypassAdapter').value,bypassReadContext(),strategy);bypassPersistAudit();
+  bypassAppend(['['+record.timestamp+'] '+record.adapterName+' · '+record.strategy,'Decisão: '+record.outcome+' · baseline: '+(record.baselineAllowed?'ALLOW':'DENY')+' · override: '+(record.overridden?'APLICADO':'não aplicado'),'Motivo: '+record.reason,'']);
+  status('bypassStatus','Execução concluída · '+record.outcome+'.');
  }catch(error){status('bypassStatus',error.message||'Falha ao executar o adaptador.');}
 }
+function bypassLoadExample(){
+ const example=bypassExamples[$('bypassExample').value];if(!example)return;
+ $('bypassAdapter').value=example.adapter;$('bypassEnvironment').value=example.environment;
+ $('bypassContext').value=JSON.stringify(example.context,null,2);$('bypassQaAuthorization').checked=Boolean(example.authorized);
+ $('bypassStatus').textContent='Cenário carregado. Estratégia sugerida: '+example.strategy+'.';
+}
+$('bypassExample').addEventListener('change',bypassLoadExample);
 $('bypassBaseline').addEventListener('click',()=>bypassRun('baseline'));
 $('bypassOverride').addEventListener('click',()=>bypassRun('qa-override'));
 $('bypassSuite').addEventListener('click',()=>{
- const suite=bypassEngine.runSuite(),lines=['SUÍTE AUTOMÁTICA · '+suite.passed+'/'+suite.total+' testes aprovados'];
- suite.results.forEach((item,i)=>lines.push((item.passed?'PASS':'FAIL')+' '+(i+1)+'. '+item.name,'  esperado: '+(item.expected?'ALLOW':'DENY')+' · recebido: '+(item.actual?'ALLOW':'DENY'),'  '+item.reason));
- bypassAppend(lines);status('bypassStatus',suite.passed===suite.total?'Todos os testes passaram.':'Há testes com falha: '+(suite.total-suite.passed)+'.');
+ const suite=bypassEngine.runSuite(),lines=['SUÍTE AUTOMÁTICA · '+suite.passed+'/'+suite.total+' TESTES PASSARAM'];
+ suite.results.forEach((item,i)=>lines.push((item.passed?'PASS':'FAIL')+' '+(i+1)+'. '+item.name,'  esperado: '+item.expected+' · recebido: '+item.actual,'  '+item.reason));
+ bypassPersistAudit();bypassAppend(lines);status('bypassStatus',suite.passed===suite.total?'Todos os testes passaram.':'Há '+(suite.total-suite.passed)+' falha(s) na suíte.');
 });
 $('bypassExport').addEventListener('click',()=>{
  const data=bypassEngine.getAudit();if(!data.length)return status('bypassStatus','Ainda não há eventos para exportar.');
- const blob=new Blob([JSON.stringify({product:'Waynovo Bypass Engine',environment:'local-lab',events:data},null,2)],{type:'application/json'});
- const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='waynovo-bypass-audit.json';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ const blob=new Blob([bypassEngine.exportAudit()],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download='waynovo-bypass-audit.json';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  status('bypassStatus',data.length+' eventos exportados em JSON.');
 });
-$('bypassClear').addEventListener('click',()=>{bypassEngine.clearAudit();$('bypassLog').value='';status('bypassStatus','Auditoria em memória limpa.');});
-$('bypassResetContext').addEventListener('click',()=>{$('bypassContext').value=bypassDefaultContext;status('bypassStatus','Contexto de exemplo restaurado.');});
-$('bypassSummary').textContent=bypassEngine.list().length+' adaptadores registrados · '+bypassEngine.list().join(', ')+' · auditoria em memória';
-
+$('bypassClear').addEventListener('click',()=>{bypassEngine.clearAudit();bypassPersistAudit();$('bypassLog').value='';status('bypassStatus','Auditoria da sessão limpa.');});
+$('bypassResetContext').addEventListener('click',()=>{$('bypassExample').value='client-deny';bypassLoadExample();status('bypassStatus','Cenário padrão restaurado.');});
+$('bypassSummary').textContent=bypassEngine.list().length+' adaptadores registrados · '+bypassEngine.list().map(x=>x.id).join(', ')+' · auditoria somente na sessão';
+bypassLoadExample();
 function questionPayload(){
  const stem=$('questionText').value.trim(),choices=$('questionChoices').value.trim();
  if(!stem)return '';
