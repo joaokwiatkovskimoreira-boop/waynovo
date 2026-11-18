@@ -108,7 +108,7 @@ A aba **Autopilot** agora possui uma fila local de tarefas sequenciais:
 
 - Cada nova questão detectada gera automaticamente um dossiê local com enunciado, alternativas reconhecidas e trechos de apoio; a fila processa esse dossiê sem clicar ou submeter opções.
 - **Gerar pacote da página** cria três tarefas: resumo, flashcards e exercícios originais a partir do texto visível.
-- O estado de cada tarefa é registrado como pendente, em execução, concluída ou falha. A fila executa uma tarefa por vez e permite pausar e retomar.
+- O estado de cada tarefa é registrado como pendente, em execução, concluída ou falha. A fila executa uma tarefa por vez e permite pausar, retomar e repetir falhas.
 - Tarefas pendentes são recuperadas ao reabrir o bookmarklet na mesma aba. A fila e os artefatos ficam em sessionStorage; os flashcards gerados também entram no baralho local.
 - **Visualizar saída** permite consultar o resumo, exercícios, flashcards e dossiês produzidos. **Baixar auditoria** exporta JSON com estados e eventos, sem incluir o conteúdo integral da página.
 
