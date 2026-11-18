@@ -81,9 +81,61 @@ test('Local AI is the default and external providers remain opt-in', () => {
   assert.ok(source.includes("$('provider').value=sessionStorage.getItem(PROVIDER)||'local'"));
 });
 
+
+test('Task Queue 2.0 exposes controls, resumable state and audit export', () => {
+  for (const id of ['autoQueueState', 'autoQueueProgress', 'autoQueueList', 'autoQueueCreatePack', 'autoQueueRun', 'autoQueuePause', 'autoQueueRetry', 'autoQueueAudit', 'autoQueueClear', 'autoQueueArtifact', 'autoQueueOutput']) {
+    assert.ok(source.includes('id="' + id + '"'), 'missing queue control ' + id);
+  }
+  assert.match(source, /waynovo\.autopilot\.queue\.v1/);
+  assert.match(source, /if\(task\.status==='running'\)task\.status='pending'/);
+  assert.match(source, /autoQueueLog\('completed'/);
+  assert.match(source, /autoQueueLog\('failed'/);
+  assert.match(source, /autoQueueLog\('retry'/);
+  assert.match(source, /waynovo-task-audit\.json/);
+});
+
+test('Task Queue executes page tasks locally and stores question dossiers', () => {
+  const start = source.indexOf('function autoQueueExecute(task){');
+  const end = source.indexOf('function autoQueueTick(){', start);
+  assert.ok(start >= 0 && end > start, 'queue executor exists');
+  const body = source.slice(start, end);
+  const store = { cards: [] };
+  const artifacts = { summary: '', practice: '', flashcards: [], questions: [] };
+  let saved = 0, drawn = 0;
+  const execute = new Function('local','pieces','state','save','drawCard','autoQueueData','autoHash',
+    body + '; return autoQueueExecute;'
+  )((kind, content) => kind + ':' + content, (value) => value.split('|').filter(Boolean),
+    store, () => { saved++; }, () => { drawn++; }, { artifacts }, (value) => String(value.length));
+  assert.match(execute({type:'page-summary',payload:{content:'page text'}}), /Resumo local/);
+  assert.equal(artifacts.summary, 'summary:page text');
+  assert.match(execute({type:'page-practice',payload:{content:'page text'}}), /Exercícios originais/);
+  assert.equal(artifacts.practice, 'practice:page text');
+  assert.match(execute({type:'page-flashcards',payload:{content:'first|second'}}), /flashcard/);
+  assert.equal(store.cards.length, 2);
+  assert.equal(saved, 1);
+  assert.equal(drawn, 1);
+  assert.match(execute({type:'question-dossier',payload:{question:'Q?',options:['A) 1'],evidence:[{text:'Source'}],draft:'Review'}}), /Dossiê/);
+  assert.equal(artifacts.questions.length, 1);
+  assert.match(artifacts.questions[0].note, /nenhuma alternativa foi marcada/);
+});
+
+test('Task Queue executor and exported audit avoid network and submission actions', () => {
+  const start = source.indexOf('// Task Queue 2.0:');
+  const end = source.indexOf('function autoRender(){', start);
+  assert.ok(start >= 0 && end > start, 'queue runtime exists');
+  const queue = source.slice(start, end);
+  assert.doesNotMatch(queue, /\\bfetch\\s*\\(/);
+  assert.doesNotMatch(queue, /form\\.submit\\s*\\(/);
+  const exportStart = queue.indexOf('function autoQueueExport(){');
+  const exportEnd = queue.indexOf("$('autoQueueCreatePack')", exportStart);
+  const exporter = queue.slice(exportStart, exportEnd);
+  assert.match(exporter, /tasks\.map\(\(\{id,type,title,status,createdAt,finishedAt,error\}\)/);
+  assert.doesNotMatch(exporter, /payload/);
+});
+
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.ok(app.includes('bookmarklet.js?v=1.9'));
-  assert.match(worker, /waynovo-shell-v6/);
+  assert.ok(app.includes('bookmarklet.js?v=2.0'));
+  assert.match(worker, /waynovo-shell-v7/);
 });
