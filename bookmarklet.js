@@ -258,8 +258,8 @@ button,a,input,textarea,select{transition:color .16s ease,background-color .16s 
 </div>
 <label>Questões encontradas e sugestões</label><div id="autoResults"><div class="meta">O monitor está iniciando a primeira varredura…</div></div>
 <div class="hint">O modo local não usa API nem cobra nada. As sugestões são extraídas de trechos visíveis da própria página e precisam ser conferidas. O contador registra questões detectadas, não respostas submetidas ou avaliações concluídas. Conteúdo oculto, campos privados, iframes isolados e botões de resposta são ignorados.</div>
-<div class="status" id="autoStatus" aria-live="polite">Inicializando monitor…</div></section>
-<section class="view" data-view="questions"><div class="eyebrow">Assistente de questões · WaygroundX-inspired</div><div class="desc">Cole o enunciado e as alternativas para receber uma explicação guiada. O assistente não lê nem responde diretamente em plataformas externas.</div>
+<div class="hint">A leitura da página é automática e local. Cada questão detectada ganha a ação <b>Analisar com Tutor</b>; a explicação semântica exige um provedor de IA configurado e só é solicitada quando você toca no botão.</div><div class="status" id="autoStatus" aria-live="polite">Inicializando monitor…</div></section>
+<section class="view" data-view="questions"><div class="eyebrow">Assistente de questões · WaygroundX-inspired</div><div class="desc">O Waynovo lê o texto visível da página, identifica enunciados, alternativas e trechos de apoio. Toque em Analisar com Tutor para receber uma resposta provável, o raciocínio, a comparação das opções e o nível de confiança. A análise não clica nem envia respostas.</div>
 <label for="questionText">Enunciado</label><textarea id="questionText" placeholder="Cole aqui o enunciado da questão..."></textarea>
 <label for="questionChoices">Alternativas (opcional)</label><textarea id="questionChoices" style="min-height:78px" placeholder="A) ...&#10;B) ...&#10;C) ..."></textarea>
 <label for="questionEvidence">Material de apoio (opcional)</label><textarea id="questionEvidence" style="min-height:90px" placeholder="Trechos de apoio podem ser preenchidos automaticamente pelo Autopilot ou colados aqui..."></textarea>
@@ -1592,15 +1592,15 @@ function autoRender(){
   const evidence=document.createElement('div');evidence.className='auto-evidence';
   evidence.textContent=item.evidence.length?'Evidência · correspondência textual: '+Math.round(item.evidence[0].score*100)+'%':'Evidência · nenhum trecho relacionado encontrado';
   const actions=document.createElement('div');actions.className='row';
-  const tutor=document.createElement('button');tutor.className='btn primary';tutor.textContent='Levar ao Tutor';
+  const tutor=document.createElement('button');tutor.className='btn primary';tutor.textContent='Analisar com Tutor';
   tutor.addEventListener('click',()=>{
    $('questionText').value=item.question;
    $('questionChoices').value=(item.options||[]).join('\n');
    $('questionEvidence').value=(item.evidence||[]).map(x=>x.text).join('\n\n');
-   $('source').value='ENUNCIADO:\n'+item.question+'\n\nALTERNATIVAS:\n'+((item.options||[]).join('\n')||'(não detectadas)')+'\n\nTRECHOS DE APOIO:\n'+(item.evidence||[]).map(x=>x.text).join('\n');
+   $('source').value='ENUNCIADO:\n'+item.question+'\n\nALTERNATIVAS:\n'+((item.options||[]).join('\n')||'(não detectadas)')+'\n\nTRECHOS VISÍVEIS DE APOIO:\n'+(item.evidence||[]).map(x=>x.text).join('\n');
    $('source').dispatchEvent(new Event('input'));
-   status('questionStatus','Questão e alternativas extraídas pelo Autopilot. Revise e solicite a explicação do Tutor.');
    activateTab('questions');
+   $('analyzeQuestionAI').click();
   });
   const open=document.createElement('button');open.className='btn';open.textContent='Abrir no Estudo';
   open.addEventListener('click',()=>{
