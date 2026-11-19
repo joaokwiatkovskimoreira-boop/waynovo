@@ -149,15 +149,12 @@ Planos gratuitos têm cotas e podem mudar. O fallback não garante disponibilida
 Tarefas e cartões ficam no armazenamento local do navegador e não são sincronizados entre dispositivos automaticamente. Faça backups regulares. Alguns sites ou navegadores bloqueiam bookmarklets por política de segurança; não há garantia de execução em todos os domínios. Nesses casos, cole o conteúdo no app.
 
 
-## Waynovo 4.0 — Smart Answer Engine
+## Waynovo 6.1 — Evidence-first Tutor
 
-O Tutor de questões mantém a indicação da alternativa mais provável como recurso central: o prompt pede um veredito explícito com letra e texto, justificativa comparativa, confiança alta/média/baixa e separação entre evidência, inferência e incerteza. A indicação depende da qualidade do enunciado e do material disponível; quando a base é insuficiente, o Tutor deve declarar isso em vez de inventar certeza. O envio ao gateway continua sendo uma ação iniciada pelo usuário.
+O Tutor de questões ganhou um contrato de resposta mais rigoroso para estudo e prática: veredito com letra e texto quando houver suporte; evidências apresentadas como excertos literais curtos do material; avaliação individual de cada alternativa; raciocínio; confiança calibrada; e indicação explícita do que falta. O modelo deve distinguir evidência, inferência e conhecimento geral, nunca fabricar citações e declarar o resultado inconclusivo quando a fonte não diferencia as opções.
 
-A Task Queue 4.0 adiciona um pipeline com dependências: cada pacote começa por um controle de qualidade da fonte (caracteres, palavras, blocos e repetição); resumo, flashcards, prática, glossário e mapa só ficam elegíveis depois da aprovação dessa etapa. Adaptadores podem validar os próprios resultados, tarefas aguardam dependências e a fila informa quando uma etapa está bloqueada. O relatório de qualidade aparece como artefato selecionável. Tudo permanece local no navegador, com fonte limitada ao texto visível ou colado pelo usuário.
+A proteção para avaliações ativas permanece: quando o contexto indicar prova supervisionada, teste valendo nota ou avaliação em andamento, o Tutor explica o conceito e propõe prática semelhante, sem fornecer a resposta. O Waynovo não clica em alternativas, não envia formulários e não tenta contornar proteções de plataformas.
 
+### Integridade da distribuição 6.1
 
-## Waynovo 5.0 — Tutor Intelligence
-
-O Tutor agora usa uma tarefa de gateway dedicada chamada question para questões de estudo: solicita alternativa mais provável (letra e texto), comparação das opções, justificativa baseada no material e confiança calibrada. Em avaliações ativas/supervisionadas ou testes valendo nota em andamento, o gateway não fornece a resposta direta e oferece explicação conceitual.
-
-O modo Local não é um modelo de linguagem. Para não fingir inteligência semântica, sua análise de alternativas é identificada como heurística lexical: exige alternativas A–E e material de apoio, mostra coincidências de termos e só apresenta uma candidata de baixa confiança quando há diferença mensurável; caso contrário, declara insuficiência de evidência. A análise online é solicitada explicitamente pelo usuário e depende de um gateway/provedor gratuito configurado.
+O instalador Android aponta para `bookmarklet.js?v=6.1`; o service worker usa o cache `waynovo-shell-v12`; o manifesto, a página de instalação e esta documentação exibem a mesma versão. O modo Local continua funcionando sem gateway; análise semântica online depende de um provedor configurado e pode estar sujeita às cotas e condições desse provedor.
