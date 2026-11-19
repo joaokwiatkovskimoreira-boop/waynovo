@@ -12,6 +12,8 @@ const bookmarklet = read('bookmarklet.js');
 const styles = read('styles.css');
 const html = read('index.html');
 const worker = read('service-worker.js');
+const featuresSource = read('features.js');
+const plannerSource = read('planner.js');
 
 test('backup import is size-limited and normalizes duplicate task/card IDs', () => {
   assert.match(app, /file\.size>5\*1024\*1024/);
@@ -27,6 +29,20 @@ test('backup import is size-limited and normalizes duplicate task/card IDs', () 
 test('bookmarklet keeps its private panel inside a closed shadow root', () => {
   assert.match(bookmarklet, /attachShadow\(\{mode:'closed'\}\)/);
   assert.doesNotMatch(bookmarklet, /attachShadow\(\{mode:'open'\}\)/);
+});
+
+test('backup import sanitizes flashcards and caps planner sessions', () => {
+  assert.match(app, /front:card\.front\.slice\(0,20000\)/);
+  assert.match(app, /back:card\.back\.slice\(0,20000\)/);
+  assert.match(app, /reps:Math\.floor\(finite\(card\.reps,0,0,100000\)\)/);
+  assert.match(plannerSource, /data\.sessions\.slice\(0, 1000\)\.forEach/);
+});
+
+test('flashcard review statistics reject malformed keys and values', () => {
+  assert.match(featuresSource, /Array\.isArray\(value\)/);
+  assert.match(featuresSource, /\^\\d\{4\}-\\d\{2\}-\\d\{2\}\$/);
+  assert.match(featuresSource, /Number\.isFinite\(Number\(count\)\)/);
+  assert.match(featuresSource, /Math\.floor\(Number\(stats\[today\]\)\)/);
 });
 
 test('task IDs work when crypto.randomUUID is unavailable', () => {
