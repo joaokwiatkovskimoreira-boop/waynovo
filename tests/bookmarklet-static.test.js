@@ -234,8 +234,8 @@ test('registered adapters are visible and included in queue audit metadata', () 
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.ok(app.includes('bookmarklet.js?v=6.2'));
-  assert.match(worker, /waynovo-shell-v14/);
+  assert.ok(app.includes('bookmarklet.js?v=6.3'));
+  assert.match(worker, /waynovo-shell-v15/);
 });
 
 
