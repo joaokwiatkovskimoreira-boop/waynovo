@@ -158,3 +158,12 @@ A proteção para avaliações ativas permanece: quando o contexto indicar prova
 ### Integridade da distribuição 6.1
 
 O instalador Android aponta para `bookmarklet.js?v=6.1`; o service worker usa o cache `waynovo-shell-v12`; o manifesto, a página de instalação e esta documentação exibem a mesma versão. O modo Local continua funcionando sem gateway; análise semântica online depende de um provedor configurado e pode estar sujeita às cotas e condições desse provedor.
+
+ 
+## Waynovo 6.2 — Music Player + Integrated Bookmarklet Suite
+
+A distribuição 6.2 amplia o bookmarklet único com uma aba **Player** e uma aba **Extras**. O Waynovo Music recebe links ou IDs de vídeos e playlists do YouTube/YouTube Music, mantém uma fila local por sessão, permite avançar/voltar/parar e reproduz no player oficial incorporado. A busca por música abre resultados oficiais do YouTube Music; não usa API de busca nem promete resultados incorporados. O YouTube pode exigir interação do usuário para iniciar a reprodução.
+
+A aba Extras reúne seis utilitários locais: modo leitura (captura texto visível), mapa navegável de títulos, auditoria de links, verificação heurística de acessibilidade, inspeção de metadados/SEO e caderno de seleção. Os relatórios podem ser copiados ou baixados. As ferramentas não tentam acessar campos privados, alterar respostas, submeter formulários ou contornar controles do site.
+
+O instalador Android usa `bookmarklet.js?v=6.2` e o cache do app foi atualizado para `waynovo-shell-v13`. O player depende da disponibilidade dos embeds e das regras do YouTube; conteúdo removido, restrito por idade, bloqueado para incorporação ou limitações do navegador podem impedir reprodução. A compatibilidade real ainda deve ser validada em Android/iOS e diferentes navegadores.
