@@ -69,6 +69,16 @@ footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px
 :host([data-theme=light]) .btn,:host([data-theme=light]) .icon{background:#eef0fa;color:#303950;border-color:#d7deeb}
 :host([data-theme=light]) .primary{background:#6858d6;color:white}
 @media(max-width:520px){:host{right:5px;bottom:5px}.panel{width:calc(100vw - 10px);max-height:88vh}}
+.media-frame{aspect-ratio:16/9;min-height:200px;width:100%;background:#05070c;border:1px solid #303d59;border-radius:10px;overflow:hidden}
+.media-frame iframe{display:block;width:100%;height:100%;min-height:200px;border:0}
+#mediaQueue{display:grid;gap:6px;margin-top:7px}
+.media-queue-item{display:flex;gap:7px;align-items:center;padding:7px;border:1px solid #303d59;border-radius:9px;background:#121b2c}
+.media-queue-item button{min-width:0;flex:1;text-align:left;border:0;background:transparent;color:#e7eaff;font-size:10px}
+.media-queue-item .remove{flex:0 0 auto;width:30px;border:1px solid #46516b;border-radius:7px;background:#222a3e;text-align:center}
+:host([data-theme=light]) .media-queue-item{background:#fff;border-color:#dce1ed}
+:host([data-theme=light]) .media-queue-item button{color:#28344b}
+.media-frame iframe{color-scheme:normal}
+
 nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white-space:nowrap}
 .cog-card{border:1px solid #303d59;border-radius:12px;padding:11px;background:#151e30;margin-top:9px}
 .cog-step{border:1px solid #303d59;border-radius:10px;padding:9px;margin-top:7px;background:#111a2b}
@@ -132,9 +142,9 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 }
 </style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 5.0 · TUTOR INTELLIGENCE</div></div><div class="spacer"></div>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 6.2 · MUSIC + BOOKMARKLET SUITE</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
-<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="autopilot">Autopilot</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
+<nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="media">Player</button><button class="tab" data-tab="extras">Extras</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="autopilot">Autopilot</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
 <section class="view active" data-view="study"><div class="eyebrow">Laboratório de aprendizagem</div><div class="desc" id="pageInfo">Selecione um trecho visível ou cole seu material.</div>
 <label for="source">Material</label><textarea id="source" placeholder="Selecione um texto e toque em Capturar, ou cole aqui..."></textarea><div class="meta" id="count">0 palavras</div>
@@ -155,6 +165,26 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <section class="view" data-view="focus"><div class="eyebrow">Sessão de foco</div><div class="desc">Organize blocos de estudo com um temporizador simples.</div>
 <label for="duration">Duração</label><select id="duration"><option value="15">15 minutos</option><option value="25" selected>25 minutos</option><option value="35">35 minutos</option><option value="45">45 minutos</option><option value="50">50 minutos</option></select>
 <div class="timer" id="timer">25:00</div><div class="meta center" id="timerStatus">Pronto para começar</div><div class="row"><button class="btn primary" id="toggleTimer">Iniciar</button><button class="btn" id="resetTimer">Reiniciar</button></div></section>
+<section class="view" data-view="media"><div class="eyebrow">Waynovo Music · player integrado</div><div class="desc">Reproduza vídeos e playlists do YouTube ou YouTube Music aqui dentro. O player oficial fica neste painel enquanto você navega pelas outras abas.</div>
+<label for="mediaUrl">Link ou ID de vídeo / playlist</label><input id="mediaUrl" type="text" placeholder="Cole um link do YouTube ou YouTube Music...">
+<div class="row"><button class="btn primary" id="mediaPlay">Reproduzir aqui</button><button class="btn" id="mediaQueueAdd">Adicionar à fila</button></div>
+<label for="mediaSearch">Buscar música ou artista</label><input id="mediaSearch" type="search" placeholder="Ex.: Daft Punk, música, álbum...">
+<div class="row"><button class="btn" id="mediaSearchBtn">Buscar no YouTube Music</button><a class="btn" id="mediaSearchOpen" href="https://music.youtube.com/" target="_blank" rel="noopener noreferrer" hidden>Abrir resultados</a></div>
+<div class="box"><div id="mediaNowPlaying" style="font-size:11px;font-weight:800;margin-bottom:8px">Nenhuma reprodução iniciada</div><div class="media-frame"><iframe id="mediaFrame" title="Player oficial do YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+<div class="row"><button class="btn" id="mediaPrevious">← Anterior</button><button class="btn" id="mediaNext">Próximo →</button><button class="btn" id="mediaStop">Parar</button></div><div class="status" id="mediaStatus">O YouTube pode exigir um toque em Reproduzir; o player respeita as restrições do navegador.</div></div>
+<div class="row"><button class="btn" id="mediaClearQueue">Limpar fila</button><span class="meta" id="mediaQueueCount">0 itens</span></div><div id="mediaQueue"><div class="meta">Sua fila está vazia. Cole um link para começar.</div></div>
+<div class="hint">Usa o player oficial incorporado. Não baixa áudio, não remove anúncios e não contorna restrições. A busca abre os resultados oficiais do YouTube Music em outra aba; reprodução incorporada exige um link ou ID.</div></section>
+<section class="view" data-view="extras"><div class="eyebrow">Biblioteca de bookmarklets internos</div><div class="desc">Utilitários executados pelo Waynovo na página aberta: leitura, mapa de títulos, auditoria de links, acessibilidade e metadados. Tudo local e limitado ao conteúdo visível.</div>
+<div class="module-grid">
+<article class="module-card"><b>Modo leitura</b><p>Extrai parágrafos visíveis e leva o artigo limpo para a aba Estudo.</p><button class="btn primary" id="extraReader">Abrir leitura</button></article>
+<article class="module-card"><b>Mapa da página</b><p>Cria uma lista navegável dos títulos visíveis.</p><button class="btn primary" id="extraOutline">Gerar mapa</button></article>
+<article class="module-card"><b>Auditor de links</b><p>Separa links internos e externos e marca URLs sem HTTPS.</p><button class="btn primary" id="extraLinks">Inspecionar links</button></article>
+<article class="module-card"><b>Auditoria de acessibilidade</b><p>Verifica nomes acessíveis, textos alternativos e hierarquia de títulos.</p><button class="btn primary" id="extraA11y">Auditar acessibilidade</button></article>
+<article class="module-card"><b>SEO e metadados</b><p>Resume title, descrição, canonical, Open Graph e dados estruturados.</p><button class="btn primary" id="extraMeta">Inspecionar metadados</button></article>
+<article class="module-card"><b>Caderno de seleção</b><p>Captura a seleção atual e envia para o editor local, sem transmissão externa.</p><button class="btn primary" id="extraNotebook">Capturar seleção</button></article>
+</div>
+<label for="extrasOutput">Relatório da ferramenta</label><textarea id="extrasOutput" class="output" readonly placeholder="Os relatórios aparecem aqui."></textarea>
+<div class="row"><button class="btn" id="extrasCopy">Copiar relatório</button><button class="btn" id="extrasDownload">Baixar TXT</button></div><div class="status" id="extrasStatus">As ferramentas não executam scripts de terceiros nem alteram respostas em páginas externas.</div></section>
 <section class="view" data-view="ai"><div class="eyebrow">Assistente opcional</div><div class="desc">Local gratuito por padrão. IA online opcional somente por modelos gratuitos permitidos no gateway.</div>
 <label for="endpoint">Endpoint do gateway</label><input id="endpoint" type="url" placeholder="https://seu-worker.workers.dev/generate" autocomplete="off">
 <label for="token">Token de acesso do gateway</label><input id="token" type="password" placeholder="Token temporário" autocomplete="off">
@@ -269,7 +299,151 @@ $('source').value=selection();
 try{$('endpoint').value=sessionStorage.getItem(ENDPOINT)||'';$('provider').value=sessionStorage.getItem(PROVIDER)||'local';$('fallback').value=sessionStorage.getItem(FALLBACK)||'true';}catch(_){}
 $('provider').addEventListener('change',()=>{try{sessionStorage.setItem(PROVIDER,$('provider').value);}catch(_){}});
 $('fallback').addEventListener('change',()=>{try{sessionStorage.setItem(FALLBACK,$('fallback').value);}catch(_){}});
+
 const words=s=>s.trim()?s.trim().split(/\s+/).length:0;
+state.mediaQueue=Array.isArray(state.mediaQueue)?state.mediaQueue.filter(x=>x&&['video','playlist'].includes(x.type)&&typeof x.id==='string').slice(0,100):[];
+state.mediaIndex=Number.isInteger(state.mediaIndex)?Math.max(0,Math.min(state.mediaIndex,state.mediaQueue.length-1)):0;
+function parseMediaEntry(raw){
+ const value=String(raw||'').trim();if(!value)return null;
+ if(/^[A-Za-z0-9_-]{11}$/.test(value))return {type:'video',id:value,label:'Vídeo '+value,url:'https://www.youtube.com/watch?v='+value};
+ try{
+  const url=new URL(value),host=url.hostname.toLowerCase().replace(/^www\./,'');
+  if(!['youtube.com','m.youtube.com','music.youtube.com','youtu.be','youtube-nocookie.com'].includes(host))return null;
+  const list=url.searchParams.get('list');
+  if(list&&/^[A-Za-z0-9_-]{10,80}$/.test(list))return {type:'playlist',id:list,label:'Playlist '+list,url:url.href};
+  let id=url.searchParams.get('v')||'';
+  if(host==='youtu.be')id=url.pathname.split('/').filter(Boolean)[0]||'';
+  if(!id)id=(url.pathname.match(/\/(?:embed|shorts|live)\/([^/?]+)/)||[])[1]||'';
+  if(/^[A-Za-z0-9_-]{11}$/.test(id))return {type:'video',id,label:'Vídeo '+id,url:url.href};
+ }catch(_){}
+ return null;
+}
+function mediaInputItems(){
+ return String($('mediaUrl').value||'').split(/\r?\n/).map(parseMediaEntry).filter(Boolean);
+}
+function renderMediaQueue(){
+ const list=$('mediaQueue');list.replaceChildren();
+ $('mediaQueueCount').textContent=state.mediaQueue.length+' itens';
+ if(!state.mediaQueue.length){const empty=document.createElement('div');empty.className='meta';empty.textContent='Sua fila está vazia. Cole um link para começar.';list.append(empty);return;}
+ state.mediaQueue.forEach((item,index)=>{
+  const row=document.createElement('div');row.className='media-queue-item';
+  const play=document.createElement('button');play.type='button';play.textContent=(index+1)+'. '+(item.label||item.id)+(item.type==='playlist'?' · playlist':'');
+  play.addEventListener('click',()=>playMediaAt(index));
+  const remove=document.createElement('button');remove.type='button';remove.className='remove';remove.textContent='×';remove.setAttribute('aria-label','Remover item da fila');
+  remove.addEventListener('click',()=>{state.mediaQueue.splice(index,1);if(state.mediaIndex>=state.mediaQueue.length)state.mediaIndex=Math.max(0,state.mediaQueue.length-1);save();renderMediaQueue();status('mediaStatus','Item removido da fila.');});
+  row.append(play,remove);list.append(row);
+ });
+}
+function playMediaAt(index){
+ if(index<0||index>=state.mediaQueue.length)return status('mediaStatus','Não há item nessa posição.');
+ state.mediaIndex=index;const item=state.mediaQueue[index];
+ const base='https://www.youtube-nocookie.com/embed/';
+ const src=item.type==='playlist'?base+'videoseries?list='+encodeURIComponent(item.id):base+encodeURIComponent(item.id)+'?playsinline=1&controls=1&rel=0';
+ $('mediaFrame').src=src;
+ $('mediaNowPlaying').textContent=(item.type==='playlist'?'Playlist':'Vídeo')+' · '+(item.label||item.id);
+ status('mediaStatus','Carregado no player oficial. Caso não comece sozinho, toque em Reproduzir dentro do vídeo.');
+ save();renderMediaQueue();
+}
+function addMediaItems(items,playFirst){
+ if(!items.length)return status('mediaStatus','Não reconheci um link ou ID válido do YouTube.');
+ const added=[];
+ items.forEach(item=>{
+  if(!state.mediaQueue.some(x=>x.type===item.type&&x.id===item.id)){state.mediaQueue.push(item);added.push(item);}
+ });
+ state.mediaQueue=state.mediaQueue.slice(0,100);
+ if(!state.mediaQueue.length)return;
+ if(playFirst){const first=state.mediaQueue.findIndex(x=>x.type===items[0].type&&x.id===items[0].id);playMediaAt(first);}
+ else{save();renderMediaQueue();status('mediaStatus',added.length+' item(ns) adicionado(s) à fila.');}
+}
+$('mediaPlay').addEventListener('click',()=>addMediaItems(mediaInputItems(),true));
+$('mediaQueueAdd').addEventListener('click',()=>addMediaItems(mediaInputItems(),false));
+$('mediaPrevious').addEventListener('click',()=>playMediaAt(state.mediaIndex-1));
+$('mediaNext').addEventListener('click',()=>playMediaAt(state.mediaIndex+1));
+$('mediaStop').addEventListener('click',()=>{$('mediaFrame').src='about:blank';$('mediaNowPlaying').textContent='Reprodução parada';status('mediaStatus','Player encerrado. A fila foi mantida.');});
+$('mediaClearQueue').addEventListener('click',()=>{state.mediaQueue=[];state.mediaIndex=0;$('mediaFrame').src='about:blank';$('mediaNowPlaying').textContent='Nenhuma reprodução iniciada';save();renderMediaQueue();status('mediaStatus','Fila limpa.');});
+$('mediaSearchBtn').addEventListener('click',()=>{
+ const query=$('mediaSearch').value.trim();if(!query)return status('mediaStatus','Digite o nome de uma música ou artista.');
+ const href='https://music.youtube.com/search?q='+encodeURIComponent(query);
+ const link=$('mediaSearchOpen');link.href=href;link.hidden=false;link.textContent='Abrir busca: '+query.slice(0,35);
+ const opened=window.open(href,'_blank','noopener,noreferrer');
+ status('mediaStatus',opened?'Busca aberta no YouTube Music.':'A busca está pronta no botão Abrir resultados; o navegador bloqueou o pop-up.');
+});
+renderMediaQueue();
+function showExtrasReport(text){$('extrasOutput').value=String(text||'');status('extrasStatus','Relatório criado localmente · '+$('extrasOutput').value.length+' caracteres.');}
+function visibleElement(el){
+ const style=getComputedStyle(el);
+ return Boolean(el.getClientRects().length&&style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>0);
+}
+$('extraReader').addEventListener('click',()=>{
+ const rootPage=document.querySelector('article,main,[role="main"]')||document.body;
+ const selectors='article p,main p,[role="main"] p,article li,main li,article h1,article h2,article h3,main h1,main h2,main h3';
+ const found=Array.from(document.querySelectorAll(selectors)).filter(visibleElement).map(el=>(el.innerText||el.textContent||'').trim()).filter(Boolean);
+ const text=(found.length?found.join('\n\n'):(rootPage.innerText||'')).slice(0,40000);
+ if(!text.trim())return status('extrasStatus','Nenhum texto visível encontrado.');
+ $('source').value=text;$('source').dispatchEvent(new Event('input'));activateTab('study');status('studyStatus','Modo leitura: conteúdo visível importado. Revise o trecho original.');status('extrasStatus','Texto visível carregado na aba Estudo.');
+});
+$('extraOutline').addEventListener('click',()=>{
+ const headings=Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,h6')).filter(h=>visibleElement(h)&&String(h.innerText||h.textContent||'').trim()).slice(0,150);
+ if(!headings.length)return showExtrasReport('Nenhum título visível encontrado.');
+ const lines=headings.map((h,i)=>(i+1)+'. ['+h.tagName+'] '+String(h.innerText||h.textContent).trim().replace(/\s+/g,' ').slice(0,140));
+ showExtrasReport(lines.join('\n')+'\n\nClique no botão de cada item abaixo para navegar até o título.');
+ const hostList=$('extrasOutput').parentElement;
+ let list=root.getElementById('extraHeadingList');if(list)list.remove();
+ list=document.createElement('div');list.id='extraHeadingList';list.className='box';
+ headings.forEach((heading,index)=>{
+  const button=document.createElement('button');button.type='button';button.className='btn';button.style.cssText='display:block;width:100%;text-align:left;margin:4px 0';
+  button.textContent=(index+1)+'. '+String(heading.innerText||heading.textContent).trim().replace(/\s+/g,' ').slice(0,100);
+  button.addEventListener('click',()=>{heading.scrollIntoView({behavior:'smooth',block:'start'});});list.append(button);
+ });
+ hostList.append(list);
+});
+$('extraLinks').addEventListener('click',()=>{
+ const links=Array.from(document.querySelectorAll('a[href]')).filter(visibleElement).slice(0,500).map(a=>{
+  try{const url=new URL(a.href,location.href);return {text:String(a.innerText||a.getAttribute('aria-label')||url.hostname).trim().replace(/\s+/g,' ').slice(0,120),url:url.href,type:url.origin===location.origin?'interno':'externo',secure:url.protocol==='https:'?'HTTPS':'SEM HTTPS'};}catch(_){return null;}
+ }).filter(Boolean);
+ const lines=['Tipo\tSegurança\tTexto\tURL',...links.map(x=>[x.type,x.secure,x.text,x.url].join('\t'))];
+ showExtrasReport('Links visíveis encontrados: '+links.length+'\n\n'+lines.join('\n'));
+});
+$('extraA11y').addEventListener('click',()=>{
+ const visible=selector=>Array.from(document.querySelectorAll(selector)).filter(visibleElement);
+ const images=visible('img').filter(img=>!img.hasAttribute('alt')||(!img.getAttribute('alt').trim()&&!img.getAttribute('role')?.includes('presentation')));
+ const controls=visible('button,input,select,textarea,[role="button"],[role="link"]');
+ const unlabeled=controls.filter(el=>{
+  if(el.labels&&el.labels.length)return false;
+  return !String(el.getAttribute('aria-label')||el.getAttribute('aria-labelledby')||el.getAttribute('title')||el.innerText||el.value||'').trim();
+ });
+ const headings=visible('h1,h2,h3,h4,h5,h6');
+ const issues=[];
+ images.forEach(el=>issues.push('Imagem sem texto alternativo claro: '+(el.currentSrc||el.src||'(sem URL)').slice(0,180)));
+ unlabeled.forEach(el=>issues.push('Controle sem nome acessível claro: <'+el.tagName.toLowerCase()+'> '+String(el.outerHTML||'').slice(0,160)));
+ let last=0;
+ headings.forEach(el=>{const level=Number(el.tagName.slice(1));if(last&&level>last+1)issues.push('Salto na hierarquia de títulos: '+el.tagName+' após H'+last+' — '+String(el.innerText||'').trim().slice(0,100));last=level;});
+ const report=['AUDITORIA HEURÍSTICA DE ACESSIBILIDADE','Elementos visíveis analisados: '+(images.length+controls.length+headings.length),'Imagens sem alt: '+images.length,'Controles sem nome claro: '+unlabeled.length,'Títulos visíveis: '+headings.length,'','PONTOS PARA REVISAR',...(issues.length?issues:['Nenhum dos problemas heurísticos selecionados foi encontrado.']),'','Nota: análise estática simplificada; não substitui testes com teclado, leitor de tela ou auditoria WCAG completa.'];
+ showExtrasReport(report.join('\n'));
+});
+$('extraMeta').addEventListener('click',()=>{
+ const meta=name=>document.querySelector('meta[name="'+name+'"]')?.content||'—';
+ const prop=name=>document.querySelector('meta[property="'+name+'"]')?.content||'—';
+ const canonical=document.querySelector('link[rel="canonical"]')?.href||'—';
+ const rows=[
+  ['Título',document.title||'—'],['URL',location.href],['Idioma',document.documentElement.lang||'—'],
+  ['Descrição',meta('description')],['Robots',meta('robots')],['Canonical',canonical],
+  ['Open Graph title',prop('og:title')],['Open Graph description',prop('og:description')],
+  ['Open Graph image',prop('og:image')],['Twitter card',meta('twitter:card')],
+  ['Viewport',meta('viewport')],['Dados JSON-LD',String(document.querySelectorAll('script[type="application/ld+json"]').length)]
+ ];
+ showExtrasReport(['INSPEÇÃO DE METADADOS / SEO','',...rows.map(x=>x[0]+': '+x[1])].join('\n'));
+});
+$('extraNotebook').addEventListener('click',()=>{
+ const selected=selection();if(!selected)return status('extrasStatus','Selecione texto visível na página antes de capturar.');
+ $('editor').value=selected;$('editor').dispatchEvent(new Event('input'));activateTab('tools');status('toolStatus','Seleção enviada ao editor local.');status('extrasStatus','Texto selecionado copiado para a aba Texto.');
+});
+$('extrasCopy').addEventListener('click',async()=>{const text=$('extrasOutput').value;if(!text)return status('extrasStatus','Não há relatório para copiar.');status('extrasStatus',await copy(text)?'Relatório copiado.':'Não foi possível copiar.');});
+$('extrasDownload').addEventListener('click',()=>{
+ const text=$('extrasOutput').value;if(!text)return status('extrasStatus','Não há relatório para baixar.');
+ const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='waynovo-relatorio.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+
 $('source').addEventListener('input',()=>{$('count').textContent=words($('source').value)+' palavras · '+$('source').value.length+' caracteres';});
 $('source').dispatchEvent(new Event('input'));
 function pieces(s){const p=s.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);const q=s.split(/(?<=[.!?])\s+/).map(x=>x.trim()).filter(x=>x.length>25);return (p.length>1?p:q.length?q:[s]).slice(0,20);}
@@ -1194,7 +1368,7 @@ function autoQueueCreatePack(){
 function autoQueueExport(){
  const report={
   product:'Waynovo Task Queue',
-  version:'4.0',
+  version:'6.2',
   exportedAt:new Date().toISOString(),
   counts:autoQueueCounts(),
   adapters:autoQueueListAdapters(),
