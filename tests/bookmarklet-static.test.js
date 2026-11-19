@@ -10,7 +10,7 @@ const source = fs.readFileSync(path.join(__dirname, '..', 'bookmarklet.js'), 'ut
 test('every bookmarklet tab has a matching view', () => {
   const tabs = [...source.matchAll(/<button class="tab(?: active)?" data-tab="([^"]+)"/g)].map((m) => m[1]);
   const views = [...source.matchAll(/<section class="view(?: active)?" data-view="([^"]+)"/g)].map((m) => m[1]);
-  assert.equal(tabs.length, 11);
+  assert.equal(tabs.length, 13);
   assert.deepEqual([...tabs].sort(), [...views].sort());
   assert.equal(new Set(tabs).size, tabs.length);
 });
@@ -311,7 +311,7 @@ test('integrated player uses local queue state and documented playlist embed par
 
 test('Extras tools are read-only reports and do not submit forms or fetch remote scripts', () => {
   const start = source.indexOf("$('extraReader').addEventListener");
-  const end = source.indexOf("root.querySelectorAll('[data-tab]')", start);
+  const end = source.indexOf("$('source').addEventListener('input'", start);
   assert.ok(start >= 0 && end > start);
   const extras = source.slice(start, end);
   assert.doesNotMatch(extras, /\bfetch\s*\(/);
