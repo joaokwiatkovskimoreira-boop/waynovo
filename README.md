@@ -153,7 +153,11 @@ Tarefas e cartões ficam no armazenamento local do navegador e não são sincron
 
 ## Waynovo 6.3 — Refinamento, robustez e fluidez
 
-A versão 6.3 corrige a exibição de consumo de tokens no painel quando o gateway retorna uso da API, torna os cronômetros resistentes à suspensão/retomada de abas usando horário de término em vez de decrementos acumulados e reforça a importação de backups: arquivos acima de 5 MB são recusados, tarefas e cartões duplicados recebem IDs novos e a quantidade importada é limitada. A instalação Android aponta para o bookmarklet 6.3 e o cache offline foi invalidado para entregar os arquivos atualizados.
+A versão 6.3 corrige a exibição de consumo de tokens no painel quando o gateway retorna uso da API, torna os cronômetros resistentes à suspensão/retomada de abas usando horário de término em vez de decrementos acumulados e reforça a importação de backups: arquivos acima de 5 MB são recusados, tarefas e cartões duplicados recebem IDs novos, os campos de cartões e estatísticas são normalizados, textos importados têm limites de tamanho e sessões do planejador são limitadas a 1.000 registros. A instalação Android aponta para o bookmarklet 6.3 e o cache offline foi invalidado para entregar os arquivos atualizados.
+
+
+
+A validação contínua executa no GitHub Actions com Node 24. Na revisão de importação e segurança mais recente, a suíte passou com **70 testes e zero falhas**, além das verificações de sintaxe JavaScript e manifesto PWA.
 
 A interface recebeu transições curtas baseadas em opacidade/transformação, estados de foco visíveis por teclado, feedback de interação e respeito a `prefers-reduced-motion`. As animações são discretas e não dependem de bibliotecas. O projeto exibe a assinatura **feito pelo russo**.
 
