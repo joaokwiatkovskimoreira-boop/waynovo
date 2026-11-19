@@ -6,7 +6,7 @@ const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '..', 'worker.js'), 'utf8');
 
 test('gateway exposes a dedicated study-question task', () => {
-  assert.match(source, /question:\s*"Resolva a questão em modo de estudo/);
+  assert.match(source, /question:\s*"Analise a questão como tutor de estudo/);
   assert.match(source, /Object\.prototype\.hasOwnProperty\.call\(TASKS, task\)/);
 });
 
