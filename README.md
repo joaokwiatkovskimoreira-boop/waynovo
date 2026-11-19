@@ -1,4 +1,4 @@
-# Waynovo 6.1 — Portable Bookmarklet
+# Waynovo 6.2 — Portable Bookmarklet
 
 Bookmarklet portátil gratuito para estudo, organização, automação local, monitoramento automático de páginas visíveis e experimentação de políticas em laboratório, com revisão espaçada e IA opcional.
 
@@ -149,20 +149,10 @@ Planos gratuitos têm cotas e podem mudar. O fallback não garante disponibilida
 Tarefas e cartões ficam no armazenamento local do navegador e não são sincronizados entre dispositivos automaticamente. Faça backups regulares. Alguns sites ou navegadores bloqueiam bookmarklets por política de segurança; não há garantia de execução em todos os domínios. Nesses casos, cole o conteúdo no app.
 
 
-## Waynovo 6.1 — Evidence-first Tutor
-
-O Tutor de questões ganhou um contrato de resposta mais rigoroso para estudo e prática: veredito com letra e texto quando houver suporte; evidências apresentadas como excertos literais curtos do material; avaliação individual de cada alternativa; raciocínio; confiança calibrada; e indicação explícita do que falta. O modelo deve distinguir evidência, inferência e conhecimento geral, nunca fabricar citações e declarar o resultado inconclusivo quando a fonte não diferencia as opções.
-
-A proteção para avaliações ativas permanece: quando o contexto indicar prova supervisionada, teste valendo nota ou avaliação em andamento, o Tutor explica o conceito e propõe prática semelhante, sem fornecer a resposta. O Waynovo não clica em alternativas, não envia formulários e não tenta contornar proteções de plataformas.
-
-### Integridade da distribuição 6.1
-
-O instalador Android aponta para `bookmarklet.js?v=6.1`; o service worker usa o cache `waynovo-shell-v12`; o manifesto, a página de instalação e esta documentação exibem a mesma versão. O modo Local continua funcionando sem gateway; análise semântica online depende de um provedor configurado e pode estar sujeita às cotas e condições desse provedor.
-
  
 ## Waynovo 6.2 — Music Player + Integrated Bookmarklet Suite
 
-A distribuição 6.2 amplia o bookmarklet único com uma aba **Player** e uma aba **Extras**. O Waynovo Music recebe links ou IDs de vídeos e playlists do YouTube/YouTube Music, mantém uma fila local por sessão, permite avançar/voltar/parar e reproduz no player oficial incorporado. A busca por música abre resultados oficiais do YouTube Music; não usa API de busca nem promete resultados incorporados. O YouTube pode exigir interação do usuário para iniciar a reprodução. O player respeita a incorporação oficial; a busca abre o YouTube Music em outra aba porque resultados de pesquisa não são fornecidos pelo embed de player.
+A distribuição 6.2 amplia o bookmarklet único com uma aba **Player** e uma aba **Extras**. O Waynovo Music recebe links ou IDs de vídeos e playlists do YouTube/YouTube Music, mantém uma fila temporária na sessão da aba (sessionStorage), permite avançar/voltar/parar e reproduz no player oficial incorporado. A busca por música abre resultados oficiais do YouTube Music; não usa API de busca nem promete resultados incorporados. O YouTube pode exigir interação do usuário para iniciar a reprodução. O player respeita a incorporação oficial; a busca abre o YouTube Music em outra aba porque resultados de pesquisa não são fornecidos pelo embed de player.
 
 A aba Extras reúne nove utilitários locais: modo leitura (captura texto visível), mapa navegável de títulos, auditoria de links, verificação heurística de acessibilidade, inspeção de metadados/SEO, caderno de seleção, exportação de tabelas para CSV, diagnóstico de desempenho e inspetor de seletores CSS. Os relatórios podem ser copiados ou baixados. As ferramentas não tentam acessar campos privados, alterar respostas, submeter formulários ou contornar controles do site.
 
