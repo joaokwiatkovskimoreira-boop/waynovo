@@ -1,4 +1,4 @@
-# Waynovo 6.2 — Portable Bookmarklet
+# Waynovo 6.3 — Portable Bookmarklet
 
 Bookmarklet portátil gratuito para estudo, organização, automação local, monitoramento automático de páginas visíveis e experimentação de políticas em laboratório, com revisão espaçada e IA opcional.
 
@@ -150,10 +150,17 @@ Tarefas e cartões ficam no armazenamento local do navegador e não são sincron
 
 
  
+
+## Waynovo 6.3 — Refinamento, robustez e fluidez
+
+A versão 6.3 corrige a exibição de consumo de tokens no painel quando o gateway retorna uso da API, torna os cronômetros resistentes à suspensão/retomada de abas usando horário de término em vez de decrementos acumulados e reforça a importação de backups: arquivos acima de 5 MB são recusados, tarefas e cartões duplicados recebem IDs novos e a quantidade importada é limitada. A instalação Android aponta para o bookmarklet 6.3 e o cache offline foi invalidado para entregar os arquivos atualizados.
+
+A interface recebeu transições curtas baseadas em opacidade/transformação, estados de foco visíveis por teclado, feedback de interação e respeito a `prefers-reduced-motion`. As animações são discretas e não dependem de bibliotecas. O projeto exibe a assinatura **feito pelo russo**.
+
 ## Waynovo 6.2 — Music Player + Integrated Bookmarklet Suite
 
 A distribuição 6.2 amplia o bookmarklet único com uma aba **Player** e uma aba **Extras**. O Waynovo Music recebe links ou IDs de vídeos e playlists do YouTube/YouTube Music, mantém uma fila temporária na sessão da aba (sessionStorage), permite avançar/voltar/parar e reproduz no player oficial incorporado. A busca por música abre resultados oficiais do YouTube Music; não usa API de busca nem promete resultados incorporados. O player também oferece **Manter tela ativa**, um controle voluntário baseado na Screen Wake Lock API: tenta impedir que o ecrã desligue enquanto a aba está visível, mas o sistema pode liberar o bloqueio ou o navegador não oferecer suporte. Isso não impede nem contorna a pausa/pergunta de inatividade do próprio YouTube. O YouTube pode exigir interação do usuário para iniciar a reprodução. O player respeita a incorporação oficial; a busca abre o YouTube Music em outra aba porque resultados de pesquisa não são fornecidos pelo embed de player.
 
 A aba Extras reúne onze utilitários locais: modo leitura (captura texto visível), mapa navegável de títulos, auditoria de links, verificação heurística de acessibilidade, inspeção de metadados/SEO, caderno de seleção, exportação de tabelas para CSV, diagnóstico de desempenho, inspetor de seletores CSS, URL Toolkit (com remoção de parâmetros de rastreamento e redação de credenciais) e JSON Formatter (validação e formatação sem executar código). Os relatórios podem ser copiados ou baixados. As ferramentas não tentam acessar campos privados, alterar respostas, submeter formulários ou contornar controles do site.
 
-O instalador Android usa `bookmarklet.js?v=6.2` e o cache do app foi atualizado para `waynovo-shell-v14`. O player depende da disponibilidade dos embeds e das regras do YouTube; conteúdo removido, restrito por idade, bloqueado para incorporação ou limitações do navegador podem impedir reprodução. A compatibilidade real ainda deve ser validada em Android/iOS e diferentes navegadores.
+O instalador Android usa `bookmarklet.js?v=6.3` e o cache do app foi atualizado para `waynovo-shell-v15`. O player depende da disponibilidade dos embeds e das regras do YouTube; conteúdo removido, restrito por idade, bloqueado para incorporação ou limitações do navegador podem impedir reprodução. A compatibilidade real ainda deve ser validada em Android/iOS e diferentes navegadores.
