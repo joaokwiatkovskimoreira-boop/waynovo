@@ -3,7 +3,7 @@
 const ID='waynovo-unified-panel';
 const old=document.getElementById(ID);if(old){if(typeof old.__waynovoCleanup==='function')old.__waynovoCleanup();else old.remove();return;}
 const host=document.createElement('div');host.id=ID;(document.body||document.documentElement).appendChild(host);
-const root=host.attachShadow({mode:'open'});
+const root=host.attachShadow({mode:'closed'});
 root.innerHTML=`
 <style>
 :host{all:initial;position:fixed;z-index:2147483647;right:14px;bottom:14px;color-scheme:dark;font:13px/1.45 system-ui,sans-serif;color:#edf0ff}
