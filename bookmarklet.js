@@ -8,7 +8,7 @@ root.innerHTML=`
 <style>
 :host{all:initial;position:fixed;z-index:2147483647;right:14px;bottom:14px;color-scheme:dark;font:13px/1.45 system-ui,sans-serif;color:#edf0ff}
 *{box-sizing:border-box}button,input,textarea,select{font:inherit}button{cursor:pointer}
-.panel{animation:waynovo-panel-in .24s cubic-bezier(.2,.75,.2,1) both;width:min(470px,calc(100vw - 14px));max-height:88vh;display:flex;flex-direction:column;overflow:hidden;background:#101626;border:1px solid #303c59;border-radius:17px;box-shadow:0 24px 90px #000a;color:#edf0ff}
+.panel{position:relative;animation:waynovo-panel-in .24s cubic-bezier(.2,.75,.2,1) both;width:min(470px,calc(100vw - 14px));max-height:88vh;display:flex;flex-direction:column;overflow:hidden;background:#101626;border:1px solid #303c59;border-radius:17px;box-shadow:0 24px 90px #000a;color:#edf0ff}
 header{display:flex;align-items:center;gap:9px;padding:12px;background:linear-gradient(120deg,#1b2440,#171d31);border-bottom:1px solid #303b56;cursor:move;touch-action:none;user-select:none}
 .logo{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;background:linear-gradient(145deg,#9a89ff,#5e4bd1);font-weight:900}
 .brand{font-size:14px;font-weight:850}.version{font-size:9px;color:#9da9c5}.spacer{flex:1}
@@ -55,6 +55,18 @@ textarea{min-height:100px;resize:vertical;line-height:1.5}.output{min-height:135
 .noteitem{display:flex;align-items:center;gap:6px;border:1px solid #2c3851;border-radius:9px;padding:7px;margin-top:6px;background:#141e30}
 .noteinfo{min-width:0;flex:1}.notetitle{font-weight:800;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notedate{font-size:9px;color:#8795b1}
 .hint{border-left:2px solid #776be3;background:#1a2035;padding:8px 9px;border-radius:0 8px 8px 0;color:#b8c1d7;font-size:9px;line-height:1.5;margin-top:9px}
+.command-palette{position:absolute;z-index:60;top:56px;left:10px;right:10px;max-height:min(65vh,420px);overflow:hidden;padding:10px;background:#111a2b;border:1px solid #465477;border-radius:13px;box-shadow:0 18px 50px #000b}
+.command-palette[hidden]{display:none}
+.command-search{width:100%;min-height:40px;padding:9px 11px;border:1px solid #475574;border-radius:9px;background:#0b1220;color:#edf0ff}
+.command-items{display:grid;gap:5px;max-height:32vh;overflow:auto;margin-top:8px}
+.command-item{width:100%;min-height:38px;padding:8px 10px;border:1px solid #303d59;border-radius:8px;background:#1a2540;color:#edf0ff;text-align:left}
+.command-item:hover,.command-item:focus-visible{background:#2b3858;border-color:#8577ed}
+.command-empty{padding:12px 8px;color:#aeb9d0;font-size:11px}
+:host([data-theme=light]) .command-palette{background:#fff;border-color:#cbd3e2;box-shadow:0 18px 50px #26324a33}
+:host([data-theme=light]) .command-search{background:#f7f9fc;border-color:#cbd3e2;color:#202b40}
+:host([data-theme=light]) .command-item{background:#f5f7fb;border-color:#dce2ed;color:#202b40}
+:host([data-theme=light]) .command-item:hover,:host([data-theme=light]) .command-item:focus-visible{background:#e9edfa;border-color:#8879e8}
+:host([data-theme=light]) .command-empty{color:#64718a}
 footer{padding:8px 12px;border-top:1px solid #29344d;color:#7f8ca8;font-size:9px;display:flex;justify-content:space-between}
 .module-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.module-card{min-width:0;border:1px solid #2d3953;border-radius:11px;padding:10px;background:#151e30}.module-card b{font-size:11px}.module-card p{min-height:42px;margin:6px 0 9px;color:#9da9c2;font-size:9px;line-height:1.45}.module-card .btn{width:100%}
 :host([data-theme=light]) .module-card{background:white;border-color:#dce1ed}
@@ -142,8 +154,13 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 }
 button,a,input,textarea,select{transition:color .16s ease,background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #a99aff;outline-offset:2px}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}</style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 6.3 · FEITO PELO RUSSO</div></div><div class="spacer"></div>
-<button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 6.4 · FEITO PELO RUSSO</div></div><div class="spacer"></div>
+<button class="icon" id="commands" title="Buscar seções" aria-label="Buscar seções">⌕</button><button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
+<div class="command-palette" id="commandPalette" hidden role="search" aria-label="Navegação rápida">
+<input class="command-search" id="commandSearch" type="search" autocomplete="off" placeholder="Buscar uma seção..." aria-label="Buscar uma seção do Waynovo">
+<div class="command-items" id="commandItems" aria-label="Seções disponíveis"></div>
+<div class="hint">Escolha uma seção para abrir. Use as setas para navegar e Enter para selecionar.</div>
+</div>
 <nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="media">Player</button><button class="tab" data-tab="extras">Extras</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="autopilot">Autopilot</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
 <section class="view active" data-view="study"><div class="eyebrow">Laboratório de aprendizagem</div><div class="desc" id="pageInfo">Selecione um trecho visível ou cole seu material.</div>
@@ -1669,11 +1686,53 @@ document.addEventListener('visibilitychange',()=>{autoLastTick=Date.now();});
 autoStart();
 
 root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));if(touchLayout())b.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}));
+const commandPalette=$('commandPalette'),commandSearch=$('commandSearch'),commandItems=$('commandItems');
+const commandTabs=Array.from(root.querySelectorAll('[data-tab]'));
+const normalizeCommand=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').trim();
+function renderCommandItems(query=''){
+ commandItems.replaceChildren();
+ const normalized=normalizeCommand(query);
+ const matches=commandTabs.filter(tab=>normalizeCommand(tab.textContent+' '+tab.dataset.tab).includes(normalized));
+ matches.forEach(tab=>{
+  const item=document.createElement('button');item.type='button';item.className='command-item';item.textContent='Abrir '+tab.textContent.trim();item.dataset.commandTab=tab.dataset.tab;
+  item.addEventListener('click',()=>{tab.click();closeCommandPalette();});
+  commandItems.append(item);
+ });
+ if(!matches.length){const empty=document.createElement('div');empty.className='command-empty';empty.textContent='Nenhuma seção encontrada.';commandItems.append(empty);}
+}
+function closeCommandPalette(restoreFocus=true){
+ commandPalette.hidden=true;$('commands').setAttribute('aria-expanded','false');
+ if(restoreFocus)$('commands').focus();
+}
+function openCommandPalette(){
+ commandPalette.hidden=false;$('commands').setAttribute('aria-expanded','true');
+ commandSearch.value='';renderCommandItems('');commandSearch.focus();
+}
+$('commands').setAttribute('aria-expanded','false');
+$('commands').addEventListener('click',()=>commandPalette.hidden?openCommandPalette():closeCommandPalette());
+commandSearch.addEventListener('input',()=>renderCommandItems(commandSearch.value));
+commandPalette.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeCommandPalette();return;}
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+  const items=Array.from(commandItems.querySelectorAll('button.command-item'));
+  if(!items.length)return;
+  e.preventDefault();
+  const current=items.indexOf(root.activeElement);
+  const next=e.key==='ArrowDown'?(current+1)%items.length:(current<=0?items.length-1:current-1);
+  items[next].focus();
+ }
+});
+commandSearch.addEventListener('keydown',e=>{
+ if(e.key==='Enter'){const first=commandItems.querySelector('button.command-item');if(first){e.preventDefault();first.click();}}
+});
+root.addEventListener('click',e=>{
+ if(!commandPalette.hidden&&!e.target.closest('#commandPalette,#commands'))closeCommandPalette(false);
+},true);
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
 $('min').addEventListener('click',()=>{$('panel').classList.toggle('minimized');$('min').textContent=$('panel').classList.contains('minimized')?'+':'−';});
 function close(){mediaWakeEnabled=false;document.removeEventListener('visibilitychange',mediaWakeVisibilityHandler);if(mediaWakeSentinel){const wake=mediaWakeSentinel;mediaWakeSentinel=null;wake.release().catch(()=>{});}if(interval)clearInterval(interval);if(autoQueueTimer)clearTimeout(autoQueueTimer);if(autoScannerInterval)clearInterval(autoScannerInterval);if(autoClockInterval)clearInterval(autoClockInterval);if(autoObserver)autoObserver.disconnect();if(autoDebounce)clearTimeout(autoDebounce);autoPersist();host.remove();}
 host.__waynovoCleanup=close;
-$('close').addEventListener('click',close);root.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+$('close').addEventListener('click',close);root.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!commandPalette.hidden){closeCommandPalette();return;}close();}});
 let drag=null;const touchLayout=()=>window.matchMedia&&window.matchMedia('(pointer: coarse), (max-width: 640px)').matches;$('drag').addEventListener('pointerdown',e=>{if(touchLayout()||e.target.closest('button'))return;const r=host.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};$('drag').setPointerCapture(e.pointerId);});
 $('drag').addEventListener('pointermove',e=>{if(!drag)return;host.style.left=Math.max(0,Math.min(innerWidth-host.offsetWidth,e.clientX-drag.x))+'px';host.style.top=Math.max(0,Math.min(innerHeight-48,e.clientY-drag.y))+'px';host.style.right='auto';host.style.bottom='auto';});
 const stop=()=>{drag=null;};$('drag').addEventListener('pointerup',stop);$('drag').addEventListener('pointercancel',stop);
