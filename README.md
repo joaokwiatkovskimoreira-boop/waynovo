@@ -1,6 +1,10 @@
-# Waynovo 6.3 — Portable Bookmarklet
+# Waynovo 6.4 — Portable Bookmarklet
 
 Bookmarklet portátil gratuito para estudo, organização, automação local, monitoramento automático de páginas visíveis e experimentação de políticas em laboratório, com revisão espaçada e IA opcional.
+
+## Waynovo 6.4 — Navegação rápida
+
+A versão 6.4 adiciona uma paleta de navegação no cabeçalho do bookmarklet. O botão de busca filtra as 13 seções em tempo real, ignora diferenças de acentuação e permite abrir a seção escolhida sem percorrer a barra de abas. As setas do teclado percorrem os resultados, Enter abre a seção e Esc fecha a paleta sem fechar o painel. A busca funciona localmente e não envia o texto digitado para nenhum serviço.
 
 ## Usar o Waynovo
 
@@ -151,9 +155,9 @@ Tarefas e cartões ficam no armazenamento local do navegador e não são sincron
 
  
 
-## Waynovo 6.3 — Refinamento, robustez e fluidez
+## Histórico — Waynovo 6.3 — Refinamento, robustez e fluidez
 
-A versão 6.3 corrige a exibição de consumo de tokens no painel quando o gateway retorna uso da API, torna os cronômetros resistentes à suspensão/retomada de abas usando horário de término em vez de decrementos acumulados e reforça a importação de backups: arquivos acima de 5 MB são recusados, tarefas e cartões duplicados recebem IDs novos, os campos de cartões e estatísticas são normalizados, textos importados têm limites de tamanho e sessões do planejador são limitadas a 1.000 registros. A instalação Android aponta para o bookmarklet 6.3 e o cache offline foi invalidado para entregar os arquivos atualizados.
+A versão 6.3 corrige a exibição de consumo de tokens no painel quando o gateway retorna uso da API, torna os cronômetros resistentes à suspensão/retomada de abas usando horário de término em vez de decrementos acumulados e reforça a importação de backups: arquivos acima de 5 MB são recusados, tarefas e cartões duplicados recebem IDs novos, os campos de cartões e estatísticas são normalizados, textos importados têm limites de tamanho e sessões do planejador são limitadas a 1.000 registros. A instalação Android aponta para o bookmarklet 6.4 e o cache offline foi invalidado para entregar os arquivos atualizados.
 
 
 
@@ -167,4 +171,4 @@ A distribuição 6.2 amplia o bookmarklet único com uma aba **Player** e uma ab
 
 A aba Extras reúne onze utilitários locais: modo leitura (captura texto visível), mapa navegável de títulos, auditoria de links, verificação heurística de acessibilidade, inspeção de metadados/SEO, caderno de seleção, exportação de tabelas para CSV, diagnóstico de desempenho, inspetor de seletores CSS, URL Toolkit (com remoção de parâmetros de rastreamento e redação de credenciais) e JSON Formatter (validação e formatação sem executar código). Os relatórios podem ser copiados ou baixados. As ferramentas não tentam acessar campos privados, alterar respostas, submeter formulários ou contornar controles do site.
 
-O instalador Android usa `bookmarklet.js?v=6.3` e o cache do app foi atualizado para `waynovo-shell-v16`. O player depende da disponibilidade dos embeds e das regras do YouTube; conteúdo removido, restrito por idade, bloqueado para incorporação ou limitações do navegador podem impedir reprodução. A compatibilidade real ainda deve ser validada em Android/iOS e diferentes navegadores.
+O instalador Android usa `bookmarklet.js?v=6.4` e o cache do app foi atualizado para `waynovo-shell-v17`. O player depende da disponibilidade dos embeds e das regras do YouTube; conteúdo removido, restrito por idade, bloqueado para incorporação ou limitações do navegador podem impedir reprodução. A compatibilidade real ainda deve ser validada em Android/iOS e diferentes navegadores.
