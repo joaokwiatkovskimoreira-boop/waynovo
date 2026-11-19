@@ -380,3 +380,11 @@ test('screen wake lock is opt-in, visibility-aware and explicitly released', () 
   assert.match(source, /sentinel\.release\(\)/);
   assert.match(source, /Tela ativa desativada/);
 });
+
+test('AI gateway token usage reads the response object without self-reference', () => {
+  assert.match(source, /const usage=data\.usage\?/);
+  assert.match(source, /Number\(data\.usage\.inputTokens\)/);
+  assert.match(source, /Number\(data\.usage\.outputTokens\)/);
+  assert.doesNotMatch(source, /const usage=data\.usage\?[^;]*\+usage\.inputTokens/);
+  assert.doesNotMatch(source, /const usage=data\.usage\?[^;]*\+usage\.outputTokens/);
+});
