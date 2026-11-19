@@ -1517,7 +1517,7 @@ function autoQueueCreatePack(){
 function autoQueueExport(){
  const report={
   product:'Waynovo Task Queue',
-  version:'6.3',
+  version:'6.4',
   exportedAt:new Date().toISOString(),
   counts:autoQueueCounts(),
   adapters:autoQueueListAdapters(),
