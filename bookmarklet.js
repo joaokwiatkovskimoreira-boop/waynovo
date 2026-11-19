@@ -166,7 +166,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <label for="duration">Duração</label><select id="duration"><option value="15">15 minutos</option><option value="25" selected>25 minutos</option><option value="35">35 minutos</option><option value="45">45 minutos</option><option value="50">50 minutos</option></select>
 <div class="timer" id="timer">25:00</div><div class="meta center" id="timerStatus">Pronto para começar</div><div class="row"><button class="btn primary" id="toggleTimer">Iniciar</button><button class="btn" id="resetTimer">Reiniciar</button></div></section>
 <section class="view" data-view="media"><div class="eyebrow">Waynovo Music · player integrado</div><div class="desc">Reproduza vídeos e playlists do YouTube ou YouTube Music aqui dentro. O player oficial fica neste painel enquanto você navega pelas outras abas.</div>
-<label for="mediaUrl">Link ou ID de vídeo / playlist</label><input id="mediaUrl" type="text" placeholder="Cole um link do YouTube ou YouTube Music...">
+<label for="mediaUrl">Link ou ID de vídeo / playlist</label><input id="mediaUrl" type="text" placeholder="Link/ID de vídeo ou playlist (um por linha)...">
 <div class="row"><button class="btn primary" id="mediaPlay">Reproduzir aqui</button><button class="btn" id="mediaQueueAdd">Adicionar à fila</button></div>
 <label for="mediaSearch">Buscar música ou artista</label><input id="mediaSearch" type="search" placeholder="Ex.: Daft Punk, música, álbum...">
 <div class="row"><button class="btn" id="mediaSearchBtn">Buscar no YouTube Music</button><a class="btn" id="mediaSearchOpen" href="https://music.youtube.com/" target="_blank" rel="noopener noreferrer" hidden>Abrir resultados</a></div>
@@ -292,7 +292,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 const $=id=>root.getElementById(id);
 const KEY='waynovo.unified.v1', ENDPOINT='waynovo.gateway.endpoint', PROVIDER='waynovo.gateway.provider', FALLBACK='waynovo.gateway.fallback', MEDIA_QUEUE_KEY='waynovo.media.queue.v1';
 const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(_){return {};}};
-function readMediaQueue(){try{const value=JSON.parse(sessionStorage.getItem(MEDIA_QUEUE_KEY)||'[]');return Array.isArray(value)?value.filter(x=>x&&['video','playlist'].includes(x.type)&&typeof x.id==='string').slice(0,100):[];}catch(_){return [];}}
+function readMediaQueue(){try{const value=JSON.parse(sessionStorage.getItem(MEDIA_QUEUE_KEY)||'[]');return Array.isArray(value)?value.filter(x=>x&&((x.type==='video'&&typeof x.id==='string'&&/^[A-Za-z0-9_-]{11}$/.test(x.id))||(x.type==='playlist'&&typeof x.id==='string'&&/^[A-Za-z0-9_-]{10,80}$/.test(x.id)))).slice(0,100):[];}catch(_){return [];}}
 const state=read();state.cards=Array.isArray(state.cards)?state.cards.filter(x=>x&&typeof x.front==='string'&&typeof x.back==='string').slice(0,300):[];state.notes=Array.isArray(state.notes)?state.notes.filter(x=>x&&typeof x.text==='string').slice(-100):[];state.mediaQueue=readMediaQueue();state.mediaIndex=0;
 const save=()=>{try{const snapshot={...state};delete snapshot.mediaQueue;delete snapshot.mediaIndex;localStorage.setItem(KEY,JSON.stringify(snapshot));}catch(_){status('toolStatus','Armazenamento indisponível ou cheio.');}};
 function saveMediaQueue(){try{sessionStorage.setItem(MEDIA_QUEUE_KEY,JSON.stringify(state.mediaQueue));}catch(_){status('mediaStatus','Armazenamento da sessão indisponível; a fila ficará somente nesta abertura.');}}
@@ -348,7 +348,7 @@ function playMediaAt(index){
  $('mediaFrame').src=src;
  $('mediaNowPlaying').textContent=(item.type==='playlist'?'Playlist':'Vídeo')+' · '+(item.label||item.id);
  status('mediaStatus','Carregado no player oficial. Caso não comece sozinho, toque em Reproduzir dentro do vídeo.');
- save();renderMediaQueue();
+ saveMediaQueue();renderMediaQueue();
 }
 function addMediaItems(items,playFirst){
  if(!items.length)return status('mediaStatus','Não reconheci um link ou ID válido do YouTube.');
