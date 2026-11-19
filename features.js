@@ -31,7 +31,11 @@
   function loadStats() {
     try {
       const value = JSON.parse(localStorage.getItem(STATS_KEY) || '{}');
-      if (!value || typeof value !== 'object' || Array.isArray(value)) return {};\n      return Object.fromEntries(Object.entries(value).filter(([key, count]) => /^\\d{4}-\\d{2}-\\d{2}$/.test(key) && Number.isFinite(Number(count)) && Number(count) >= 0).slice(-400).map(([key, count]) => [key, Math.floor(Number(count))]));
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+      return Object.fromEntries(Object.entries(value)
+        .filter(([key, count]) => /^\d{4}-\d{2}-\d{2}$/.test(key) && Number.isFinite(Number(count)) && Number(count) >= 0)
+        .slice(-400)
+        .map(([key, count]) => [key, Math.floor(Number(count))]));
     } catch (_) { return {}; }
   }
   cards = loadCards();
