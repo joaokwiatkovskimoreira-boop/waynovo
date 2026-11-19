@@ -160,3 +160,32 @@ body.light .mobile-install-note{background:#fff7e8;color:#695c44}
  .mobile-install-help ol{font-size:13px;line-height:1.65}
  .mobile-bookmarklet-code{font-size:10px}
 }
+
+
+/* Waynovo 6.3 — lightweight motion, clear focus and tactile feedback */
+:root{--motion-fast:150ms;--motion-base:220ms;--motion-ease:cubic-bezier(.2,.75,.2,1)}
+@keyframes waynovo-enter{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes waynovo-breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.68;transform:scale(.82)}}
+button,a,input,textarea,select,summary{transition:color var(--motion-fast) ease,background-color var(--motion-fast) ease,border-color var(--motion-fast) ease,box-shadow var(--motion-fast) ease,transform var(--motion-fast) ease}
+:focus-visible{outline:2px solid var(--purple);outline-offset:3px}
+button:disabled{cursor:not-allowed;opacity:.56;transform:none;filter:none}
+.hero .eyebrow{animation:waynovo-enter .45s var(--motion-ease) both}
+.hero h1{animation:waynovo-enter .55s .05s var(--motion-ease) both}
+.hero-copy{animation:waynovo-enter .55s .1s var(--motion-ease) both}
+.hero-meta{animation:waynovo-enter .55s .15s var(--motion-ease) both}
+.dashboard-grid>.side-card{animation:waynovo-enter .5s .06s var(--motion-ease) both}
+.dashboard-grid>.main-card{animation:waynovo-enter .5s .12s var(--motion-ease) both}
+.queue-card{animation:waynovo-enter .5s .18s var(--motion-ease) both}
+.status i{animation:waynovo-breathe 2.8s ease-in-out infinite}
+@media(hover:hover){
+ .side-card,.main-card,.queue-card,.feature,.install-card,.review-stat,.review-card,.cog-card{transition:transform var(--motion-base) var(--motion-ease),border-color var(--motion-base) ease,box-shadow var(--motion-base) ease}
+ .side-card:hover,.main-card:hover,.queue-card:hover,.feature:hover,.install-card:hover,.review-stat:hover,.review-card:hover,.cog-card:hover{transform:translateY(-2px);border-color:#514879;box-shadow:0 14px 38px #0002}
+ .shortcut:hover,.secondary-btn:hover,.install-app-btn:hover{transform:translateY(-1px)}
+ .primary-btn:hover,.bookmarklet-drag:hover{box-shadow:0 10px 28px #7564e546}
+}
+button:active,.bookmarklet-drag:active{transform:scale(.985)}
+@media(max-width:760px){.topbar{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
