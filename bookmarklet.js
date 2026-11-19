@@ -492,10 +492,10 @@ $('extraUrlTools').addEventListener('click',()=>{
  let url;try{url=new URL(raw,location.href);}catch(_){return showExtrasReport('URL inválida. Informe um endereço HTTP ou HTTPS.');}
  if(!['http:','https:'].includes(url.protocol))return showExtrasReport('Protocolo não permitido para esta ferramenta: '+url.protocol);
  const tracking=/^(utm_[a-z0-9_]+|gclid|dclid|fbclid|msclkid|igshid|mc_cid|mc_eid)$/i;
- const sensitive=/(token|auth|api.?key|password|passwd|secret|session|credential|code)$/i;
+ const sensitive=/(token|auth|authorization|api.?key|password|passwd|secret|session|credential|code)/i;
  const params=[];
  url.searchParams.forEach((value,key)=>params.push(key+'='+ (sensitive.test(key)?'[redigido]':value)));
- const clean=new URL(url.href);
+ const clean=new URL(url.href);clean.username='';clean.password='';if(sensitive.test(clean.hash))clean.hash='#[redigido]';
  Array.from(clean.searchParams.keys()).forEach(key=>{if(tracking.test(key))clean.searchParams.delete(key);else if(sensitive.test(key))clean.searchParams.set(key,'[redigido]');});
  const report=['URL TOOLKIT · ANÁLISE LOCAL','Protocolo: '+url.protocol,'Host: '+url.host,'Caminho: '+url.pathname,'Parâmetros: '+params.length,...(params.length?params.map(x=>'• '+x):['• nenhum']),'','URL com parâmetros de rastreamento removidos e valores sensíveis redigidos:',clean.toString(),'','Nenhuma navegação foi realizada; a URL apenas foi analisada.'];
  showExtrasReport(report.join('\n'),'waynovo-url-analisada.txt');
