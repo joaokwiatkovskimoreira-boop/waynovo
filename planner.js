@@ -186,7 +186,7 @@
       let imported = 0;
       if (Array.isArray(data.sessions)) {
         const known = new Set(sessions.map((entry) => entry.id));
-        data.sessions.forEach((item) => {
+        data.sessions.slice(0, 1000).forEach((item) => {
           if (!item || typeof item.subject !== 'string' || !Number.isFinite(Number(item.minutes)) ||
               !Number.isFinite(Number(item.createdAt)) || Number(item.minutes) <= 0) return;
           const originalId = typeof item.id === 'string' ? item.id : makeId();
