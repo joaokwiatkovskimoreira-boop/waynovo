@@ -6,7 +6,7 @@
   const material=$('#material'), mode=$('#mode'), queue=$('#queueList');
   const labels={organize:'Organizar conteúdo',lesson:'Lição automática',summary:'Resumo estruturado',flashcards:'Flashcards',practice:'Prática inédita',checklist:'Checklist',review:'Revisão'};
   let tasks=[], toastTimer=null, currentResult='';
-  function id(){return crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2);}
+  function id(){return window.crypto&&typeof window.crypto.randomUUID==='function'?window.crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2);}
   function notify(message){const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3000);}
   function readTasks(){try{const arr=JSON.parse(localStorage.getItem(TASKS_KEY)||'[]');return Array.isArray(arr)?arr.filter(t=>t&&typeof t.id==='string'&&typeof t.title==='string'&&typeof t.content==='string').slice(0,500):[];}catch(_){return [];}}
   tasks=readTasks();
@@ -81,7 +81,41 @@
   $('#clearQueue').addEventListener('click',()=>{if(!tasks.length||!confirm('Limpar a fila salva neste navegador?'))return;tasks=[];save();render();notify('Fila limpa.');});
   $('#exportQueue').addEventListener('click',()=>{const data={app:'Waynovo',formatVersion:4,exportedAt:new Date().toISOString(),tasks,studyCards:(()=>{try{return JSON.parse(localStorage.getItem('waynovo.flashcards.v1')||'[]');}catch(_){return [];}})(),studyStats:(()=>{try{return JSON.parse(localStorage.getItem('waynovo.flashcards.stats.v1')||'{}');}catch(_){return {};}})(),planner:window.WaynovoPlanner?window.WaynovoPlanner.exportData():null};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='waynovo-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Backup exportado.');});
   $('#importQueue').addEventListener('click',()=>$('#importFile').click());
-  $('#importFile').addEventListener('change',async(event)=>{const file=event.target.files&&event.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!data||data.app!=='Waynovo'||!Array.isArray(data.tasks))throw new Error('invalid');const known=new Set(tasks.map(t=>t.id));const incoming=data.tasks.filter(t=>t&&typeof t.title==='string'&&typeof t.content==='string').map(t=>({id:typeof t.id==='string'&&!known.has(t.id)?t.id:id(),title:t.title.slice(0,120),content:t.content,mode:labels[t.mode]?t.mode:'organize',priority:['Alta','Normal','Baixa'].includes(t.priority)?t.priority:'Normal',done:Boolean(t.done),date:typeof t.date==='string'?t.date:''}));tasks=[...incoming,...tasks].slice(0,500);if(Array.isArray(data.studyCards)){try{const current=JSON.parse(localStorage.getItem('waynovo.flashcards.v1')||'[]');const have=new Set(current.map(card=>card.id));const extra=data.studyCards.filter(card=>card&&typeof card.front==='string'&&typeof card.back==='string').map(card=>({...card,id:have.has(card.id)?(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()):card.id}));localStorage.setItem('waynovo.flashcards.v1',JSON.stringify([...extra,...current].slice(0,1000)));if(data.studyStats&&typeof data.studyStats==='object')localStorage.setItem('waynovo.flashcards.stats.v1',JSON.stringify(data.studyStats));}catch(_){}}if(data.studyStats&&typeof data.studyStats==='object'){try{const currentStats=JSON.parse(localStorage.getItem('waynovo.flashcards.stats.v1')||'{}');Object.keys(data.studyStats).forEach(key=>{currentStats[key]=Math.max(Number(currentStats[key]||0),Number(data.studyStats[key]||0));});localStorage.setItem('waynovo.flashcards.stats.v1',JSON.stringify(currentStats));}catch(_){}}const importedSessions=data.planner&&window.WaynovoPlanner?window.WaynovoPlanner.importData(data.planner):0;save();render();notify(incoming.length+' tarefa(s), '+(Array.isArray(data.studyCards)?data.studyCards.length:0)+' cartão(ões) e '+importedSessions+' sessão(ões) importado(s).');}catch(_){notify('Backup inválido.');}event.target.value='';});
+  $('#importFile').addEventListener('change',async(event)=>{
+    const file=event.target.files&&event.target.files[0];if(!file)return;
+    try{
+      if(file.size>5*1024*1024)throw new Error('too_large');
+      const data=JSON.parse(await file.text());
+      if(!data||data.app!=='Waynovo'||!Array.isArray(data.tasks))throw new Error('invalid');
+      const known=new Set(tasks.map(t=>t.id));
+      const incoming=data.tasks.filter(t=>t&&typeof t.title==='string'&&typeof t.content==='string').slice(0,500).map(t=>{
+        const taskId=typeof t.id==='string'&&!known.has(t.id)?t.id:id();known.add(taskId);
+        return {id:taskId,title:t.title.slice(0,120),content:t.content.slice(0,100000),mode:labels[t.mode]?t.mode:'organize',priority:['Alta','Normal','Baixa'].includes(t.priority)?t.priority:'Normal',done:Boolean(t.done),date:typeof t.date==='string'?t.date:''};
+      });
+      tasks=[...incoming,...tasks].slice(0,500);
+      if(Array.isArray(data.studyCards)){
+        try{
+          const current=JSON.parse(localStorage.getItem('waynovo.flashcards.v1')||'[]');
+          const have=new Set(current.map(card=>card.id));
+          const extra=data.studyCards.filter(card=>card&&typeof card.front==='string'&&typeof card.back==='string').slice(0,1000).map(card=>{
+            const cardId=typeof card.id==='string'&&!have.has(card.id)?card.id:id();have.add(cardId);
+            return {...card,id:cardId};
+          });
+          localStorage.setItem('waynovo.flashcards.v1',JSON.stringify([...extra,...current].slice(0,1000)));
+        }catch(_){}
+      }
+      if(data.studyStats&&typeof data.studyStats==='object'){
+        try{
+          const currentStats=JSON.parse(localStorage.getItem('waynovo.flashcards.stats.v1')||'{}');
+          Object.keys(data.studyStats).forEach(key=>{currentStats[key]=Math.max(Number(currentStats[key]||0),Number(data.studyStats[key]||0));});
+          localStorage.setItem('waynovo.flashcards.stats.v1',JSON.stringify(currentStats));
+        }catch(_){}
+      }
+      const importedSessions=data.planner&&window.WaynovoPlanner?window.WaynovoPlanner.importData(data.planner):0;
+      save();render();notify(incoming.length+' tarefa(s), '+(Array.isArray(data.studyCards)?Math.min(data.studyCards.length,1000):0)+' cartão(ões) e '+importedSessions+' sessão(ões) importado(s).');
+    }catch(error){notify(error.message==='too_large'?'Backup acima de 5 MB. Exporte um arquivo menor.':'Backup inválido ou corrompido.');}
+    event.target.value='';
+  });
   document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{mode.value=button.dataset.mode;$('#workspace').scrollIntoView({behavior:'smooth'});material.focus();}));
   $('[data-focus]').addEventListener('click',()=>{material.focus();$('#workspace').scrollIntoView({behavior:'smooth'});});
 
@@ -114,15 +148,28 @@
     notify('Waynovo instalado.');
   });
 
-  let seconds=25*60, interval=null;
+  let seconds=25*60, interval=null, timerDeadline=0;
   function drawTimer(){$('#timerDisplay').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');}
-  function resetTimer(){if(interval)clearInterval(interval);interval=null;seconds=Number($('#timerDuration').value)*60;$('#timerToggle').textContent='Iniciar';$('#timerStatus').textContent='Pronto para começar';drawTimer();}
+  function finishTimer(){
+    if(interval)clearInterval(interval);interval=null;timerDeadline=0;seconds=0;drawTimer();
+    $('#timerToggle').textContent='Iniciar';$('#timerStatus').textContent='Sessão concluída. Faça uma pausa.';
+    window.dispatchEvent(new CustomEvent('waynovo:focus-complete',{detail:{minutes:Number($('#timerDuration').value),subject:(document.getElementById('plannerSubject')?.value||'Estudo livre').trim()}}));
+    notify('Sessão de foco concluída e registrada no histórico.');
+  }
+  function tickTimer(){if(!timerDeadline)return;seconds=Math.max(0,Math.ceil((timerDeadline-Date.now())/1000));drawTimer();if(seconds===0)finishTimer();}
+  function resetTimer(){if(interval)clearInterval(interval);interval=null;timerDeadline=0;seconds=Number($('#timerDuration').value)*60;$('#timerToggle').textContent='Iniciar';$('#timerStatus').textContent='Pronto para começar';drawTimer();}
   $('#timerDuration').addEventListener('change',resetTimer);
-  $('#timerToggle').addEventListener('click',()=>{if(interval){clearInterval(interval);interval=null;$('#timerToggle').textContent='Continuar';$('#timerStatus').textContent='Sessão pausada';return;}if(seconds<=0)resetTimer();$('#timerToggle').textContent='Pausar';$('#timerStatus').textContent='Foco em andamento';interval=setInterval(()=>{seconds--;drawTimer();if(seconds<=0){clearInterval(interval);interval=null;$('#timerToggle').textContent='Iniciar';$('#timerStatus').textContent='Sessão concluída. Faça uma pausa.';window.dispatchEvent(new CustomEvent('waynovo:focus-complete',{detail:{minutes:Number($('#timerDuration').value),subject:(document.getElementById('plannerSubject')?.value||'Estudo livre').trim()}}));notify('Sessão de foco concluída e registrada no histórico.');}},1000);});
+  $('#timerToggle').addEventListener('click',()=>{
+    if(interval){tickTimer();if(!interval)return;clearInterval(interval);interval=null;timerDeadline=0;$('#timerToggle').textContent='Continuar';$('#timerStatus').textContent='Sessão pausada';return;}
+    if(seconds<=0)resetTimer();
+    timerDeadline=Date.now()+seconds*1000;$('#timerToggle').textContent='Pausar';$('#timerStatus').textContent='Foco em andamento';
+    interval=setInterval(tickTimer,1000);
+  });
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&interval)tickTimer();});
   $('#timerReset').addEventListener('click',resetTimer);drawTimer();
 
   let bookmarklet = '';
-  const mobileBookmarklet = "javascript:(()=>{const id='waynovo-mobile-loader';if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src='https://raw.githubusercontent.com/joaokwiatkovskimoreira-boop/waynovo/main/bookmarklet.js?v=6.2';s.onload=()=>s.remove();s.onerror=()=>{s.remove();alert('Waynovo: não foi possível carregar o painel. Confira a conexão ou a política de segurança do site.')};(document.head||document.documentElement).appendChild(s)})()";
+  const mobileBookmarklet = "javascript:(()=>{const id='waynovo-mobile-loader';if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src='https://raw.githubusercontent.com/joaokwiatkovskimoreira-boop/waynovo/main/bookmarklet.js?v=6.3';s.onload=()=>s.remove();s.onerror=()=>{s.remove();alert('Waynovo: não foi possível carregar o painel. Confira a conexão ou a política de segurança do site.')};(document.head||document.documentElement).appendChild(s)})()";
   async function loadBookmarklet() {
     const link = $('#bookmarkletLink');
     const code = $('#bookmarkletCode');
