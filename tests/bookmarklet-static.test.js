@@ -344,12 +344,18 @@ test('CSV, performance and selector tools expose local-only output', () => {
   assert.match(source, /querySelectorAll\(selector\)/);
 });
 
-test('URL toolkit redacts sensitive fields and strips common tracking params', () => {
-  assert.match(source, /const tracking=/);
-  assert.match(source, /const sensitive=/);
-  assert.match(source, /clean\.username=''/);
-  assert.match(source, /clean\.password=''/);
-  assert.match(source, /clean\.hash='\#\[redigido\]'/);
+test('URL toolkit redacts credentials and removes tracking parameters', () => {
+  const start = source.indexOf('function analyzeUrlValue(raw,base){');
+  const end = source.indexOf("$('extraUrlTools').addEventListener", start);
+  assert.ok(start >= 0 && end > start);
+  const analyze = new Function('URL', source.slice(start, end) + ';return analyzeUrlValue;')(URL);
+  const result = analyze('https://user:pass@example.com/music?utm_source=feed&token=secret&color=blue#access_token=abc', 'https://example.com/');
+  assert.ok(result.text.includes('token=[redigido]'));
+  assert.ok(result.cleanUrl.includes('color=blue'));
+  assert.ok(!result.cleanUrl.includes('utm_source'));
+  assert.ok(!result.cleanUrl.includes('user:pass'));
+  assert.ok(!result.cleanUrl.includes('secret'));
+  assert.ok(result.cleanUrl.includes('%5Bredigido%5D') || result.cleanUrl.includes('[redigido]'));
   assert.match(source, /extraUrlTools/);
 });
 
