@@ -305,6 +305,8 @@ test('YouTube URL parser accepts videos, playlists and rejects unrelated hosts',
 
 test('integrated player uses local queue state and documented playlist embed parameters', () => {
   assert.match(source, /state\.mediaQueue=Array\.isArray/);
+  assert.match(source, /sessionStorage\.setItem\(MEDIA_QUEUE_KEY/);
+  assert.match(source, /delete snapshot\.mediaQueue/);
   assert.match(source, /listType=playlist&list=/);
   assert.match(source, /mediaNext/);
   assert.match(source, /mediaPrevious/);
