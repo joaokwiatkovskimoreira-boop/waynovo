@@ -10,7 +10,7 @@ Abra a página de instalação publicada pelo GitHub Pages. Ela entrega o bookma
 
 O código-fonte do painel portátil fica em `bookmarklet.js` e é carregado pela página de instalação. O bookmarklet reúne, em uma única interface, laboratório de estudo, geração local de lições/resumos/exercícios/checklists/glossários, cartões de revisão, editor rápido com notas locais, temporizador de foco e integração opcional com o gateway de IA. O painel é arrastável, minimizável, tem tema claro/escuro e pode ser fechado com Esc.
 
-O bookmarklet usa Shadow DOM fechado para isolar a interface dos scripts comuns da página hospedeira, não importa bibliotecas/CDNs e não executa código remoto. Os cartões e notas ficam no armazenamento local do navegador da página onde foi aberto; o endpoint do gateway pode ser lembrado apenas na sessão. O token do gateway permanece no campo enquanto o painel está aberto.
+O bookmarklet usa Shadow DOM fechado para reduzir o acesso direto dos scripts da página hospedeira à interface, não importa bibliotecas/CDNs e não executa código remoto. Os cartões e notas ficam no armazenamento local do navegador da página onde foi aberto; o endpoint do gateway pode ser lembrado apenas na sessão. O token do gateway permanece no campo enquanto o painel está aberto.
 
 ## Bookmarklet portátil
 
@@ -163,4 +163,4 @@ A distribuição 6.2 amplia o bookmarklet único com uma aba **Player** e uma ab
 
 A aba Extras reúne onze utilitários locais: modo leitura (captura texto visível), mapa navegável de títulos, auditoria de links, verificação heurística de acessibilidade, inspeção de metadados/SEO, caderno de seleção, exportação de tabelas para CSV, diagnóstico de desempenho, inspetor de seletores CSS, URL Toolkit (com remoção de parâmetros de rastreamento e redação de credenciais) e JSON Formatter (validação e formatação sem executar código). Os relatórios podem ser copiados ou baixados. As ferramentas não tentam acessar campos privados, alterar respostas, submeter formulários ou contornar controles do site.
 
-O instalador Android usa `bookmarklet.js?v=6.3` e o cache do app foi atualizado para `waynovo-shell-v15`. O player depende da disponibilidade dos embeds e das regras do YouTube; conteúdo removido, restrito por idade, bloqueado para incorporação ou limitações do navegador podem impedir reprodução. A compatibilidade real ainda deve ser validada em Android/iOS e diferentes navegadores.
+O instalador Android usa `bookmarklet.js?v=6.3` e o cache do app foi atualizado para `waynovo-shell-v16`. O player depende da disponibilidade dos embeds e das regras do YouTube; conteúdo removido, restrito por idade, bloqueado para incorporação ou limitações do navegador podem impedir reprodução. A compatibilidade real ainda deve ser validada em Android/iOS e diferentes navegadores.
