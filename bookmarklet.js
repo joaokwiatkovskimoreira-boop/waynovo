@@ -369,8 +369,8 @@ $('mediaSearchBtn').addEventListener('click',()=>{
  const query=$('mediaSearch').value.trim();if(!query)return status('mediaStatus','Digite o nome de uma música ou artista.');
  const href='https://music.youtube.com/search?q='+encodeURIComponent(query);
  const link=$('mediaSearchOpen');link.href=href;link.hidden=false;link.textContent='Abrir busca: '+query.slice(0,35);
- const opened=window.open(href,'_blank','noopener,noreferrer');
- status('mediaStatus',opened?'Busca aberta no YouTube Music.':'A busca está pronta no botão Abrir resultados; o navegador bloqueou o pop-up.');
+ window.open(href,'_blank','noopener,noreferrer');
+ status('mediaStatus','Busca solicitada no YouTube Music. Se a nova aba não abrir, toque em Abrir resultados.');
 });
 renderMediaQueue();
 let extrasFilename='waynovo-relatorio.txt';
