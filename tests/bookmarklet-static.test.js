@@ -235,7 +235,7 @@ test('Android installer and service worker point to the current bookmarklet rele
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
   assert.ok(app.includes('bookmarklet.js?v=6.4'));
-  assert.match(worker, /waynovo-shell-v16/);
+  assert.match(worker, /waynovo-shell-v17/);
 });
 
 
