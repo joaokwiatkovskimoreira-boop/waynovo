@@ -77,6 +77,7 @@
   });
 
   $('#addBtn').addEventListener('click',()=>{const text=material.value.trim();if(!text){notify('Adicione um conteúdo primeiro.');return;}addTask(text.replace(/\s+/g,' ').slice(0,82)+(text.length>82?'…':''),text,mode.value,$('#priority').value);material.value='';updateCounters();notify('Fluxo salvo.');});
+  document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&!event.isComposing&&document.activeElement===material){event.preventDefault();$('#addBtn').click();}});
   $('#queueSearch').addEventListener('input',render);
   $('#clearQueue').addEventListener('click',()=>{if(!tasks.length||!confirm('Limpar a fila salva neste navegador?'))return;tasks=[];save();render();notify('Fila limpa.');});
   $('#exportQueue').addEventListener('click',()=>{const data={app:'Waynovo',formatVersion:4,exportedAt:new Date().toISOString(),tasks,studyCards:(()=>{try{return JSON.parse(localStorage.getItem('waynovo.flashcards.v1')||'[]');}catch(_){return [];}})(),studyStats:(()=>{try{return JSON.parse(localStorage.getItem('waynovo.flashcards.stats.v1')||'{}');}catch(_){return {};}})(),planner:window.WaynovoPlanner?window.WaynovoPlanner.exportData():null};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='waynovo-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Backup exportado.');});
