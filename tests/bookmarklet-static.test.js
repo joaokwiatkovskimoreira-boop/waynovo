@@ -235,7 +235,7 @@ test('Android installer and service worker point to the current bookmarklet rele
 });
 
 
-test('Waynovo 4.0 keeps answer recommendation and evidence-based confidence in Tutor', () => {
+test('Waynovo 6.1 keeps answer recommendation and evidence-based confidence in Tutor', () => {
   assert.match(source, /Alternativa mais provável: \[letra e texto\]/);
   assert.match(source, /Não há dados suficientes para indicar uma alternativa/);
   assert.match(source, /confiança alta, média ou baixa/);
