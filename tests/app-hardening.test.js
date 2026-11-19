@@ -24,6 +24,11 @@ test('backup import is size-limited and normalizes duplicate task/card IDs', () 
   assert.match(app, /content:t\.content\.slice\(0,100000\)/);
 });
 
+test('bookmarklet keeps its private panel inside a closed shadow root', () => {
+  assert.match(bookmarklet, /attachShadow\(\{mode:'closed'\}\)/);
+  assert.doesNotMatch(bookmarklet, /attachShadow\(\{mode:'open'\}\)/);
+});
+
 test('task IDs work when crypto.randomUUID is unavailable', () => {
   assert.match(app, /window\.crypto&&typeof window\.crypto\.randomUUID==='function'/);
   assert.doesNotMatch(app, /return crypto&&crypto\.randomUUID/);
