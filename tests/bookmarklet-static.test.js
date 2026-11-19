@@ -278,7 +278,7 @@ test('Local question triage requires evidence and never claims semantic certaint
 });
 
  
-test('Waynovo 6.2 integrates YouTube player and local bookmarklet utilities into the panel', () => {
+test('Waynovo 6.3 integrates YouTube player and local bookmarklet utilities into the panel', () => {
   assert.match(source, /data-tab="media"/);
   assert.match(source, /data-view="media"/);
   assert.match(source, /data-view="extras"/);
