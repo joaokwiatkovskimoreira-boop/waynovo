@@ -290,10 +290,12 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 </main><footer><span id="site">Waynovo · local-first</span><span>Esc fecha</span></footer></section>
 `;
 const $=id=>root.getElementById(id);
-const KEY='waynovo.unified.v1', ENDPOINT='waynovo.gateway.endpoint', PROVIDER='waynovo.gateway.provider', FALLBACK='waynovo.gateway.fallback';
+const KEY='waynovo.unified.v1', ENDPOINT='waynovo.gateway.endpoint', PROVIDER='waynovo.gateway.provider', FALLBACK='waynovo.gateway.fallback', MEDIA_QUEUE_KEY='waynovo.media.queue.v1';
 const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(_){return {};}};
-const state=read();state.cards=Array.isArray(state.cards)?state.cards.filter(x=>x&&typeof x.front==='string'&&typeof x.back==='string').slice(0,300):[];state.notes=Array.isArray(state.notes)?state.notes.filter(x=>x&&typeof x.text==='string').slice(-100):[];
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch(_){status('toolStatus','Armazenamento indisponível ou cheio.');}};
+function readMediaQueue(){try{const value=JSON.parse(sessionStorage.getItem(MEDIA_QUEUE_KEY)||'[]');return Array.isArray(value)?value.filter(x=>x&&['video','playlist'].includes(x.type)&&typeof x.id==='string').slice(0,100):[];}catch(_){return [];}}
+const state=read();state.cards=Array.isArray(state.cards)?state.cards.filter(x=>x&&typeof x.front==='string'&&typeof x.back==='string').slice(0,300):[];state.notes=Array.isArray(state.notes)?state.notes.filter(x=>x&&typeof x.text==='string').slice(-100):[];state.mediaQueue=readMediaQueue();state.mediaIndex=0;
+const save=()=>{try{const snapshot={...state};delete snapshot.mediaQueue;delete snapshot.mediaIndex;localStorage.setItem(KEY,JSON.stringify(snapshot));}catch(_){status('toolStatus','Armazenamento indisponível ou cheio.');}};
+function saveMediaQueue(){try{sessionStorage.setItem(MEDIA_QUEUE_KEY,JSON.stringify(state.mediaQueue));}catch(_){status('mediaStatus','Armazenamento da sessão indisponível; a fila ficará somente nesta abertura.');}}
 function status(id,msg){const el=$(id);if(el)el.textContent=msg;}
 const selection=()=>{try{return String(window.getSelection?window.getSelection():'').trim();}catch(_){return '';}};
 const title=String(document.title||'Página').slice(0,140);
@@ -306,7 +308,7 @@ $('fallback').addEventListener('change',()=>{try{sessionStorage.setItem(FALLBACK
 
 const words=s=>s.trim()?s.trim().split(/\s+/).length:0;
 state.mediaQueue=Array.isArray(state.mediaQueue)?state.mediaQueue.filter(x=>x&&['video','playlist'].includes(x.type)&&typeof x.id==='string').slice(0,100):[];
-state.mediaIndex=Number.isInteger(state.mediaIndex)?Math.max(0,Math.min(state.mediaIndex,state.mediaQueue.length-1)):0;
+state.mediaIndex=0;
 function parseMediaEntry(raw){
  const value=String(raw||'').trim();if(!value)return null;
  if(/^[A-Za-z0-9_-]{11}$/.test(value))return {type:'video',id:value,label:'Vídeo '+value,url:'https://www.youtube.com/watch?v='+value};
@@ -334,7 +336,7 @@ function renderMediaQueue(){
   const play=document.createElement('button');play.type='button';play.textContent=(index+1)+'. '+(item.label||item.id)+(item.type==='playlist'?' · playlist':'');
   play.addEventListener('click',()=>playMediaAt(index));
   const remove=document.createElement('button');remove.type='button';remove.className='remove';remove.textContent='×';remove.setAttribute('aria-label','Remover item da fila');
-  remove.addEventListener('click',()=>{state.mediaQueue.splice(index,1);if(state.mediaIndex>=state.mediaQueue.length)state.mediaIndex=Math.max(0,state.mediaQueue.length-1);save();renderMediaQueue();status('mediaStatus','Item removido da fila.');});
+  remove.addEventListener('click',()=>{state.mediaQueue.splice(index,1);if(state.mediaIndex>=state.mediaQueue.length)state.mediaIndex=Math.max(0,state.mediaQueue.length-1);saveMediaQueue();renderMediaQueue();status('mediaStatus','Item removido da fila.');});
   row.append(play,remove);list.append(row);
  });
 }
@@ -357,14 +359,14 @@ function addMediaItems(items,playFirst){
  state.mediaQueue=state.mediaQueue.slice(0,100);
  if(!state.mediaQueue.length)return;
  if(playFirst){const first=state.mediaQueue.findIndex(x=>x.type===items[0].type&&x.id===items[0].id);playMediaAt(first);}
- else{save();renderMediaQueue();status('mediaStatus',added.length+' item(ns) adicionado(s) à fila.');}
+ else{saveMediaQueue();renderMediaQueue();status('mediaStatus',added.length+' item(ns) adicionado(s) à fila desta aba.');}
 }
 $('mediaPlay').addEventListener('click',()=>addMediaItems(mediaInputItems(),true));
 $('mediaQueueAdd').addEventListener('click',()=>addMediaItems(mediaInputItems(),false));
 $('mediaPrevious').addEventListener('click',()=>playMediaAt(state.mediaIndex-1));
 $('mediaNext').addEventListener('click',()=>playMediaAt(state.mediaIndex+1));
 $('mediaStop').addEventListener('click',()=>{$('mediaFrame').src='about:blank';$('mediaNowPlaying').textContent='Reprodução parada';status('mediaStatus','Player encerrado. A fila foi mantida.');});
-$('mediaClearQueue').addEventListener('click',()=>{state.mediaQueue=[];state.mediaIndex=0;$('mediaFrame').src='about:blank';$('mediaNowPlaying').textContent='Nenhuma reprodução iniciada';save();renderMediaQueue();status('mediaStatus','Fila limpa.');});
+$('mediaClearQueue').addEventListener('click',()=>{state.mediaQueue=[];state.mediaIndex=0;$('mediaFrame').src='about:blank';$('mediaNowPlaying').textContent='Nenhuma reprodução iniciada';saveMediaQueue();renderMediaQueue();status('mediaStatus','Fila desta aba limpa.');});
 $('mediaSearchBtn').addEventListener('click',()=>{
  const query=$('mediaSearch').value.trim();if(!query)return status('mediaStatus','Digite o nome de uma música ou artista.');
  const href='https://music.youtube.com/search?q='+encodeURIComponent(query);
