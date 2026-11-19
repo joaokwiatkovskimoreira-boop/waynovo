@@ -99,8 +99,20 @@
           const current=JSON.parse(localStorage.getItem('waynovo.flashcards.v1')||'[]');
           const have=new Set(current.map(card=>card.id));
           const extra=data.studyCards.filter(card=>card&&typeof card.front==='string'&&typeof card.back==='string').slice(0,1000).map(card=>{
-            const cardId=typeof card.id==='string'&&!have.has(card.id)?card.id:id();have.add(cardId);
-            return {...card,id:cardId};
+            const cardId=typeof card.id==='string'&&card.id.length<=120&&!have.has(card.id)?card.id:id();have.add(cardId);
+            const finite=(value,fallback,min,max)=>Number.isFinite(Number(value))?Math.min(max,Math.max(min,Number(value))):fallback;
+            return {
+              id:cardId,
+              front:card.front.slice(0,20000),
+              back:card.back.slice(0,20000),
+              source:typeof card.source==='string'?card.source.slice(0,140):'Backup importado',
+              createdAt:finite(card.createdAt,Date.now(),0,Date.now()+86400000),
+              dueAt:finite(card.dueAt,Date.now(),0,8640000000000000),
+              reps:Math.floor(finite(card.reps,0,0,100000)),
+              lapses:Math.floor(finite(card.lapses,0,0,100000)),
+              intervalDays:Math.floor(finite(card.intervalDays,0,0,36500)),
+              lastReviewed:card.lastReviewed==null?null:finite(card.lastReviewed,null,0,8640000000000000)
+            };
           });
           localStorage.setItem('waynovo.flashcards.v1',JSON.stringify([...extra,...current].slice(0,1000)));
         }catch(_){}
