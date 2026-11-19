@@ -68,7 +68,8 @@ test('Autopilot extracts inline and sibling A-E alternatives and bridges to Tuto
   const collect = new Function('autoIsQuestion', source.slice(start, end) + '; return autoCollectOptions;')((value) => value.includes('?'));
   assert.deepEqual(collect('Quanto é 2+2? A) 3 B) 4 C) 5', []), ['A) 3', 'B) 4', 'C) 5']);
   assert.deepEqual(collect('Quanto é 2+2?', ['Quanto é 2+2?', 'A) 3', 'B) 4', 'C) 5', 'Qual a capital?']), ['A) 3', 'B) 4', 'C) 5']);
-  assert.ok(source.includes('Levar ao Tutor'));
+  assert.ok(source.includes('Analisar com Tutor'));
+  assert.ok(source.includes("$('analyzeQuestionAI').click()"));
   assert.ok(source.includes("$('questionChoices').value="));
   assert.ok(source.includes("$('questionEvidence').value="));
   assert.match(source, /MATERIAL DE APOIO EXTRAÍDO DA PÁGINA/);
