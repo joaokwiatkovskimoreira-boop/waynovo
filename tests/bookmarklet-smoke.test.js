@@ -49,3 +49,14 @@ test('bookmarklet does not load remote JavaScript by eval or script injection', 
   assert.doesNotMatch(source, /\.then\(\s*eval\s*\)/i);
   assert.doesNotMatch(source, /createElement\(\s*['"]script['"]\s*\)/i);
 });
+
+test('quick navigation searches every tab and supports keyboard navigation', () => {
+  assert.match(source, /id="commands"[^>]*aria-label="Buscar seções"/);
+  assert.match(source, /id="commandPalette"[^>]*hidden role="search"/);
+  assert.match(source, /id="commandSearch"[^>]*type="search"/);
+  assert.match(source, /const commandTabs=Array\.from\(root\.querySelectorAll\('\[data-tab\]'\)\)/);
+  assert.match(source, /normalize\('NFD'\)/);
+  assert.match(source, /item\.textContent='Abrir '\+tab\.textContent\.trim\(\)/);
+  assert.match(source, /e\.key==='ArrowDown'\|\|e\.key==='ArrowUp'/);
+  assert.match(source, /e\.key==='Escape'\).*?stopPropagation\(\)/s);
+});
