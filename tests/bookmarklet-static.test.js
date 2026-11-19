@@ -286,6 +286,8 @@ test('Waynovo 6.2 integrates YouTube player and local bookmarklet utilities into
   assert.match(source, /extraTables/);
   assert.match(source, /extraPerformance/);
   assert.match(source, /extraSelector/);
+  assert.match(source, /extraUrlTools/);
+  assert.match(source, /extraJson/);
 });
 
 test('YouTube URL parser accepts videos, playlists and rejects unrelated hosts', () => {
@@ -340,4 +342,20 @@ test('CSV, performance and selector tools expose local-only output', () => {
   assert.match(source, /getEntriesByType\('navigation'\)/);
   assert.match(source, /extraSelector/);
   assert.match(source, /querySelectorAll\(selector\)/);
+});
+
+test('URL toolkit redacts sensitive fields and strips common tracking params', () => {
+  assert.match(source, /const tracking=/);
+  assert.match(source, /const sensitive=/);
+  assert.match(source, /clean\.username=''/);
+  assert.match(source, /clean\.password=''/);
+  assert.match(source, /clean\.hash='\#\[redigido\]'/);
+  assert.match(source, /extraUrlTools/);
+});
+
+test('JSON formatter parses data without executing scripts', () => {
+  assert.match(source, /JSON\.parse\(raw\)/);
+  assert.match(source, /JSON\.stringify\(value,null,2\)/);
+  assert.match(source, /application\/json;charset=utf-8/);
+  assert.match(source, /extraJson/);
 });
