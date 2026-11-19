@@ -283,6 +283,9 @@ test('Waynovo 6.2 integrates YouTube player and local bookmarklet utilities into
   assert.match(source, /extraA11y/);
   assert.match(source, /extraMeta/);
   assert.match(source, /extraOutline/);
+  assert.match(source, /extraTables/);
+  assert.match(source, /extraPerformance/);
+  assert.match(source, /extraSelector/);
 });
 
 test('YouTube URL parser accepts videos, playlists and rejects unrelated hosts', () => {
@@ -297,7 +300,7 @@ test('YouTube URL parser accepts videos, playlists and rejects unrelated hosts',
   assert.equal(playlist.type, 'playlist');
   assert.equal(playlist.id, 'PL1234567890');
   assert.equal(parse('https://example.com/watch?v=dQw4w9WgXcQ'), null);
-  assert.equal(parse('not-a-video'), null);
+  assert.equal(parse('not a video'), null);
 });
 
 test('integrated player uses local queue state and documented playlist embed parameters', () => {
