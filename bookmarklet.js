@@ -338,7 +338,7 @@ function playMediaAt(index){
  if(index<0||index>=state.mediaQueue.length)return status('mediaStatus','Não há item nessa posição.');
  state.mediaIndex=index;const item=state.mediaQueue[index];
  const base='https://www.youtube-nocookie.com/embed/';
- const src=item.type==='playlist'?base+'videoseries?list='+encodeURIComponent(item.id):base+encodeURIComponent(item.id)+'?playsinline=1&controls=1&rel=0';
+ const src=item.type==='playlist'?base+'?listType=playlist&list='+encodeURIComponent(item.id):base+encodeURIComponent(item.id)+'?playsinline=1&controls=1&rel=0';
  $('mediaFrame').src=src;
  $('mediaNowPlaying').textContent=(item.type==='playlist'?'Playlist':'Vídeo')+' · '+(item.label||item.id);
  status('mediaStatus','Carregado no player oficial. Caso não comece sozinho, toque em Reproduzir dentro do vídeo.');
