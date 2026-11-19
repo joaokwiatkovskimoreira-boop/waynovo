@@ -289,7 +289,7 @@ test('YouTube URL parser accepts videos, playlists and rejects unrelated hosts',
   const start = source.indexOf('function parseMediaEntry(raw){');
   const end = source.indexOf('function mediaInputItems()', start);
   assert.ok(start >= 0 && end > start);
-  const parse = new Function(source.slice(start, end) + ';return parseMediaEntry;')();
+  const parse = new Function('URL', source.slice(start, end) + ';return parseMediaEntry;')(URL);
   const video = parse('https://youtu.be/dQw4w9WgXcQ');
   assert.equal(video.type, 'video');
   assert.equal(video.id, 'dQw4w9WgXcQ');
