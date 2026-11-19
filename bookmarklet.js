@@ -487,18 +487,23 @@ $('extraSelector').addEventListener('click',()=>{
  showExtrasReport(['TESTE DE SELETOR CSS','Seletor: '+selector,'Correspondências totais: '+matches.length,'Elementos visíveis: '+visible.length,'',...(lines.length?lines:['Nenhum elemento visível encontrado.'])].join('\n'));
 });
 
-$('extraUrlTools').addEventListener('click',()=>{
- const raw=$('extrasUrlInput').value.trim()||location.href;
- let url;try{url=new URL(raw,location.href);}catch(_){return showExtrasReport('URL inválida. Informe um endereço HTTP ou HTTPS.');}
- if(!['http:','https:'].includes(url.protocol))return showExtrasReport('Protocolo não permitido para esta ferramenta: '+url.protocol);
+function analyzeUrlValue(raw,base){
+ let url;try{url=new URL(String(raw||''),base);}catch(_){return {error:'URL inválida. Informe um endereço HTTP ou HTTPS.'};}
+ if(!['http:','https:'].includes(url.protocol))return {error:'Protocolo não permitido para esta ferramenta: '+url.protocol};
  const tracking=/^(utm_[a-z0-9_]+|gclid|dclid|fbclid|msclkid|igshid|mc_cid|mc_eid)$/i;
  const sensitive=/(token|auth|authorization|api.?key|password|passwd|secret|session|credential|code)/i;
  const params=[];
- url.searchParams.forEach((value,key)=>params.push(key+'='+ (sensitive.test(key)?'[redigido]':value)));
+ url.searchParams.forEach((value,key)=>params.push(key+'='+(sensitive.test(key)?'[redigido]':value)));
  const clean=new URL(url.href);clean.username='';clean.password='';if(sensitive.test(clean.hash))clean.hash='#[redigido]';
  Array.from(clean.searchParams.keys()).forEach(key=>{if(tracking.test(key))clean.searchParams.delete(key);else if(sensitive.test(key))clean.searchParams.set(key,'[redigido]');});
  const report=['URL TOOLKIT · ANÁLISE LOCAL','Protocolo: '+url.protocol,'Host: '+url.host,'Caminho: '+url.pathname,'Parâmetros: '+params.length,...(params.length?params.map(x=>'• '+x):['• nenhum']),'','URL com parâmetros de rastreamento removidos e valores sensíveis redigidos:',clean.toString(),'','Nenhuma navegação foi realizada; a URL apenas foi analisada.'];
- showExtrasReport(report.join('\n'),'waynovo-url-analisada.txt');
+ return {text:report.join('\n'),cleanUrl:clean.toString(),params:params.length};
+}
+$('extraUrlTools').addEventListener('click',()=>{
+ const raw=$('extrasUrlInput').value.trim()||location.href;
+ const result=analyzeUrlValue(raw,location.href);
+ if(result.error)return showExtrasReport(result.error);
+ showExtrasReport(result.text,'waynovo-url-analisada.txt');
 });
 $('extraJson').addEventListener('click',()=>{
  const raw=$('extrasJsonInput').value.trim()||$('editor').value.trim();
