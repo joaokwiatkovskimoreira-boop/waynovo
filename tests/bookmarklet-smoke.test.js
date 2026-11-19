@@ -50,6 +50,14 @@ test('bookmarklet does not load remote JavaScript by eval or script injection', 
   assert.doesNotMatch(source, /createElement\(\s*['"]script['"]\s*\)/i);
 });
 
+test('detected page questions can be sent to the Tutor with one explicit action', () => {
+  assert.match(source, /tutor\.textContent='Analisar com Tutor'/);
+  assert.match(source, /\$\('analyzeQuestionAI'\)\.click\(\)/);
+  assert.match(source, /TRECHOS VISÍVEIS DE APOIO/);
+  assert.match(source, /resposta provável, o raciocínio, a comparação das opções e o nível de confiança/);
+  assert.match(source, /a explicação semântica exige um provedor de IA configurado/);
+});
+
 test('quick navigation searches every tab and supports keyboard navigation', () => {
   assert.match(source, /id="commands"[^>]*aria-label="Buscar seções"/);
   assert.match(source, /id="commandPalette"[^>]*hidden role="search"/);
