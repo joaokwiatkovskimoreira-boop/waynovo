@@ -230,12 +230,12 @@ test('registered adapters are visible and included in queue audit metadata', () 
 test('Android installer and service worker point to the current bookmarklet release', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
-  assert.ok(app.includes('bookmarklet.js?v=6.1'));
-  assert.match(worker, /waynovo-shell-v12/);
+  assert.ok(app.includes('bookmarklet.js?v=6.2'));
+  assert.match(worker, /waynovo-shell-v13/);
 });
 
 
-test('Waynovo 6.1 keeps answer recommendation and evidence-based confidence in Tutor', () => {
+test('Waynovo Tutor keeps answer recommendation and evidence-based confidence in Tutor', () => {
   assert.match(source, /Alternativa mais provável: \[letra e texto\]/);
   assert.match(source, /Não há dados suficientes para indicar uma alternativa/);
   assert.match(source, /confiança alta, média ou baixa/);
@@ -271,4 +271,51 @@ test('Local question triage requires evidence and never claims semantic certaint
   assert.match(run(),/Alternativa candidata: B\)/);
   assert.match(run(),/Confiança: baixa/);
   assert.match(run(),/heurística lexical/);
+});
+
+ 
+test('Waynovo 6.2 integrates YouTube player and local bookmarklet utilities into the panel', () => {
+  assert.match(source, /data-tab="media"/);
+  assert.match(source, /data-view="media"/);
+  assert.match(source, /data-view="extras"/);
+  assert.match(source, /youtube-nocookie\.com\/embed/);
+  assert.match(source, /mediaQueue/);
+  assert.match(source, /extraA11y/);
+  assert.match(source, /extraMeta/);
+  assert.match(source, /extraOutline/);
+});
+
+test('YouTube URL parser accepts videos, playlists and rejects unrelated hosts', () => {
+  const start = source.indexOf('function parseMediaEntry(raw){');
+  const end = source.indexOf('function mediaInputItems()', start);
+  assert.ok(start >= 0 && end > start);
+  const parse = new Function(source.slice(start, end) + ';return parseMediaEntry;')();
+  const video = parse('https://youtu.be/dQw4w9WgXcQ');
+  assert.equal(video.type, 'video');
+  assert.equal(video.id, 'dQw4w9WgXcQ');
+  const playlist = parse('https://music.youtube.com/playlist?list=PL1234567890');
+  assert.equal(playlist.type, 'playlist');
+  assert.equal(playlist.id, 'PL1234567890');
+  assert.equal(parse('https://example.com/watch?v=dQw4w9WgXcQ'), null);
+  assert.equal(parse('not-a-video'), null);
+});
+
+test('integrated player uses local queue state and documented playlist embed parameters', () => {
+  assert.match(source, /state\.mediaQueue=Array\.isArray/);
+  assert.match(source, /listType=playlist&list=/);
+  assert.match(source, /mediaNext/);
+  assert.match(source, /mediaPrevious/);
+  assert.match(source, /mediaStop/);
+  assert.match(source, /music\.youtube\.com\/search\?q=/);
+});
+
+test('Extras tools are read-only reports and do not submit forms or fetch remote scripts', () => {
+  const start = source.indexOf("$('extraReader').addEventListener");
+  const end = source.indexOf("root.querySelectorAll('[data-tab]')", start);
+  assert.ok(start >= 0 && end > start);
+  const extras = source.slice(start, end);
+  assert.doesNotMatch(extras, /\bfetch\s*\(/);
+  assert.doesNotMatch(extras, /form\.submit\s*\(/);
+  assert.match(extras, /extraA11y/);
+  assert.match(extras, /extraMeta/);
 });
