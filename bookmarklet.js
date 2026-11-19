@@ -182,7 +182,11 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <article class="module-card"><b>Auditoria de acessibilidade</b><p>Verifica nomes acessíveis, textos alternativos e hierarquia de títulos.</p><button class="btn primary" id="extraA11y">Auditar acessibilidade</button></article>
 <article class="module-card"><b>SEO e metadados</b><p>Resume title, descrição, canonical, Open Graph e dados estruturados.</p><button class="btn primary" id="extraMeta">Inspecionar metadados</button></article>
 <article class="module-card"><b>Caderno de seleção</b><p>Captura a seleção atual e envia para o editor local, sem transmissão externa.</p><button class="btn primary" id="extraNotebook">Capturar seleção</button></article>
+<article class="module-card"><b>Tabela → CSV</b><p>Exporta uma tabela HTML visível para um arquivo CSV local.</p><button class="btn primary" id="extraTables">Exportar tabela</button></article>
+<article class="module-card"><b>Diagnóstico de desempenho</b><p>Resume tempos de carregamento e recursos registrados pelo navegador.</p><button class="btn primary" id="extraPerformance">Medir página</button></article>
+<article class="module-card"><b>Inspetor de seletores CSS</b><p>Testa um seletor CSS e lista os primeiros elementos encontrados.</p><button class="btn primary" id="extraSelector">Testar seletor</button></article>
 </div>
+<label for="extrasSelectorInput">Seletor CSS (para o inspetor)</label><input id="extrasSelectorInput" type="text" placeholder="Ex.: article h2, main a, .card">
 <label for="extrasOutput">Relatório da ferramenta</label><textarea id="extrasOutput" class="output" readonly placeholder="Os relatórios aparecem aqui."></textarea>
 <div class="row"><button class="btn" id="extrasCopy">Copiar relatório</button><button class="btn" id="extrasDownload">Baixar TXT</button></div><div class="status" id="extrasStatus">As ferramentas não executam scripts de terceiros nem alteram respostas em páginas externas.</div></section>
 <section class="view" data-view="ai"><div class="eyebrow">Assistente opcional</div><div class="desc">Local gratuito por padrão. IA online opcional somente por modelos gratuitos permitidos no gateway.</div>
@@ -369,7 +373,8 @@ $('mediaSearchBtn').addEventListener('click',()=>{
  status('mediaStatus',opened?'Busca aberta no YouTube Music.':'A busca está pronta no botão Abrir resultados; o navegador bloqueou o pop-up.');
 });
 renderMediaQueue();
-function showExtrasReport(text){$('extrasOutput').value=String(text||'');status('extrasStatus','Relatório criado localmente · '+$('extrasOutput').value.length+' caracteres.');}
+let extrasFilename='waynovo-relatorio.txt';
+function showExtrasReport(text,filename){$('extrasOutput').value=String(text||'');extrasFilename=filename||'waynovo-relatorio.txt';status('extrasStatus','Relatório criado localmente · '+$('extrasOutput').value.length+' caracteres.');}
 function visibleElement(el){
  const style=getComputedStyle(el);
  return Boolean(el.getClientRects().length&&style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity||1)>0);
@@ -434,6 +439,44 @@ $('extraMeta').addEventListener('click',()=>{
  ];
  showExtrasReport(['INSPEÇÃO DE METADADOS / SEO','',...rows.map(x=>x[0]+': '+x[1])].join('\n'));
 });
+
+$('extraTables').addEventListener('click',()=>{
+ const tables=Array.from(document.querySelectorAll('table')).filter(visibleElement);
+ if(!tables.length)return showExtrasReport('Nenhuma tabela visível encontrada.');
+ const table=tables[0],rows=Array.from(table.querySelectorAll('tr'));
+ const csv=rows.map(row=>Array.from(row.querySelectorAll('th,td')).map(cell=>'"'+String(cell.innerText||cell.textContent||'').replace(/"/g,'""').replace(/\s+/g,' ').trim()+'"').join(',')).join('\r\n');
+ showExtrasReport(csv,'waynovo-tabela.csv');
+ status('extrasStatus','Primeira tabela visível exportada como CSV local. Se houver várias, a ferramenta usa a primeira.');
+});
+$('extraPerformance').addEventListener('click',()=>{
+ const navEntry=performance.getEntriesByType?performance.getEntriesByType('navigation')[0]:null;
+ const resources=performance.getEntriesByType?performance.getEntriesByType('resource'):[];
+ const bytes=resources.reduce((sum,item)=>sum+(Number(item.transferSize)||0),0);
+ const rows=[
+  ['URL',location.origin+location.pathname],
+  ['Tempo total da navegação',navEntry?Math.round(navEntry.duration)+' ms':'indisponível'],
+  ['Resposta inicial',navEntry?Math.round(navEntry.responseStart)+' ms':'indisponível'],
+  ['DOM interativo',navEntry?Math.round(navEntry.domInteractive)+' ms':'indisponível'],
+  ['DOM pronto',navEntry?Math.round(navEntry.domContentLoadedEventEnd)+' ms':'indisponível'],
+  ['Recursos registrados',String(resources.length)],
+  ['Transferência estimada',bytes?Math.round(bytes/1024)+' KiB':'indisponível / bloqueada por política do navegador']
+ ];
+ showExtrasReport(['DIAGNÓSTICO LOCAL DE DESEMPENHO','',...rows.map(x=>x[0]+': '+x[1]),'','Medições usam Navigation/Resource Timing API; cache, TAO e navegador podem limitar os valores.'].join('\n'));
+});
+$('extraSelector').addEventListener('click',()=>{
+ const selector=$('extrasSelectorInput').value.trim();
+ if(!selector)return status('extrasStatus','Digite um seletor CSS primeiro.');
+ let matches;
+ try{matches=Array.from(document.querySelectorAll(selector));}catch(_){return showExtrasReport('Seletor CSS inválido: '+selector);}
+ const visible=matches.filter(visibleElement);
+ const lines=visible.slice(0,100).map((el,index)=>{
+  const id=el.id?'#'+el.id:'';
+  const classes=typeof el.className==='string'&&el.className.trim()?'.'+el.className.trim().split(/\s+/).slice(0,4).join('.'):'';
+  const text=String(el.innerText||el.textContent||'').trim().replace(/\s+/g,' ').slice(0,100);
+  return (index+1)+'. <'+el.tagName.toLowerCase()+id+classes+'> '+text;
+ });
+ showExtrasReport(['TESTE DE SELETOR CSS','Seletor: '+selector,'Correspondências totais: '+matches.length,'Elementos visíveis: '+visible.length,'',...(lines.length?lines:['Nenhum elemento visível encontrado.'])].join('\n'));
+});
 $('extraNotebook').addEventListener('click',()=>{
  const selected=selection();if(!selected)return status('extrasStatus','Selecione texto visível na página antes de capturar.');
  $('editor').value=selected;$('editor').dispatchEvent(new Event('input'));activateTab('tools');status('toolStatus','Seleção enviada ao editor local.');status('extrasStatus','Texto selecionado copiado para a aba Texto.');
@@ -441,7 +484,7 @@ $('extraNotebook').addEventListener('click',()=>{
 $('extrasCopy').addEventListener('click',async()=>{const text=$('extrasOutput').value;if(!text)return status('extrasStatus','Não há relatório para copiar.');status('extrasStatus',await copy(text)?'Relatório copiado.':'Não foi possível copiar.');});
 $('extrasDownload').addEventListener('click',()=>{
  const text=$('extrasOutput').value;if(!text)return status('extrasStatus','Não há relatório para baixar.');
- const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='waynovo-relatorio.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=extrasFilename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 
 $('source').addEventListener('input',()=>{$('count').textContent=words($('source').value)+' palavras · '+$('source').value.length+' caracteres';});
