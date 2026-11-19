@@ -68,16 +68,16 @@ test('bookmarklet release uses an accurate deadline timer and reduced-motion sup
   assert.match(bookmarklet, /let remain=25\*60,interval=null,timerDeadline=0/);
   assert.match(bookmarklet, /Math\.ceil\(\(timerDeadline-Date\.now\(\)\)\/1000\)/);
   assert.doesNotMatch(bookmarklet, /remain--/);
-  assert.match(bookmarklet, /UNIFIED TOOLKIT · 6\.3 · FEITO PELO RUSSO/);
-  assert.match(bookmarklet, /version:'6\.3'/);
+  assert.match(bookmarklet, /UNIFIED TOOLKIT · 6\.4 · FEITO PELO RUSSO/);
+  assert.match(bookmarklet, /version:'6\.4'/);
   assert.match(bookmarklet, /prefers-reduced-motion:reduce/);
 });
 
 test('release assets, attribution and PWA cache are aligned', () => {
-  assert.match(app, /bookmarklet\.js\?v=6\.3/);
-  assert.match(html, /versão 6\.3/);
+  assert.match(app, /bookmarklet\.js\?v=6\.4/);
+  assert.match(html, /versão 6\.4/);
   assert.match(html, /feito pelo russo/);
   assert.match(styles, /prefers-reduced-motion:reduce/);
   assert.match(styles, /:focus-visible/);
-  assert.match(worker, /waynovo-shell-v16/);
+  assert.match(worker, /waynovo-shell-v17/);
 });
