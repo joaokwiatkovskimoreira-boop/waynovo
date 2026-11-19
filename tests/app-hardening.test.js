@@ -63,5 +63,5 @@ test('release assets, attribution and PWA cache are aligned', () => {
   assert.match(html, /feito pelo russo/);
   assert.match(styles, /prefers-reduced-motion:reduce/);
   assert.match(styles, /:focus-visible/);
-  assert.match(worker, /waynovo-shell-v15/);
+  assert.match(worker, /waynovo-shell-v16/);
 });
