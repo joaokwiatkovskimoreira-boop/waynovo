@@ -8,7 +8,7 @@ root.innerHTML=`
 <style>
 :host{all:initial;position:fixed;z-index:2147483647;right:14px;bottom:14px;color-scheme:dark;font:13px/1.45 system-ui,sans-serif;color:#edf0ff}
 *{box-sizing:border-box}button,input,textarea,select{font:inherit}button{cursor:pointer}
-.panel{width:min(470px,calc(100vw - 14px));max-height:88vh;display:flex;flex-direction:column;overflow:hidden;background:#101626;border:1px solid #303c59;border-radius:17px;box-shadow:0 24px 90px #000a;color:#edf0ff}
+.panel{animation:waynovo-panel-in .24s cubic-bezier(.2,.75,.2,1) both;width:min(470px,calc(100vw - 14px));max-height:88vh;display:flex;flex-direction:column;overflow:hidden;background:#101626;border:1px solid #303c59;border-radius:17px;box-shadow:0 24px 90px #000a;color:#edf0ff}
 header{display:flex;align-items:center;gap:9px;padding:12px;background:linear-gradient(120deg,#1b2440,#171d31);border-bottom:1px solid #303b56;cursor:move;touch-action:none;user-select:none}
 .logo{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;background:linear-gradient(145deg,#9a89ff,#5e4bd1);font-weight:900}
 .brand{font-size:14px;font-weight:850}.version{font-size:9px;color:#9da9c5}.spacer{flex:1}
@@ -16,7 +16,7 @@ header{display:flex;align-items:center;gap:9px;padding:12px;background:linear-gr
 nav{display:flex;gap:4px;padding:8px;background:#131b2c;border-bottom:1px solid #29344d}
 .tab{flex:1;border:1px solid transparent;border-radius:8px;padding:8px 3px;background:transparent;color:#9eabc7;font-size:10px;font-weight:750}
 .tab.active{background:#2b2850;border-color:#6056a3;color:#e6e1ff}
-main{padding:12px;overflow:auto;min-height:0}.view{display:none}.view.active{display:block}
+main{padding:12px;overflow:auto;min-height:0}@keyframes waynovo-panel-in{from{opacity:0;transform:translate3d(0,12px,0) scale(.985)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}@keyframes waynovo-view-in{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}.view{display:none}.view.active{display:block;animation:waynovo-view-in .18s ease both}
 .eyebrow{font-size:9px;font-weight:850;letter-spacing:1px;text-transform:uppercase;color:#998bff;margin:1px 0 7px}
 .desc{color:#9da9c2;font-size:10px;line-height:1.5;margin:4px 0 9px}
 label{display:block;margin:10px 0 5px;color:#cbd4e9;font-size:10px;font-weight:750}
@@ -140,9 +140,9 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 @media(min-width:641px) and (max-height:600px){
  .panel{max-height:94vh}
 }
-</style>
+button,a,input,textarea,select{transition:color .16s ease,background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #a99aff;outline-offset:2px}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}</style>
 <section class="panel" id="panel" role="dialog" aria-label="Painel Waynovo">
-<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 6.2 · MUSIC + BOOKMARKLET SUITE</div></div><div class="spacer"></div>
+<header id="drag"><div class="logo">W</div><div><div class="brand">WAYNOVO</div><div class="version">UNIFIED TOOLKIT · 6.3 · FEITO PELO RUSSO</div></div><div class="spacer"></div>
 <button class="icon" id="theme" title="Tema">◐</button><button class="icon" id="min" title="Minimizar">−</button><button class="icon" id="close" title="Fechar">×</button></header>
 <nav><button class="tab active" data-tab="study">Estudo</button><button class="tab" data-tab="modules">Módulos</button><button class="tab" data-tab="cards">Cartões</button><button class="tab" data-tab="tools">Texto</button><button class="tab" data-tab="focus">Foco</button><button class="tab" data-tab="media">Player</button><button class="tab" data-tab="extras">Extras</button><button class="tab" data-tab="ai">IA</button><button class="tab" data-tab="automation">Automação</button><button class="tab" data-tab="bypass">Bypass Lab</button><button class="tab" data-tab="autopilot">Autopilot</button><button class="tab" data-tab="questions">Questões</button><button class="tab" data-tab="cognitive">Cérebro</button></nav>
 <main>
@@ -619,10 +619,17 @@ $('lower').addEventListener('click',()=>{$('editor').value=$('editor').value.toL
 $('copyEditor').addEventListener('click',async()=>{const s=$('editor').value;if(!s)return status('toolStatus','Nada para copiar.');status('toolStatus',await copy(s)?'Copiado.':'Cópia bloqueada.');});
 function drawNotes(){const list=$('notes');list.replaceChildren();if(!state.notes.length){const p=document.createElement('div');p.className='meta';p.textContent='Nenhuma nota salva.';list.appendChild(p);return;}state.notes.slice().reverse().forEach(note=>{const row=document.createElement('div');row.className='noteitem';const info=document.createElement('div');info.className='noteinfo';const name=document.createElement('div');name.className='notetitle';name.textContent=note.text.split(/\s+/).slice(0,8).join(' ').slice(0,65);const date=document.createElement('div');date.className='notedate';date.textContent=note.date;info.append(name,date);const open=document.createElement('button');open.className='btn';open.textContent='Abrir';open.addEventListener('click',()=>{$('editor').value=note.text;$('editor').dispatchEvent(new Event('input'));});const del=document.createElement('button');del.className='btn';del.textContent='×';del.addEventListener('click',()=>{state.notes=state.notes.filter(x=>x!==note);save();drawNotes();});row.append(info,open,del);list.appendChild(row);});}
 $('saveNote').addEventListener('click',()=>{const s=$('editor').value.trim();if(!s)return status('toolStatus','Escreva algo antes de salvar.');state.notes.push({text:s.slice(0,12000),date:new Date().toLocaleString('pt-BR')});state.notes=state.notes.slice(-100);save();drawNotes();status('toolStatus','Nota salva neste navegador.');});drawNotes();
-let remain=25*60,interval=null;function drawTimer(){$('timer').textContent=String(Math.floor(remain/60)).padStart(2,'0')+':'+String(remain%60).padStart(2,'0');}
-function resetTimer(){if(interval)clearInterval(interval);interval=null;remain=Number($('duration').value)*60;$('toggleTimer').textContent='Iniciar';$('timerStatus').textContent='Pronto para começar';drawTimer();}
+let remain=25*60,interval=null,timerDeadline=0;
+function drawTimer(){$('timer').textContent=String(Math.floor(remain/60)).padStart(2,'0')+':'+String(remain%60).padStart(2,'0');}
+function finishTimer(){if(interval)clearInterval(interval);interval=null;timerDeadline=0;remain=0;drawTimer();$('toggleTimer').textContent='Iniciar';$('timerStatus').textContent='Sessão concluída. Faça uma pausa.';}
+function tickTimer(){if(!timerDeadline)return;remain=Math.max(0,Math.ceil((timerDeadline-Date.now())/1000));drawTimer();if(remain===0)finishTimer();}
+function resetTimer(){if(interval)clearInterval(interval);interval=null;timerDeadline=0;remain=Number($('duration').value)*60;$('toggleTimer').textContent='Iniciar';$('timerStatus').textContent='Pronto para começar';drawTimer();}
 $('duration').addEventListener('change',resetTimer);
-$('toggleTimer').addEventListener('click',()=>{if(interval){clearInterval(interval);interval=null;$('toggleTimer').textContent='Continuar';$('timerStatus').textContent='Pausado';return;}if(remain<=0)resetTimer();$('toggleTimer').textContent='Pausar';$('timerStatus').textContent='Foco em andamento';interval=setInterval(()=>{remain--;drawTimer();if(remain<=0){clearInterval(interval);interval=null;$('toggleTimer').textContent='Iniciar';$('timerStatus').textContent='Sessão concluída. Faça uma pausa.';}},1000);});
+$('toggleTimer').addEventListener('click',()=>{
+ if(interval){tickTimer();if(!interval)return;clearInterval(interval);interval=null;timerDeadline=0;$('toggleTimer').textContent='Continuar';$('timerStatus').textContent='Pausado';return;}
+ if(remain<=0)resetTimer();timerDeadline=Date.now()+remain*1000;
+ $('toggleTimer').textContent='Pausar';$('timerStatus').textContent='Foco em andamento';interval=setInterval(tickTimer,1000);
+});
 $('resetTimer').addEventListener('click',resetTimer);drawTimer();
 try{$('endpoint').value=sessionStorage.getItem(ENDPOINT)||'';}catch(_){}
 $('endpoint').addEventListener('change',()=>{try{sessionStorage.setItem(ENDPOINT,$('endpoint').value.trim());}catch(_){}});
@@ -1493,7 +1500,7 @@ function autoQueueCreatePack(){
 function autoQueueExport(){
  const report={
   product:'Waynovo Task Queue',
-  version:'6.2',
+  version:'6.3',
   exportedAt:new Date().toISOString(),
   counts:autoQueueCounts(),
   adapters:autoQueueListAdapters(),
