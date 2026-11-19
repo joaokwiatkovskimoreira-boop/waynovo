@@ -322,3 +322,20 @@ test('Extras tools are read-only reports and do not submit forms or fetch remote
   assert.match(extras, /extraA11y/);
   assert.match(extras, /extraMeta/);
 });
+
+test('bookmarklet avoids dynamic code evaluation and cookie access', () => {
+  assert.doesNotMatch(source, /\beval\s*\(/);
+  assert.doesNotMatch(source, /new Function/);
+  assert.doesNotMatch(source, /document\.cookie/);
+  assert.doesNotMatch(source, /form\.submit\s*\(/);
+  assert.match(source, /labState'\)\.textContent/);
+});
+
+test('CSV, performance and selector tools expose local-only output', () => {
+  assert.match(source, /extraTables/);
+  assert.match(source, /text\/csv;charset=utf-8/);
+  assert.match(source, /extraPerformance/);
+  assert.match(source, /getEntriesByType\('navigation'\)/);
+  assert.match(source, /extraSelector/);
+  assert.match(source, /querySelectorAll\(selector\)/);
+});
