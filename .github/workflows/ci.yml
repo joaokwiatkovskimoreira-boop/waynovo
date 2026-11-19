@@ -23,6 +23,12 @@ jobs:
         run: |
           node --check bookmarklet.js
           node --check app.js
+          node --check features.js
+          node --check planner.js
+          node --check service-worker.js
+          node --check bypass-engine.js
           node --input-type=module --check < worker.js
+      - name: Validate web manifest
+        run: node -e "JSON.parse(require('node:fs').readFileSync('manifest.webmanifest', 'utf8'))"
       - name: Run test suite
         run: node --test tests/*.test.js
