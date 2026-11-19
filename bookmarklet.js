@@ -484,7 +484,7 @@ $('extraNotebook').addEventListener('click',()=>{
 $('extrasCopy').addEventListener('click',async()=>{const text=$('extrasOutput').value;if(!text)return status('extrasStatus','Não há relatório para copiar.');status('extrasStatus',await copy(text)?'Relatório copiado.':'Não foi possível copiar.');});
 $('extrasDownload').addEventListener('click',()=>{
  const text=$('extrasOutput').value;if(!text)return status('extrasStatus','Não há relatório para baixar.');
- const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=extrasFilename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ const payload=extrasFilename.endsWith('.csv')?'\uFEFF'+text:text;const mime=extrasFilename.endsWith('.csv')?'text/csv;charset=utf-8':'text/plain;charset=utf-8';const url=URL.createObjectURL(new Blob([payload],{type:mime}));const link=document.createElement('a');link.href=url;link.download=extrasFilename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 
 $('source').addEventListener('input',()=>{$('count').textContent=words($('source').value)+' palavras · '+$('source').value.length+' caracteres';});
@@ -593,7 +593,7 @@ root.querySelectorAll('[data-module]').forEach(btn=>btn.addEventListener('click'
  activateTab('study');$('output').focus();
 }));
 const lab={session:false,page:'início',progress:0,answer:''};
-function drawLab(){ $('labState').innerHTML='Sessão: '+(lab.session?'conectada (fictícia)':'desconectada')+'<br>Página: '+lab.page+'<br>Progresso: '+lab.progress+'%<br>Resposta: '+(lab.answer||'vazia'); }
+function drawLab(){ $('labState').style.whiteSpace='pre-wrap';$('labState').textContent='Sessão: '+(lab.session?'conectada (fictícia)':'desconectada')+'\nPágina: '+lab.page+'\nProgresso: '+lab.progress+'%\nResposta: '+(lab.answer||'vazia'); }
 function runLab(){
  const flows={
  study:[['Abrir ambiente de demonstração',()=>{lab.page='painel de estudo';}],['Criar sessão fictícia',()=>{lab.session=true;}],['Abrir atividade de exemplo',()=>{lab.page='atividade de treino';}],['Registrar resposta de teste',()=>{lab.answer='resposta demonstrativa';}],['Atualizar progresso simulado',()=>{lab.progress=40;}],['Concluir etapa de laboratório',()=>{lab.progress=100;}]],
