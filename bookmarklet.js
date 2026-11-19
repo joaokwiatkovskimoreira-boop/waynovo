@@ -650,7 +650,7 @@ $('askAI').addEventListener('click',async()=>{
   if(!response.ok)throw new Error(data.error||'Gateway HTTP '+response.status);
   if(typeof data.text!=='string'||!data.text.trim())throw new Error('Resposta vazia do gateway.');
   $('output').value=data.text.trim();
-  const usage=data.usage?' · '+usage.inputTokens+' entrada / '+usage.outputTokens+' saída tokens':'';
+  const usage=data.usage?' · '+(Number.isFinite(Number(data.usage.inputTokens))?Number(data.usage.inputTokens):0)+' entrada / '+(Number.isFinite(Number(data.usage.outputTokens))?Number(data.usage.outputTokens):0)+' saída tokens':'';
   status('aiStatus','Resposta via '+(data.provider||provider)+' / '+(data.model||'modelo')+(data.fallbackUsed?' · fallback usado':'')+usage+'. Revise o resultado.');
   activateTab('study');
  }catch(error){status('aiStatus',error.name==='AbortError'?'Tempo limite excedido.':error.message||'Falha no gateway.');}
