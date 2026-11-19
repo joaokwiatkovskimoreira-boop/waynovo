@@ -49,12 +49,16 @@ test('Autopilot analyzes locally and does not submit forms or call a network API
 test('closing or toggling the bookmarklet cleans up Autopilot timers', () => {
   assert.match(source, /old\.__waynovoCleanup\(\)/);
   assert.match(source, /host\.__waynovoCleanup=close/);
-  const close = source.match(/function close\(\)\{[^}]+\}/);
-  assert.ok(close);
-  assert.match(close[0], /autoScannerInterval/);
-  assert.match(close[0], /autoClockInterval/);
-  assert.match(close[0], /autoObserver/);
-  assert.match(close[0], /autoQueueTimer/);
+  const closeStart = source.indexOf('function close(){');
+  const closeEnd = source.indexOf('host.__waynovoCleanup=close;', closeStart);
+  assert.ok(closeStart >= 0 && closeEnd > closeStart);
+  const close = source.slice(closeStart, closeEnd);
+  assert.match(close, /autoScannerInterval/);
+  assert.match(close, /autoClockInterval/);
+  assert.match(close, /autoObserver/);
+  assert.match(close, /autoQueueTimer/);
+  assert.match(close, /mediaWakeSentinel/);
+  assert.match(close, /mediaWakeVisibilityHandler/);
 });
 
 test('Autopilot extracts inline and sibling A-E alternatives and bridges to Tutor', () => {
@@ -231,7 +235,7 @@ test('Android installer and service worker point to the current bookmarklet rele
   const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
   const worker = fs.readFileSync(path.join(__dirname, '..', 'service-worker.js'), 'utf8');
   assert.ok(app.includes('bookmarklet.js?v=6.2'));
-  assert.match(worker, /waynovo-shell-v13/);
+  assert.match(worker, /waynovo-shell-v14/);
 });
 
 
@@ -367,4 +371,12 @@ test('JSON formatter parses data without executing scripts', () => {
   assert.match(source, /JSON\.stringify\(value,null,2\)/);
   assert.match(source, /application\/json;charset=utf-8/);
   assert.match(source, /extraJson/);
+});
+
+test('screen wake lock is opt-in, visibility-aware and explicitly released', () => {
+  assert.match(source, /mediaWakeLock'\)\.addEventListener\('click'/);
+  assert.match(source, /navigator\.wakeLock\.request\('screen'\)/);
+  assert.match(source, /document\.visibilityState==='visible'/);
+  assert.match(source, /sentinel\.release\(\)/);
+  assert.match(source, /Tela ativa desativada/);
 });
