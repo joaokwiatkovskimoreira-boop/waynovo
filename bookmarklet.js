@@ -413,7 +413,9 @@ $('extraLinks').addEventListener('click',()=>{
 });
 $('extraA11y').addEventListener('click',()=>{
  const visible=selector=>Array.from(document.querySelectorAll(selector)).filter(visibleElement);
- const images=visible('img').filter(img=>!img.hasAttribute('alt')||(!img.getAttribute('alt').trim()&&!img.getAttribute('role')?.includes('presentation')));
+ const allImages=visible('img');
+ const images=allImages.filter(img=>!img.hasAttribute('alt'));
+ const emptyAlt=allImages.filter(img=>img.hasAttribute('alt')&&!img.getAttribute('alt').trim()&&img.getAttribute('role')!=='presentation');
  const controls=visible('button,input,select,textarea,[role="button"],[role="link"]');
  const unlabeled=controls.filter(el=>{
   if(el.labels&&el.labels.length)return false;
@@ -421,11 +423,12 @@ $('extraA11y').addEventListener('click',()=>{
  });
  const headings=visible('h1,h2,h3,h4,h5,h6');
  const issues=[];
- images.forEach(el=>issues.push('Imagem sem texto alternativo claro: '+(el.currentSrc||el.src||'(sem URL)').slice(0,180)));
+ images.forEach(el=>issues.push('Imagem sem atributo alt: '+(el.currentSrc||el.src||'(sem URL)').slice(0,180)));
+ emptyAlt.forEach(el=>issues.push('Imagem com alt vazio: confirme se é decorativa ou se precisa de descrição — '+(el.currentSrc||el.src||'(sem URL)').slice(0,150)));
  unlabeled.forEach(el=>issues.push('Controle sem nome acessível claro: <'+el.tagName.toLowerCase()+'> '+String(el.outerHTML||'').slice(0,160)));
  let last=0;
  headings.forEach(el=>{const level=Number(el.tagName.slice(1));if(last&&level>last+1)issues.push('Salto na hierarquia de títulos: '+el.tagName+' após H'+last+' — '+String(el.innerText||'').trim().slice(0,100));last=level;});
- const report=['AUDITORIA HEURÍSTICA DE ACESSIBILIDADE','Elementos visíveis analisados: '+(images.length+controls.length+headings.length),'Imagens sem alt: '+images.length,'Controles sem nome claro: '+unlabeled.length,'Títulos visíveis: '+headings.length,'','PONTOS PARA REVISAR',...(issues.length?issues:['Nenhum dos problemas heurísticos selecionados foi encontrado.']),'','Nota: análise estática simplificada; não substitui testes com teclado, leitor de tela ou auditoria WCAG completa.'];
+ const report=['AUDITORIA HEURÍSTICA DE ACESSIBILIDADE','Elementos visíveis analisados: '+(images.length+controls.length+headings.length),'Imagens sem atributo alt: '+images.length,'Imagens com alt vazio a revisar: '+emptyAlt.length,'Controles sem nome claro: '+unlabeled.length,'Títulos visíveis: '+headings.length,'','PONTOS PARA REVISAR',...(issues.length?issues:['Nenhum dos problemas heurísticos selecionados foi encontrado.']),'','Nota: análise estática simplificada; não substitui testes com teclado, leitor de tela ou auditoria WCAG completa.'];
  showExtrasReport(report.join('\n'));
 });
 $('extraMeta').addEventListener('click',()=>{
@@ -461,7 +464,7 @@ $('extraPerformance').addEventListener('click',()=>{
   ['DOM interativo',navEntry?Math.round(navEntry.domInteractive)+' ms':'indisponível'],
   ['DOM pronto',navEntry?Math.round(navEntry.domContentLoadedEventEnd)+' ms':'indisponível'],
   ['Recursos registrados',String(resources.length)],
-  ['Transferência estimada',bytes?Math.round(bytes/1024)+' KiB':'indisponível / bloqueada por política do navegador']
+  ['Transferência estimada',bytes?Math.round(bytes/1024)+' KiB':'não reportada (cache/TAO/política do navegador)']
  ];
  showExtrasReport(['DIAGNÓSTICO LOCAL DE DESEMPENHO','',...rows.map(x=>x[0]+': '+x[1]),'','Medições usam Navigation/Resource Timing API; cache, TAO e navegador podem limitar os valores.'].join('\n'));
 });
