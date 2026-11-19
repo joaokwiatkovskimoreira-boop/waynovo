@@ -19,7 +19,7 @@ test('backup import is size-limited and normalizes duplicate task/card IDs', () 
   assert.match(app, /known\.add\(taskId\)/);
   assert.match(app, /\.slice\(0,1000\)\.map\(card=>/);
   assert.match(app, /have\.add\(cardId\)/);
-  assert.match(app, /\^\\d\{4\}-\\d\{2\}-\\d\{2\}\$/);
+  assert.ok(app.includes('/^\\d{4}-\\d{2}-\\d{2}$/'));
   assert.match(app, /Number\.isFinite\(imported\)&&imported>=0/);
   assert.match(app, /content:t\.content\.slice\(0,100000\)/);
 });
