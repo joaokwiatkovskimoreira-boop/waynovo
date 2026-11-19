@@ -314,6 +314,9 @@ test('integrated player uses local queue state and documented playlist embed par
   assert.match(source, /mediaPrevious/);
   assert.match(source, /mediaStop/);
   assert.match(source, /music\.youtube\.com\/search\?q=/);
+  assert.match(source, /navigator\.wakeLock\.request\('screen'\)/);
+  assert.match(source, /mediaWakeVisibilityHandler/);
+  assert.match(source, /removeEventListener\('visibilitychange',mediaWakeVisibilityHandler\)/);
 });
 
 test('Extras tools are read-only reports and do not submit forms or fetch remote scripts', () => {
