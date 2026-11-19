@@ -171,7 +171,7 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <label for="mediaSearch">Buscar música ou artista</label><input id="mediaSearch" type="search" placeholder="Ex.: Daft Punk, música, álbum...">
 <div class="row"><button class="btn" id="mediaSearchBtn">Buscar no YouTube Music</button><a class="btn" id="mediaSearchOpen" href="https://music.youtube.com/" target="_blank" rel="noopener noreferrer" hidden>Abrir resultados</a></div>
 <div class="box"><div id="mediaNowPlaying" style="font-size:11px;font-weight:800;margin-bottom:8px">Nenhuma reprodução iniciada</div><div class="media-frame"><iframe id="mediaFrame" title="Player oficial do YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
-<div class="row"><button class="btn" id="mediaPrevious">← Anterior</button><button class="btn" id="mediaNext">Próximo →</button><button class="btn" id="mediaStop">Parar</button></div><div class="status" id="mediaStatus">O YouTube pode exigir um toque em Reproduzir; o player respeita as restrições do navegador.</div></div>
+<div class="row"><button class="btn" id="mediaPrevious">← Anterior</button><button class="btn" id="mediaNext">Próximo →</button><button class="btn" id="mediaStop">Parar</button></div><div class="row"><button class="btn soft" id="mediaWakeLock">Manter tela ativa</button><span class="meta" id="mediaWakeStatus">Desativado · controle opcional do dispositivo</span></div><div class="status" id="mediaStatus">O YouTube pode exigir um toque em Reproduzir; o player respeita as restrições do navegador.</div></div>
 <div class="row"><button class="btn" id="mediaClearQueue">Limpar fila</button><span class="meta" id="mediaQueueCount">0 itens</span></div><div id="mediaQueue"><div class="meta">Sua fila está vazia. Cole um link para começar.</div></div>
 <div class="hint">Usa o player oficial incorporado. Não baixa áudio, não remove anúncios e não contorna restrições. A busca abre os resultados oficiais do YouTube Music em outra aba; reprodução incorporada exige um link ou ID.</div></section>
 <section class="view" data-view="extras"><div class="eyebrow">Biblioteca de bookmarklets internos</div><div class="desc">Utilitários executados pelo Waynovo na página aberta: leitura, mapa de títulos, auditoria de links, acessibilidade e metadados. Tudo local e limitado ao conteúdo visível.</div>
@@ -379,6 +379,47 @@ $('mediaSearchBtn').addEventListener('click',()=>{
  status('mediaStatus','Busca solicitada no YouTube Music. Se a nova aba não abrir, toque em Abrir resultados.');
 });
 renderMediaQueue();
+let mediaWakeEnabled=false,mediaWakeSentinel=null;
+function updateMediaWakeUi(){
+ $('mediaWakeLock').textContent=mediaWakeEnabled?'Desativar tela ativa':'Manter tela ativa';
+ $('mediaWakeStatus').textContent=mediaWakeEnabled?'Ativo quando esta aba estiver visível':'Desativado · controle opcional do dispositivo';
+}
+async function requestMediaWakeLock(){
+ if(!mediaWakeEnabled)return;
+ if(!navigator.wakeLock||typeof navigator.wakeLock.request!=='function'){
+  mediaWakeEnabled=false;updateMediaWakeUi();status('mediaWakeStatus','Não suportado neste navegador ou contexto.');return;
+ }
+ try{
+  const sentinel=await navigator.wakeLock.request('screen');
+  if(!mediaWakeEnabled){await sentinel.release();return;}
+  mediaWakeSentinel=sentinel;
+  sentinel.addEventListener('release',()=>{
+   mediaWakeSentinel=null;
+   if(mediaWakeEnabled&&document.visibilityState==='visible'){
+    mediaWakeEnabled=false;updateMediaWakeUi();status('mediaWakeStatus','O sistema liberou a tela ativa. Toque para tentar novamente.');
+   }else if(mediaWakeEnabled){
+    status('mediaWakeStatus','Suspenso enquanto a aba está em segundo plano; será solicitado novamente ao retornar.');
+   }else updateMediaWakeUi();
+  },{once:true});
+  updateMediaWakeUi();status('mediaWakeStatus','Tela ativa solicitada ao navegador.');
+ }catch(error){
+  mediaWakeSentinel=null;mediaWakeEnabled=false;updateMediaWakeUi();
+  status('mediaWakeStatus','Não foi possível ativar: '+String(error&&error.message||'permissão ou política do dispositivo').slice(0,100));
+ }
+}
+async function disableMediaWakeLock(){
+ mediaWakeEnabled=false;const sentinel=mediaWakeSentinel;mediaWakeSentinel=null;
+ if(sentinel){try{await sentinel.release();}catch(_){}}
+ updateMediaWakeUi();status('mediaWakeStatus','Tela ativa desativada.');
+}
+$('mediaWakeLock').addEventListener('click',async()=>{
+ if(mediaWakeEnabled){await disableMediaWakeLock();return;}
+ mediaWakeEnabled=true;updateMediaWakeUi();await requestMediaWakeLock();
+});
+function mediaWakeVisibilityHandler(){
+ if(document.visibilityState==='visible'&&mediaWakeEnabled&&!mediaWakeSentinel)requestMediaWakeLock();
+}
+document.addEventListener('visibilitychange',mediaWakeVisibilityHandler);
 let extrasFilename='waynovo-relatorio.txt';
 function showExtrasReport(text,filename){$('extrasOutput').value=String(text||'');extrasFilename=filename||'waynovo-relatorio.txt';status('extrasStatus','Relatório criado localmente · '+$('extrasOutput').value.length+' caracteres.');}
 function visibleElement(el){
@@ -1623,7 +1664,7 @@ autoStart();
 root.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===b.dataset.tab));if(touchLayout())b.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}));
 $('theme').addEventListener('click',()=>{host.dataset.theme=host.dataset.theme==='light'?'dark':'light';});
 $('min').addEventListener('click',()=>{$('panel').classList.toggle('minimized');$('min').textContent=$('panel').classList.contains('minimized')?'+':'−';});
-function close(){if(interval)clearInterval(interval);if(autoQueueTimer)clearTimeout(autoQueueTimer);if(autoScannerInterval)clearInterval(autoScannerInterval);if(autoClockInterval)clearInterval(autoClockInterval);if(autoObserver)autoObserver.disconnect();if(autoDebounce)clearTimeout(autoDebounce);autoPersist();host.remove();}
+function close(){mediaWakeEnabled=false;document.removeEventListener('visibilitychange',mediaWakeVisibilityHandler);if(mediaWakeSentinel){const wake=mediaWakeSentinel;mediaWakeSentinel=null;wake.release().catch(()=>{});}if(interval)clearInterval(interval);if(autoQueueTimer)clearTimeout(autoQueueTimer);if(autoScannerInterval)clearInterval(autoScannerInterval);if(autoClockInterval)clearInterval(autoClockInterval);if(autoObserver)autoObserver.disconnect();if(autoDebounce)clearTimeout(autoDebounce);autoPersist();host.remove();}
 host.__waynovoCleanup=close;
 $('close').addEventListener('click',close);root.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
 let drag=null;const touchLayout=()=>window.matchMedia&&window.matchMedia('(pointer: coarse), (max-width: 640px)').matches;$('drag').addEventListener('pointerdown',e=>{if(touchLayout()||e.target.closest('button'))return;const r=host.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};$('drag').setPointerCapture(e.pointerId);});
