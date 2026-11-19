@@ -185,8 +185,12 @@ nav{overflow-x:auto;scrollbar-width:thin}.tab{flex:0 0 auto;min-width:58px;white
 <article class="module-card"><b>Tabela → CSV</b><p>Exporta uma tabela HTML visível para um arquivo CSV local.</p><button class="btn primary" id="extraTables">Exportar tabela</button></article>
 <article class="module-card"><b>Diagnóstico de desempenho</b><p>Resume tempos de carregamento e recursos registrados pelo navegador.</p><button class="btn primary" id="extraPerformance">Medir página</button></article>
 <article class="module-card"><b>Inspetor de seletores CSS</b><p>Testa um seletor CSS e lista os primeiros elementos encontrados.</p><button class="btn primary" id="extraSelector">Testar seletor</button></article>
+<article class="module-card"><b>URL Toolkit</b><p>Analisa partes de uma URL e remove parâmetros comuns de rastreamento, redigindo tokens.</p><button class="btn primary" id="extraUrlTools">Analisar URL</button></article>
+<article class="module-card"><b>JSON Formatter</b><p>Valida JSON e formata com indentação legível sem executar o conteúdo.</p><button class="btn primary" id="extraJson">Validar e formatar JSON</button></article>
 </div>
 <label for="extrasSelectorInput">Seletor CSS (para o inspetor)</label><input id="extrasSelectorInput" type="text" placeholder="Ex.: article h2, main a, .card">
+<label for="extrasUrlInput">URL (para URL Toolkit)</label><input id="extrasUrlInput" type="text" placeholder="https://exemplo.com/caminho?utm_source=...">
+<label for="extrasJsonInput">JSON (para JSON Formatter)</label><textarea id="extrasJsonInput" style="min-height:85px" placeholder="{ &quot;status&quot;: &quot;ok&quot; }"></textarea>
 <label for="extrasOutput">Relatório da ferramenta</label><textarea id="extrasOutput" class="output" readonly placeholder="Os relatórios aparecem aqui."></textarea>
 <div class="row"><button class="btn" id="extrasCopy">Copiar relatório</button><button class="btn" id="extrasDownload">Baixar TXT</button></div><div class="status" id="extrasStatus">As ferramentas não executam scripts de terceiros nem alteram respostas em páginas externas.</div></section>
 <section class="view" data-view="ai"><div class="eyebrow">Assistente opcional</div><div class="desc">Local gratuito por padrão. IA online opcional somente por modelos gratuitos permitidos no gateway.</div>
@@ -482,6 +486,33 @@ $('extraSelector').addEventListener('click',()=>{
  });
  showExtrasReport(['TESTE DE SELETOR CSS','Seletor: '+selector,'Correspondências totais: '+matches.length,'Elementos visíveis: '+visible.length,'',...(lines.length?lines:['Nenhum elemento visível encontrado.'])].join('\n'));
 });
+
+$('extraUrlTools').addEventListener('click',()=>{
+ const raw=$('extrasUrlInput').value.trim()||location.href;
+ let url;try{url=new URL(raw,location.href);}catch(_){return showExtrasReport('URL inválida. Informe um endereço HTTP ou HTTPS.');}
+ if(!['http:','https:'].includes(url.protocol))return showExtrasReport('Protocolo não permitido para esta ferramenta: '+url.protocol);
+ const tracking=/^(utm_[a-z0-9_]+|gclid|dclid|fbclid|msclkid|igshid|mc_cid|mc_eid)$/i;
+ const sensitive=/(token|auth|api.?key|password|passwd|secret|session|credential|code)$/i;
+ const params=[];
+ url.searchParams.forEach((value,key)=>params.push(key+'='+ (sensitive.test(key)?'[redigido]':value)));
+ const clean=new URL(url.href);
+ Array.from(clean.searchParams.keys()).forEach(key=>{if(tracking.test(key))clean.searchParams.delete(key);else if(sensitive.test(key))clean.searchParams.set(key,'[redigido]');});
+ const report=['URL TOOLKIT · ANÁLISE LOCAL','Protocolo: '+url.protocol,'Host: '+url.host,'Caminho: '+url.pathname,'Parâmetros: '+params.length,...(params.length?params.map(x=>'• '+x):['• nenhum']),'','URL com parâmetros de rastreamento removidos e valores sensíveis redigidos:',clean.toString(),'','Nenhuma navegação foi realizada; a URL apenas foi analisada.'];
+ showExtrasReport(report.join('\n'),'waynovo-url-analisada.txt');
+});
+$('extraJson').addEventListener('click',()=>{
+ const raw=$('extrasJsonInput').value.trim()||$('editor').value.trim();
+ if(!raw)return status('extrasStatus','Cole JSON no campo ou na aba Texto.');
+ try{
+  const value=JSON.parse(raw);
+  const formatted=JSON.stringify(value,null,2);
+  showExtrasReport(formatted,'waynovo-json-formatado.json');
+  status('extrasStatus','JSON válido · '+formatted.length+' caracteres · nenhum código foi executado.');
+ }catch(error){
+  showExtrasReport('JSON inválido.\n\n'+String(error&&error.message||error)+'\n\nO conteúdo foi apenas analisado por JSON.parse; não foi executado.');
+  status('extrasStatus','JSON inválido · revise a sintaxe e tente novamente.');
+ }
+});
 $('extraNotebook').addEventListener('click',()=>{
  const selected=selection();if(!selected)return status('extrasStatus','Selecione texto visível na página antes de capturar.');
  $('editor').value=selected;$('editor').dispatchEvent(new Event('input'));activateTab('tools');status('toolStatus','Seleção enviada ao editor local.');status('extrasStatus','Texto selecionado copiado para a aba Texto.');
@@ -489,7 +520,7 @@ $('extraNotebook').addEventListener('click',()=>{
 $('extrasCopy').addEventListener('click',async()=>{const text=$('extrasOutput').value;if(!text)return status('extrasStatus','Não há relatório para copiar.');status('extrasStatus',await copy(text)?'Relatório copiado.':'Não foi possível copiar.');});
 $('extrasDownload').addEventListener('click',()=>{
  const text=$('extrasOutput').value;if(!text)return status('extrasStatus','Não há relatório para baixar.');
- const payload=extrasFilename.endsWith('.csv')?'\uFEFF'+text:text;const mime=extrasFilename.endsWith('.csv')?'text/csv;charset=utf-8':'text/plain;charset=utf-8';const url=URL.createObjectURL(new Blob([payload],{type:mime}));const link=document.createElement('a');link.href=url;link.download=extrasFilename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ const payload=extrasFilename.endsWith('.csv')?'\uFEFF'+text:text;const mime=extrasFilename.endsWith('.csv')?'text/csv;charset=utf-8':extrasFilename.endsWith('.json')?'application/json;charset=utf-8':'text/plain;charset=utf-8';const url=URL.createObjectURL(new Blob([payload],{type:mime}));const link=document.createElement('a');link.href=url;link.download=extrasFilename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 
 $('source').addEventListener('input',()=>{$('count').textContent=words($('source').value)+' palavras · '+$('source').value.length+' caracteres';});
