@@ -108,7 +108,7 @@
       if(data.studyStats&&typeof data.studyStats==='object'){
         try{
           const currentStats=JSON.parse(localStorage.getItem('waynovo.flashcards.stats.v1')||'{}');
-          Object.keys(data.studyStats).forEach(key=>{currentStats[key]=Math.max(Number(currentStats[key]||0),Number(data.studyStats[key]||0));});
+          Object.keys(data.studyStats).slice(0,400).forEach(key=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(key))return;const imported=Number(data.studyStats[key]),current=Number(currentStats[key]||0);if(Number.isFinite(imported)&&imported>=0)currentStats[key]=Math.max(Number.isFinite(current)?current:0,imported);});
           localStorage.setItem('waynovo.flashcards.stats.v1',JSON.stringify(currentStats));
         }catch(_){}
       }
